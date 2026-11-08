@@ -45,6 +45,9 @@ Each item says who does it, what to do, and what "done" means. **Mog-run** means
 
 ## P2: hardening and polish
 
+- **UI craft pass with `impeccable` (Mode: Operate).** Run `critique`, then `audit`, then `polish` / `harden` / `clarify` on `static/index.html`. Use `break-ui` worst-case data on every panel, and `emil-design-eng` for motion. Remove every sign of AI-made UI listed in `adopted_skills/ADOPTION.md`. Keep the dark console identity and the sponsor accents. Done when the critique has no high-severity items, break-ui shows no overflow or crash, and 0 console errors.
+- **Security pass** with the Trail of Bits skills: `entry-point-analyzer`, then `agentic-actions-auditor` (rescue/coach tool loops), then `sharp-edges`. Add property-based tests for the matcher and redaction (`tob-property-based-testing`).
+
 - `click-path-audit` and `browser-qa` on the full flow, every lens, at 1440×900 and 1280×800, with 0 console errors.
 - `santa-method` dual review of the product claims shown in the UI (no overclaims).
 - Load test: 20 concurrent phone verdicts plus 3 consents. No errors, and the event feed stays ordered.

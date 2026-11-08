@@ -11,7 +11,16 @@ The full handoff is in `_builder_context/`. Read it in this order:
 2. `11_RESEARCH_AND_PRODUCT_STRATEGY.md` (what each sponsor actually ships and the Nemotron model family, which is how we win)
 3. `08_BACKLOG.md` (your work list, with what "done" means)
 4. Files 01–07, 09 and 10
-5. `adopted_skills/ADOPTION.md`: working methods from an Anthropic hackathon winner's open-source Claude Code setup. Use `santa-method`, `click-path-audit`, `verification-loop`, `eval-harness`, `agent-security-hardening`, `browser-qa`.
+5. `adopted_skills/ADOPTION.md`: 32 curated skills we pulled from X and GitHub.
+   - Sources:
+     - an Anthropic hackathon winner's setup (ECC)
+     - obra/superpowers
+     - Impeccable and Emil Kowalski's design skills (anti-AI-slop UI)
+     - Anthropic's official skills
+     - NVIDIA's official Nemotron skills
+     - Trail of Bits security skills
+   - **First action: install them into `.claude/skills/` with the command in ADOPTION.md** (taste-skill is reference-only, because it carries a hook).
+   - Use them: superpowers for planning, parallel sub-agents, TDD, debugging and verification; impeccable/break-ui for the UI; the NVIDIA skills for the content-safety policy and embed/rerank; Trail of Bits for security.
 6. `api_samples/`, `screenshots/`, `snapshots/`
 
 ## Situation
