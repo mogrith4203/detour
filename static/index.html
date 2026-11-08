@@ -792,7 +792,7 @@ async function deliver(text, sender, known) {
     const rules = S.rules || await refreshRules();
     if (!rules) throw new Error("no rules");
     // The matcher runs here. The per-sender thread lives only in this tab's memory.
-    res = await DetourMatcher.checkOnPhone(text, sender, known, rules, known ? null : (S.threads[key] ||= []));
+    res = await DetourMatcher.checkOnPhone(text, sender, known, rules, known ? null : (sender ? (S.threads[key] ||= []) : []));
   } catch (e) { console.warn(e); await line("No skills synced to this phone yet. Message left unscreened.", "r", 0); phoneBusy = false; return; }
   await line(`Skills v${esc(rulesVersion())} · synced ${esc(Math.max(0, Math.round((Date.now() - S.rulesAt) / 1000)))}s ago`, "", 140);
   for (const st of res.steps || []) await renderStep(st, line, od);

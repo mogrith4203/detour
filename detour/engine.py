@@ -221,8 +221,9 @@ class Engine:
             steps.append({"stage": "contact", "note": "Sender is a saved contact. Not screened."})
             return {"check_id": check_id, "steps": steps, "cloud_bytes": 0,
                     "card": {"level": "clear", "title": "From a saved contact", "why": [], "next_step": ""}, "state": self.state()}
-        key = sender or "unknown"
-        thread = self.threads.setdefault(key, [])
+        # Thread scoring only joins messages from the SAME known sender id. No sender -> score the message alone
+        # (a shared "unknown" bucket let one scam text bleed into unrelated messages; found by trials.py).
+        thread = self.threads.setdefault(sender, []) if sender else []
         self._cap(self.threads)
         thread.append(text)
         del thread[:-THREAD_WINDOW]
