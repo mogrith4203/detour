@@ -39,4 +39,10 @@
 
 ## What X (Twitter) showed
 
-(Pending, to be filled after browsing X: what judges and hackathon winners post about AI-built projects, what reads as low-effort AI slop vs a strong demo, and pitch and demo-video patterns that win.)
+Browsed Nov 8, 2026, with Mog's account. Full notes and the skills we adopted are in `adopted_skills/ADOPTION.md`. What matters most for us:
+
+- **A judge said AI-generated scripts and AI voice in the video are an "instant let down".** Mog and Ayush must speak the voiceover themselves, from bullet points, in several takes. The video and live pitch should be raw and real.
+- **Live demo, not slides.** The time split for 3 minutes is ≤ 30 s problem, 90–120 s demo, 30–60 s tech, with the tech woven into the demo. Our script in 06 is close; keep the problem part to one or two sentences.
+- **README: write it without AI, in small points.** The builder can draft *facts* (commands, the architecture table), but the intro and "why" must be the team's own words.
+- **Name like a product; open with the problem in one sentence; build for THIS hackathon.** "Detour" works. Tie every lens to its sponsor's exact brief.
+- **Demo > code.** Judges have seen dozens of AI agents by lunch, so the distinct moments carry the pitch: the judge plays scammer, the network-tab privacy proof, the bail overdraft.

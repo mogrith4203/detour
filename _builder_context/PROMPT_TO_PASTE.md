@@ -5,7 +5,7 @@ You're the builder for my HackUTD 2026 project, "Detour". Take it from here to a
 My project folder on my Mac is:
 `~/Documents/Archives/AI Work/Claude/hackutd-research/Detour/`
 
-Inside it, `_builder_context/` has the full handoff. Read `_builder_context/00_START_HERE.md` first, then files 01–10 in order. Also look at `api_samples/`, `screenshots/` and `snapshots/` (code map, file tree, git log, test output). The code is the rest of that Detour folder, and the source of truth is GitHub: https://github.com/mogrith4203/detour (branch `main`).
+Inside it, `_builder_context/` has the full handoff. Read `_builder_context/00_START_HERE.md` first, then files 01–10 in order. Also look at `api_samples/`, `screenshots/` and `snapshots/` (code map, file tree, git log, test output), and `adopted_skills/`. That folder has skills from the open-source Claude Code setup of an Anthropic hackathon winner, plus judge advice from X. `adopted_skills/ADOPTION.md` says which skill to use for which Detour task. Use them as working methods, but my hard rules below win if anything conflicts. The code is the rest of that Detour folder, and the source of truth is GitHub: https://github.com/mogrith4203/detour (branch `main`).
 
 If you can't see my Mac folder, ask me to connect the "Detour" folder, or clone the GitHub repo. The `_builder_context/` folder is also in the repo.
 
@@ -27,7 +27,8 @@ If you can't see my Mac folder, ask me to connect the "Detour" folder, or clone 
    Fix what breaks: prompts, the tool-calling fallback, bugs.
 3. Then do P1/P2 items in priority order until 9:45, keeping all tests green. If you change matcher logic in `detour/core.py`, port it to `static/matcher.js` and keep the parity test at 0 differences.
 4. Fill the pitch's [X]/[Y]/[N]/[M] with LIVE benchmark numbers only, and draft the Devpost text in our voice (`09_VOICE_AND_STYLE.md`) for us to edit.
-5. Before freeze, run an independent red-team review of the app and pitch as judge and hacker, and fix what it finds.
+5. Before freeze, run an independent red-team review of the app and pitch as judge and hacker, using the `santa-method` dual-reviewer pattern and `click-path-audit`, and fix what it finds.
+6. Help us make the 2-minute video with `ui-demo` (Playwright recording of the real demo path). **We record the voiceover ourselves. No AI voice, no AI-written script read aloud.** Judges called that an instant let down.
 
 ## Hard rules
 

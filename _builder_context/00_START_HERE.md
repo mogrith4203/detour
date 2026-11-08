@@ -79,5 +79,6 @@ Full backend, all three lenses, the browser-side phone matcher with Python parit
 | api_samples/ | Real JSON responses captured from the running server (mock mode) |
 | screenshots/ | UI screenshots of every lens at 1440×900 |
 | snapshots/ | File tree with line counts, git log, pytest and bench output |
+| adopted_skills/ | Curated skills from the Anthropic-hackathon winner's open-source Claude Code setup (ECC, MIT), plus what judges and winners on X say wins. Read `adopted_skills/ADOPTION.md`, which maps each skill to a Detour task (demo video, dual-review gate, click-path audit, verification loop) |
 
 Also available: the living plan doc "Detour Build & Pitch Plan" at https://claude.ai/artifact/4HYugmaZU73oDKsj7EV3bU. It is a Claude Docs artifact on Mog's account; if you have the docs tools, read it there. It has the full v1→v2 design rationale, red-team passes 1–3 and the schedule. The essentials are copied into these files.
