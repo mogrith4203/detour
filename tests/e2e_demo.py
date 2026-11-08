@@ -101,7 +101,8 @@ def main():
             page.wait_for_timeout(600)
             page.fill("#scamComposer input, #scamComposer textarea", "whats ur card number grandma")
             page.locator("#scamComposer button[type=submit], #scamComposer button.send").first.click()
-            expect(page.locator("#lens-tmo")).to_contain_text("Canary", timeout=T, ignore_case=True)
+            expect(page.locator("#canaryChip")).to_be_visible(timeout=T)
+            expect(page.locator("#canaryChip")).to_contain_text("Canary", timeout=T, ignore_case=True)
             shot("decoy_stalls_and_hands_canary")
 
             # 3. PNC: payment cancelled automatically
