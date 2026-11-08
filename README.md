@@ -39,6 +39,7 @@ flowchart LR
 ./run.sh                       # sets up a venv, installs, opens http://localhost:8000
 python3 check_nemotron.py      # PASS/FAIL for chat, JSON, tool calling and claim extraction with your key
 ./live_check.sh                # one-shot: venv, Nemotron check, test set, live benchmark
+                               # (or double-click live_check.command / record_demo.command / start_live.command in Finder)
 python3 -m pytest -q tests     # unit, Echo, and JS↔Python parity tests (mock, no network)
 python3 tests/e2e_demo.py      # Playwright: full demo flow in MOCK, screenshots in results/flow/
 ```
@@ -73,6 +74,8 @@ The blocklist row is low by construction, because the test messages use new numb
 4. For a business, the phone sends only a hash of the message. The business says whether it sent it.
 5. "Not me" is a ground-truth scam label: the sender is tripwired, the thread goes to a decoy, the skill forge proposes an update that must pass the gate, and linked payments are cancelled.
 6. No answer is never treated as safe: safe-word prompt, cooling-off hold, and the on-device story check keep running.
+
+Model routing: the decoy persona runs on `nvidia/nemotron-3.5-bolt-e4b` (small, fast stalling). Claim extraction, rescue, forge and coach stay on `NEMOTRON_MODEL`, the model the benchmark measured. Every decoy reply is checked by `nvidia/llama-3.1-nemotron-safety-guard-8b-v3` before it's sent; an unsafe reply is swapped for a neutral stall line. Both ids were checked against our key with `probe_models.py`. Set `NEMOTRON_SMALL_MODEL=off` or `NEMOTRON_SAFETY_MODEL=off` to turn them off.
 
 Money rule (`Defense.gauntlet` in `detour/echo.py`): one signal can only warn. A hold needs 2 independent signal families (message, bank, carrier, Echo). A cancel needs the Echo denial plus one more.
 
