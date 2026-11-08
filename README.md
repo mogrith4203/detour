@@ -63,7 +63,7 @@ Admin buttons (load decoy history, reset, run benchmark) work only from the demo
 
 It uses three sets: the built-in held-out split, `data/generated.jsonl` (written by Nemotron with `datagen.py`, test split frozen), and `data/handwritten.jsonl` (written by a teammate who never saw the matcher). A campaign replay then sends each test message to 5 customers to count how many hosted calls the teaching loop saves. Thresholds are frozen at warn ≥ 0.60 and clear < 0.30.
 
-The blocklist row is low by construction, because the test messages use new numbers. Only quote numbers from a live run; the UI blurs mock-mode results.
+The blocklist row is low by construction, because the test messages use new numbers. The Nemotron-generated set has noisy labels: in its tune split (which we may read), several rows labeled "legit" ask for a fee or a deposit through a link, or come from a "grandchild" asking for cash. Detour's policy never marks those safe, so read false alarms on that set with that in mind. We didn't tune the matcher or thresholds to it. Only quote numbers from a live run; the UI blurs mock-mode results.
 
 ## Identity Echo
 
