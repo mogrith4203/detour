@@ -100,6 +100,13 @@ class Engine:
         while len(d) > n:
             d.pop(next(iter(d)))
 
+    def emit_guard(self, meta):
+        """Show the content-safety check on a decoy reply as its own agent in the NVIDIA feed."""
+        g = meta.pop("guard", None) if isinstance(meta, dict) else None
+        if g:
+            self.emit("Content-safety guard", "guard", output=f"{g['verdict']}" + (f" · {g['categories']}" if g.get("categories") else "")
+                      + f" · {g['checked_by']}", mode=g["mode"])
+
     def emit(self, agent, stage, **data):
         if getattr(self, "quiet", False):  # benchmark runs don't flood the live agent feed
             return
@@ -135,6 +142,7 @@ class Engine:
             self.emit("Scammer simulator", "message", output=short(line), mode="scripted")
             yield {"type": "msg", "who": "scammer", "text": line, "agent": "Scammer simulator (scripted)"}
             reply, meta = self.agents.persona_reply(persona, convo)
+            self.emit_guard(meta)
             convo.append({"who": "decoy", "text": reply})
             self.emit("Honeypot persona", "reply", input=short(line), output=short(reply), **meta)
             yield {"type": "msg", "who": "decoy", "text": reply, "agent": "Honeypot persona", "meta": meta}
@@ -169,6 +177,7 @@ class Engine:
         s["convo"].append({"who": "scammer", "text": text, "sender": s["sender"]})
         injected = bool(INJECTION_RE.search(text))
         reply, meta = self.agents.persona_reply(PERSONAS[s["decoy"]], s["convo"])
+        self.emit_guard(meta)
         s["convo"].append({"who": "decoy", "text": reply})
         self.emit("Honeypot persona", "reply", input=short(text), output=short(reply), injection=injected, **meta)
         return {"reply": reply, "meta": meta, "injection": injected}

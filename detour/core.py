@@ -346,18 +346,32 @@ class Agents:
         for turn in convo:
             msgs.append({"role": "user" if turn["who"] == "scammer" else "assistant", "content": turn["text"]})
         filtered = False
+        guard = None
+        model = None
         with Timer() as t:
             try:
-                out = self.llm.text(msgs, temperature=0.7, max_tokens=120)
+                model = self.llm.small_model or self.llm.model
+                out = self.llm.text(msgs, temperature=0.7, max_tokens=120, model=model)
                 mode = "nemotron"
                 if not out:
                     raise ValueError("empty")
                 if UNMASK_RE.search(out):  # never let the decoy reveal what it is
                     out, filtered = "Sorry dear, I don't follow. What did you need from me?", True
+                last = next((c["text"] for c in reversed(convo) if c["who"] == "scammer"), "")
+                safe, cats, gmode = self.llm.safety(last, out)
+                guard = {"checked_by": self.llm.safety_model if gmode in ("live", "replay") else "rules only", "mode": gmode,
+                         "verdict": "safe" if safe in (True, None) else "unsafe", "categories": cats}
+                if safe is False:  # Nemotron Safety Guard: the decoy never sends harmful text
+                    out, filtered = "Oh my, I don't like that kind of talk. Let me find my glasses.", True
             except Exception:
                 out = self._mock_persona(persona, len([c for c in convo if c["who"] == "decoy"]))
                 mode = "mock" if self.llm.mock else "fallback"
-        return out, {"mode": mode, "ms": t.ms, "filtered": filtered}
+        meta = {"mode": mode, "ms": t.ms, "filtered": filtered}
+        if model and mode == "nemotron":
+            meta["model"] = model
+        if guard:
+            meta["guard"] = guard
+        return out, meta
 
     def _mock_persona(self, persona, n):
         lines = [

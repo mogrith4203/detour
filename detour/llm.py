@@ -35,6 +35,14 @@ class Nemotron:
         self.replay = _env("DETOUR_REPLAY", "0") == "1"
         self.mock = (_env("DETOUR_MOCK", "0") == "1" or not self.key) and not self.replay
         self.thinking = _env("NEMOTRON_THINKING", "off")
+        # Model routing: the decoy persona uses a small fast model; everything measured by the benchmark stays on self.model.
+        # Both ids were verified with this key by probe_models.py. Set either to "off" to disable.
+        self.small_model = _env("NEMOTRON_SMALL_MODEL", "nvidia/nemotron-3.5-bolt-e4b")
+        self.safety_model = _env("NEMOTRON_SAFETY_MODEL", "nvidia/llama-3.1-nemotron-safety-guard-8b-v3")
+        if self.small_model == "off":
+            self.small_model = None
+        if self.safety_model == "off":
+            self.safety_model = None
         self._send_thinking_flag = True
         self.calls = 0
         self.errors = 0
@@ -54,16 +62,19 @@ class Nemotron:
             "mode": self.mode,
             "model": "recorded run" if self.replay else (self.model if not self.mock else "mock (no API key)"),
             "base_url": self.base_url if not self.mock else None,
+            "routing": {"default": self.model, "decoy_persona": self.small_model or self.model, "safety_guard": self.safety_model}
+            if not self.mock else None,
             "hosted_calls": self.calls,
             "errors": self.errors,
             "last_error": self.last_error,
         }
 
-    def chat(self, messages, tools=None, temperature=0.3, max_tokens=900):
+    def chat(self, messages, tools=None, temperature=0.3, max_tokens=900, model=None):
         """Returns the assistant message object. Raises on failure."""
         if self.mock:
             raise RuntimeError("mock mode")
-        key = hashlib.sha256(json.dumps([self.model, messages, tools], sort_keys=True, default=str).encode()).hexdigest()[:24]
+        model = model or self.model
+        key = hashlib.sha256(json.dumps([model, messages, tools], sort_keys=True, default=str).encode()).hexdigest()[:24]
         if self.replay:  # venue backup: serve a response recorded during an earlier live run
             f = REPLAY_DIR / f"{key}.json"
             if not f.exists():
@@ -72,11 +83,11 @@ class Nemotron:
             d = json.loads(f.read_text())
             calls = [SimpleNamespace(id=c["id"], type="function", function=SimpleNamespace(**c["function"])) for c in d.get("tool_calls") or []]
             return SimpleNamespace(content=d.get("content"), tool_calls=calls or None)
-        kwargs = dict(model=self.model, messages=messages, temperature=temperature, max_tokens=max_tokens)
+        kwargs = dict(model=model, messages=messages, temperature=temperature, max_tokens=max_tokens)
         if tools:
             kwargs["tools"] = tools
             kwargs["tool_choice"] = "auto"
-        if self._send_thinking_flag and self.thinking == "off":
+        if self._send_thinking_flag and self.thinking == "off" and model != self.safety_model:
             kwargs["extra_body"] = {"chat_template_kwargs": {"enable_thinking": False}}
         self.calls += 1
         try:
@@ -101,6 +112,22 @@ class Nemotron:
             calls = [{"id": c.id, "function": {"name": c.function.name, "arguments": c.function.arguments}} for c in (msg.tool_calls or [])]
             (REPLAY_DIR / f"{key}.json").write_text(json.dumps({"content": msg.content, "tool_calls": calls}))
         return msg
+
+    def safety(self, user_text, reply):
+        """Nemotron Safety Guard verdict on a reply before it leaves. Returns (safe: bool|None, categories, mode).
+        None means the guard model wasn't available; callers then rely on the rules guard alone."""
+        if self.mock or not self.safety_model:
+            return None, "", "rules"
+        try:
+            msg = self.chat([{"role": "user", "content": user_text or "(no message)"}, {"role": "assistant", "content": reply}],
+                            temperature=0, max_tokens=80, model=self.safety_model)
+            d = parse_json(msg.content or "")
+            verdict = str(d.get("Response Safety", "")).lower()
+            if verdict not in ("safe", "unsafe"):
+                return None, "", "fallback"
+            return verdict == "safe", str(d.get("Safety Categories", ""))[:80], self.mode
+        except Exception:
+            return None, "", "fallback"
 
     def text(self, messages, **kw):
         msg = self.chat(messages, **kw)

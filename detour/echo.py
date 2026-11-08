@@ -399,6 +399,7 @@ class Defense:
             self.emit("Canary (simulated)", "mint", output=f"canary card •••• {canary['last4']} handed to the scammer", mode="simulated")
         else:
             reply, meta = self.engine.agents.persona_reply(PERSONAS[d["persona"]], d["convo"])
+            self.engine.emit_guard(meta)
             if meta.get("mode") == "nemotron":
                 meta["mode"] = self.llm.mode
             tactic = STALL_TACTICS[len(d["convo"]) // 2 % len(STALL_TACTICS)]

@@ -209,3 +209,35 @@ def test_customer_cannot_release_during_cooling_off(c):
     p = bail(c)
     assert c.post("/api/pnc/release", json={"payment_id": p["id"], "by": "customer"}).json()["status"] == "held"
     assert c.post("/api/pnc/release", json={"payment_id": p["id"], "by": "trusted_contact"}).json()["status"] == "released"
+
+
+def test_safety_guard_replaces_unsafe_decoy_reply():
+    from types import SimpleNamespace
+    from detour.core import Agents
+    from detour.data import PERSONAS
+
+    class FakeLLM:
+        mock, small_model, model, safety_model, mode = False, "small-m", "big-m", "guard-m", "live"
+
+        def text(self, msgs, **kw):
+            assert kw.get("model") == "small-m"  # routing: the persona uses the small model
+            return "something the guard will flag"
+
+        def safety(self, user_text, reply):
+            return False, "Threat", "live"
+
+    out, meta = Agents(FakeLLM()).persona_reply(PERSONAS["decoy-01"], [{"who": "scammer", "text": "hi", "sender": ""}])
+    assert out != "something the guard will flag" and meta["filtered"] and meta["guard"]["verdict"] == "unsafe"
+    assert meta["model"] == "small-m"
+
+
+def test_safety_parser_reads_response_safety(monkeypatch):
+    from types import SimpleNamespace
+    from detour.llm import Nemotron
+    n = Nemotron()
+    n.mock, n.safety_model, n.replay = False, "guard-m", False
+    monkeypatch.setattr(n, "chat", lambda *a, **k: SimpleNamespace(
+        content='{"User Safety": "unsafe", "Response Safety": "safe", "Safety Categories": "PII/Privacy"}'))
+    assert n.safety("u", "r")[0] is True  # judged on the decoy's reply, not the scammer's message
+    monkeypatch.setattr(n, "chat", lambda *a, **k: SimpleNamespace(content='{"Response Safety": "unsafe", "Safety Categories": "Threat"}'))
+    assert n.safety("u", "r")[:2] == (False, "Threat")

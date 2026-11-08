@@ -1367,7 +1367,7 @@ function feedItem(ev, animate) {
   const io = (lab, v) => v == null || v === "" ? "" : `<div class="io"><em>${lab}</em>${esc(trunc(v, 260))}</div>`;
   const mode = ev.mode ? `<span class="tag ${esc(ev.mode === "on-device" ? "dev" : ev.mode === "customer" ? "fallback" : ev.mode)}">${esc(ev.mode)}</span>` : "";
   const html = `<div class="ev ${k}" ${animate ? "" : 'style="animation:none"'}><div class="et"><span class="ag">${esc(ev.agent)}</span><span class="tag">${esc(ev.stage)}</span>${ev.injection ? `<span class="tag mock">injection</span>` : ""}${ev.filtered ? `<span class="tag fallback">filtered</span>` : ""}<span class="gr"></span>${ev.ms != null ? `<span class="t">${esc(ev.ms)}ms</span>` : ""}${mode}<span class="t">${esc(ev.t)}</span></div>
-    ${ev.tool ? `<span class="tl">⟶ ${esc(ev.tool)}()</span>` : ""}${io("in", ev.input)}${io("out", ev.output)}${io("note", ev.note)}${io("policy", ev.policy)}</div>`;
+    ${ev.tool ? `<span class="tl">⟶ ${esc(ev.tool)}()</span>` : ""}${io("in", ev.input)}${io("out", ev.output)}${io("model", ev.model)}${io("note", ev.note)}${io("policy", ev.policy)}</div>`;
   $("#feed").insertAdjacentHTML("afterbegin", html);
   feedN++; $("#feedCount").textContent = feedN + " events";
   while ($("#feed").children.length > 140) $("#feed").lastElementChild.remove();
