@@ -52,7 +52,7 @@ NEXT: run ./run.sh with DETOUR_RECORD=1 and click the demo once:
 
 Click list (in the browser that opens), exactly in this order:
   1. Reset, then Load decoy history
-  2. Decoy console: scenario "bank_alert", decoy "decoy-01", click Run decoy session (wait until it finishes)
+  2. Decoy console: pick "Fake bank fraud alert" and the first decoy (Linda Park), click Run decoy session (wait until it finishes)
   3. Phone: click each sample text once, top to bottom (wait for each card)
   4. On "Grandparent scam, no number": tap "Send redacted copy" (wait for the result)
   5. Click "Grandparent scam, no number" again (now caught on the phone)
