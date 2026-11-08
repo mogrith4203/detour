@@ -203,7 +203,7 @@ select.field{appearance:none;padding-right:28px;background-image:linear-gradient
 /* console */
 .console{min-width:0}
 .seg{display:flex;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:3px}
-.seg button{border:0;background:transparent;border-radius:7px;padding:6px 12px;font-size:13.5px;font-weight:600;color:var(--muted)}
+.seg button{white-space:nowrap;border:0;background:transparent;border-radius:7px;padding:6px 12px;font-size:13.5px;font-weight:600;color:var(--muted)}
 .seg button.on{background:var(--panel3);color:var(--text);box-shadow:inset 0 0 0 1px var(--border2)}
 .seg button.hot{color:#FF6BB5}
 .seg button.hot.on{background:rgba(226,0,116,.16);color:#fff;box-shadow:inset 0 0 0 1px rgba(226,0,116,.6)}
@@ -460,11 +460,14 @@ svg .lbl{font:700 12px var(--mono)}
 .jlink{background:none;border:0;padding:2px;color:#8E8E93;font-size:12px;text-decoration:underline;align-self:center}
 .jlink:hover{color:#C7C7CC}
 .jdone{font-size:12.5px;color:#9AA5B4;text-align:center;line-height:1.4}
-.ecol{display:flex;flex-direction:column;gap:10px;min-height:0}
-.zstrip{display:flex;align-items:center;gap:9px;flex-wrap:wrap;border:1px solid var(--border);border-radius:12px;background:linear-gradient(160deg,rgba(239,118,34,.1),transparent 60%),var(--bg2);padding:8px 11px;font-size:13.5px}
-.zstrip .zt{flex:1;min-width:150px;line-height:1.3}
+.ecol{display:flex;flex-direction:column;gap:10px;min-height:0;overflow-y:auto;overflow-x:hidden}
+.ecol>*{flex-shrink:0}
+.ecol>.dthread{flex:1 1 auto;min-height:220px}
+.zstrip{display:flex;align-items:center;gap:9px;flex-wrap:nowrap;border:1px solid var(--border);border-radius:12px;background:linear-gradient(160deg,rgba(239,118,34,.1),transparent 60%),var(--bg2);padding:8px 11px;font-size:13.5px}
+.zstrip .zt{flex:1;min-width:0;line-height:1.3}
+.zstrip>.btn,.zstrip>.tag{flex:none}
 .zstrip .zt b{font-family:var(--mono)}
-.zstrip .zt span{display:block;font-size:12px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.zstrip .zt .zsub{display:block;font-size:12px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .spill{font:700 11px var(--sans);letter-spacing:.08em;text-transform:uppercase;padding:2px 9px;border-radius:999px;white-space:nowrap;border:1px solid}
 .spill.held{color:var(--amber);border-color:rgba(245,184,65,.5);background:rgba(245,184,65,.1)}
 .spill.cancelled{color:var(--danger);border-color:rgba(255,77,94,.5);background:rgba(255,77,94,.1)}
@@ -495,7 +498,7 @@ svg .lbl{font:700 12px var(--mono)}
 /* PNC: pending payments */
 .pnc-mid{grid-template-rows:auto minmax(0,1.5fr) minmax(120px,.8fr)}
 .pays .ph .btn{flex:none}
-.pays .pb{flex:1;overflow:auto;display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:12px;padding-top:10px}
+.pays .pb{flex:1;overflow-y:auto;overflow-x:hidden;display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:12px;padding-top:10px}
 .pays .pb>*{min-width:0}
 .paylist{display:flex;flex-direction:column;gap:8px}
 .pay{border:1px solid var(--border);border-left:3px solid var(--sc,#3A4556);border-radius:11px;background:var(--bg2);padding:8px 11px;animation:pop .25s ease}
@@ -511,7 +514,8 @@ svg .lbl{font:700 12px var(--mono)}
 .sig.neg b{background:rgba(61,220,151,.14);color:var(--ok)}
 .sig .fam{font:11px var(--mono);color:var(--dim);flex:none}
 .pay .pacts{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
-.reality{display:flex;flex-direction:column;gap:10px}
+.reality{display:flex;flex-direction:column;gap:10px;min-width:0}
+.reality .btn{white-space:normal;text-align:left;max-width:100%}
 .reality .box{animation:none}
 .trips{display:flex;flex-direction:column;gap:4px;max-height:150px;overflow:auto}
 .trip{display:flex;flex-direction:column;font-size:12.5px;border-bottom:1px solid rgba(35,44,58,.7);padding:3px 0}
@@ -528,6 +532,9 @@ svg .lbl{font:700 12px var(--mono)}
   .badge small{font-size:11px}
   .graph-panel svg{max-height:28vh}
   .tmo-grid{grid-template-columns:250px 310px minmax(0,1fr)}
+  .console>.ph>.sub{display:none}
+  .seg button{padding:6px 9px}
+  .echo-view{grid-template-columns:200px minmax(0,1fr);gap:10px;padding:10px 12px}
   .pnc-grid{grid-template-columns:250px minmax(0,1fr) 350px}
   .nv-grid{grid-template-columns:minmax(0,1fr) 340px}
   .ind .iv b{font-size:23px}
@@ -543,6 +550,13 @@ svg .lbl{font:700 12px var(--mono)}
   .privacy{padding:9px 12px}
   .pm-big{margin:0 0 6px}
   .pm-big b{font-size:28px}
+  .smap{height:142px}
+  .stories{padding-bottom:8px}
+  .scomp .eyebrow{display:none}
+  .dthread .dh{padding:5px 10px}
+  .carrier{padding:6px 10px}
+  .carrier .bh{margin-bottom:4px}
+  .tog{padding:2px 10px 2px 5px}
 }
 </style>
 </head>
@@ -651,7 +665,7 @@ svg .lbl{font:700 12px var(--mono)}
         </div></div>
       </div>
       <div class="ecol">
-        <div class="zstrip"><span class="tag sim">SIMULATED</span><span class="zt" id="zelleStrip">Linda's pending Zelle<span>No payment yet</span></span><button class="btn sm" id="payBail" title="Linda sends $3,000 Zelle for Jake's bail (simulated PNC rails)">Linda sends $3,000 Zelle</button></div>
+        <div class="zstrip"><span class="tag sim">SIMULATED</span><span class="zt" id="zelleStrip">Linda's pending Zelle<span class="zsub">No payment yet</span></span><button class="btn sm" id="payBail" title="Linda sends $3,000 Zelle for Jake's bail (simulated PNC rails)">Linda sends $3,000 Zelle</button></div>
         <div class="dthread">
           <div class="dh"><b>Diverted thread</b><span class="tag sim">SIMULATED</span><span class="gr"></span><span class="burn" id="timeBurned"></span><span id="decoyMode"></span></div>
           <div class="chat" id="echoChat"><div class="empty" style="margin:auto">After the real Jake taps <b>Not me</b>,<br>the scammer's thread goes to a decoy Linda.</div></div>
@@ -1838,8 +1852,8 @@ function renderPays(items) {
   // T-Mobile strip mirrors the newest payment
   const z = items[0];
   $("#zelleStrip").innerHTML = z ? `Linda's pending Zelle: <b>${fmt$(z.amount)}</b> <span class="spill ${esc(z.status)}">${esc(String(z.status).toUpperCase())}</span>
-      ${z.status === "held" && z.hold_until ? `<span class="cdown" data-until="${esc(z.hold_until)}">${left(z.hold_until)}</span>` : ""}<span>${esc(z.to_handle)} · ${esc((z.decision_reasons || []).slice(-1)[0] || "")}</span>`
-    : `Linda's pending Zelle<span>No payment yet</span>`;
+      ${z.status === "held" && z.hold_until ? `<span class="cdown" data-until="${esc(z.hold_until)}">${left(z.hold_until)}</span>` : ""}<span class="zsub" title="${esc((z.decision_reasons || []).slice(-1)[0] || "")}">${esc(z.to_handle)} · ${esc((z.decision_reasons || []).slice(-1)[0] || "")}</span>`
+    : `Linda's pending Zelle<span class="zsub">No payment yet</span>`;
   if (!items.length) { $("#payList").innerHTML = `<div class="empty">No payments yet. Deliver the bail text on the T-Mobile lens, then send the Zelle.</div>`; return; }
   $("#payList").innerHTML = items.map(p => {
     const sigs = (p.signals || []).map(s => `<div class="sig ${s.weight < 0 ? "neg" : ""}"><b>${s.weight > 0 ? "+" : ""}${esc(s.weight)}</b><span class="fam">${esc(s.family)}</span><span>${esc(s.detail || s.name)}</span></div>`).join("");
