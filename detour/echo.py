@@ -46,7 +46,7 @@ HOLD_SECONDS = 30 * 60     # cooling-off hold
 BIG_PAYMENT = 1000.0
 
 CARD_ASK = re.compile(r"\b(card|credit|debit|number on the|cvv|expir|routing|account number|gift ?card|pay ?ment|zelle|"
-                      r"send (it|the money|money)|wire|venmo|cash ?app)\b", re.I)
+                      r"wire|venmo|cash ?app)\b", re.I)
 HANDLE_RE = re.compile(r"(?:[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})|(?:\$[A-Za-z][A-Za-z0-9_]{2,20})|"
                        r"(?:@[A-Za-z][A-Za-z0-9_.]{2,30})")
 PHONE_RE = re.compile(r"\(?\b(\d{3})\)?[\s.-]?(\d{3})[\s.-]?(\d{4})\b")
@@ -225,6 +225,8 @@ class Defense:
 
     def _public(self, rec):
         out = {k: v for k, v in rec.items() if k not in ("decoy",)}
+        if out.get("status") == "answering":  # mid-answer reads as still pending to pollers
+            out["status"] = "pending"
         if rec.get("decoy"):
             out["decoy"] = {"turns": len(rec["decoy"]["convo"]), "time_burned_s": self._burned(rec)}
         return out
@@ -247,8 +249,10 @@ class Defense:
         rec = self.echoes.get(eid)
         if not rec or not rec["target_who"] or who != rec["target_who"]:
             return None
-        if rec["status"] != "pending":
-            return self._public(rec)
+        with self.engine.lock:  # one answer per Echo, even on a double tap
+            if rec["status"] != "pending":
+                return self._public(rec)
+            rec["status"] = "answering"
         trusted, reasons = self.trust(rec["target_who"])
         return self._answer(rec, answer, trusted, reasons)
 
@@ -301,9 +305,9 @@ class Defense:
             released = []
             for p in self._linked(rec["sender"]):
                 if p["status"] == "held":
-                    p["status"] = "released"
-                    p["decision_reasons"].append(f"Released: the real {who} confirmed on a trusted line.")
-                    released.append(self._pub_pay(p))
+                    self._evaluate(p)  # the gauntlet decides: a tripwire or a live risk signal still keeps it held
+                    if p["status"] == "released":
+                        released.append(self._pub_pay(p))
             rec["outcome"] = {"label": "confirmed", "message": f"✓ Confirmed by {who}", "payments": released}
             return self._public(rec)
         rec["outcome"] = self._on_denial(rec)
@@ -319,9 +323,8 @@ class Defense:
             self.denied_senders[sender] = rec["echo_id"]
         trips = []
         thread = list(self.claim_texts.get(sender or "unknown", []))
-        protected = {digits(s["number"]) for s in SUBSCRIBERS.values()} | {digits(b["number"]) for b in BUSINESSES}
         for acct in ([sender] if sender else []) + [r for t in thread for r in extract_rails(t)]:
-            if digits(acct) in protected and len(digits(acct)) == 10:
+            if self._protected(acct):
                 self.emit("PNC tripwire (simulated)", "skip", output=f"not tripwiring {acct}: it's a real customer line", mode="rules")
                 continue
             if acct and self._tripwire(acct, f"Echo denial {rec['echo_id']}"):
@@ -386,7 +389,7 @@ class Defense:
             return {"error": "Turn limit reached."}
         text = (text or "").strip()[:500]
         d["convo"].append({"who": "scammer", "text": text, "sender": rec["sender"]})
-        trips = [a for a in extract_rails(text) if self._tripwire(a, f"decoy thread {eid}")]
+        trips = [a for a in extract_rails(text) if not self._protected(a) and self._tripwire(a, f"decoy thread {eid}")]
         from .data import PERSONAS
         canary = None
         if CARD_ASK.search(text) and not d["canary"]:
@@ -405,7 +408,8 @@ class Defense:
             tactic = STALL_TACTICS[len(d["convo"]) // 2 % len(STALL_TACTICS)]
         d["convo"].append({"who": "decoy", "text": reply})
         self.emit("Honeypot persona", "reply", input=text[:160], output=reply[:200], **meta)
-        return {"reply": reply, "mode": meta.get("mode"), "canary": canary, "tactic": tactic, "simulated": True,
+        return {"reply": reply, "mode": meta.get("mode"), "filtered": bool(meta.get("filtered")), "canary": canary, "tactic": tactic,
+                "simulated": True,
                 "time_burned_s": self._burned(rec), "tripwires": trips}
 
     def _burned(self, rec):
@@ -421,6 +425,12 @@ class Defense:
         return {k: v for k, v in c.items()}
 
     # ------------------------------------------------------------ PNC rails (simulated)
+    @staticmethod
+    def _protected(acct):
+        """Real customer lines and verified business numbers are never tripwired, whatever a scammer types."""
+        d = digits(acct)
+        return len(d) == 10 and d in ({digits(s["number"]) for s in SUBSCRIBERS.values()} | {digits(b["number"]) for b in BUSINESSES})
+
     def _tripwire(self, account, source):
         account = (account or "").strip().lower()
         if not account or account in self.tripwires:
@@ -581,7 +591,7 @@ class Defense:
         if g["action"] == "cancel" and p["status"] in ("held", "sent"):
             p["status"] = "cancelled"
             p["hold_until"] = None
-            p["decision_reasons"].append("Cancelled automatically: the real person said 'not me' and the payee is a tripwired account. "
+            p["decision_reasons"].append("Cancelled automatically: the real person said 'not me' and the sender or payee is a tripwired account. "
                                              "Linda's $%s stays in checking." % f"{p['amount']:,.0f}")
         elif g["action"] == "hold" and p["status"] == "sent":
             p["status"] = "held"
@@ -592,5 +602,6 @@ class Defense:
             p["decision_reasons"].append("Only one signal fired, so we warned Linda but didn't hold the money.")
         elif g["action"] == "allow" and p["status"] == "held":
             p["status"] = "released"
-            p["decision_reasons"].append("Released: confirmed by the real person on a trusted line.")
+            p["hold_until"] = None
+            p["decision_reasons"].append("Released: the real person confirmed on a trusted line.")
         return p

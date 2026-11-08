@@ -15,6 +15,11 @@ from types import SimpleNamespace
 REPLAY_DIR = Path(__file__).resolve().parent.parent / "replays"
 
 
+def _scrub(msg):
+    """Error text can echo request details; never let anything key-shaped reach the UI."""
+    return re.sub(r"(nvapi-|sk-or-|sk-)[A-Za-z0-9_\-]+", "[key]", msg or "")
+
+
 def _env(name, default=None):
     v = os.getenv(name)
     return v if v not in (None, "") else default
@@ -100,11 +105,11 @@ class Nemotron:
                     resp = self.client.chat.completions.create(**kwargs)
                 except Exception as e2:
                     self.errors += 1
-                    self.last_error = str(e2)[:300]
+                    self.last_error = _scrub(str(e2))[:300]
                     raise
             else:
                 self.errors += 1
-                self.last_error = str(e)[:300]
+                self.last_error = _scrub(str(e))[:300]
                 raise
         msg = resp.choices[0].message
         if self.record:

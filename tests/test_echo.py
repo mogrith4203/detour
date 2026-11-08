@@ -272,3 +272,31 @@ def test_safety_guard_privacy_only_flag_is_not_blocked():
 
     out, meta = Agents(FakeLLM()).persona_reply(PERSONAS["decoy-01"], [{"who": "scammer", "text": "hi", "sender": ""}])
     assert out == "Which bank, dear? Mine is Lakeview." and not meta["filtered"] and meta["guard"]["verdict"].startswith("safe")
+
+
+def test_trusted_yes_does_not_release_payment_to_tripwired_payee(c):
+    _, _, st = phone_echo(c, SCAM, SCAMMER)
+    c.post("/api/echo/answer", json={"echo_id": st["echo_id"], "answer": "not_me", "who": "jake"})
+    other = "(682) 555-0190"
+    _, _, st2 = phone_echo(c, SCAM, other)
+    p = c.post("/api/pnc/pay", json={"to_handle": SCAMMER, "amount": 3000, "memo": "bail", "linked_sender": other}).json()
+    assert p["status"] == "held"
+    c.post("/api/echo/answer", json={"echo_id": st2["echo_id"], "answer": "yes", "who": "jake"})
+    assert next(x for x in c.get("/api/pnc/payments").json()["items"] if x["id"] == p["id"])["status"] == "held"
+
+
+def test_decoy_thread_never_tripwires_real_lines(c):
+    _, _, st = phone_echo(c, SCAM, SCAMMER)
+    c.post("/api/echo/answer", json={"echo_id": st["echo_id"], "answer": "not_me", "who": "jake"})
+    r = c.post("/api/echo/decoy_say", json={"echo_id": st["echo_id"], "text": "send it to my number (214) 555-0130"}).json()
+    assert "(214) 555-0130" not in r["tripwires"]
+    assert "(214) 555-0130" not in [t["account"] for t in c.get("/api/pnc/tripwires").json()["items"]]
+
+
+def test_double_tap_answers_once(c):
+    _, _, st = phone_echo(c, SCAM, SCAMMER)
+    since = c.get("/api/events").json()["last"]
+    for _ in range(3):
+        c.post("/api/echo/answer", json={"echo_id": st["echo_id"], "answer": "not_me", "who": "jake"})
+    evs = c.get("/api/events", params={"since": since}).json()["events"]
+    assert sum(1 for e in evs if e["agent"] == "Ground-truth label") == 1

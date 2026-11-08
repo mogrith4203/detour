@@ -360,7 +360,7 @@ class Agents:
                 last = next((c["text"] for c in reversed(convo) if c["who"] == "scammer"), "")
                 safe, cats, gmode = self.llm.safety(last, out)
                 guard = {"checked_by": self.llm.safety_model if gmode in ("live", "replay") else "rules only", "mode": gmode,
-                         "verdict": "safe" if safe in (True, None) else "unsafe", "categories": cats}
+                         "verdict": "unchecked" if safe is None else ("safe" if safe else "unsafe"), "categories": cats}
                 cat_set = {c.strip().lower() for c in (cats or "").split(",") if c.strip()}
                 if safe is False and cat_set and cat_set <= {"pii/privacy"}:
                     # the persona's details are synthetic by design (fake card last4, fake bank), so a privacy-only flag is noted, not blocked

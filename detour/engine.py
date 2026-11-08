@@ -110,6 +110,8 @@ class Engine:
     def emit(self, agent, stage, **data):
         if getattr(self, "quiet", False):  # benchmark runs don't flood the live agent feed
             return
+        if data.get("mode") in ("nemotron", "live"):  # never show a replayed answer as a live one
+            data["mode"] = self.llm.mode
         with self.lock:
             self.ev_seq += 1
             self.events.append({"id": self.ev_seq, "t": time.strftime("%H:%M:%S"), "agent": agent, "stage": stage, **data})

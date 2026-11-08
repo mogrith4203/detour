@@ -259,6 +259,8 @@ def fin_whatif(body: WhatIfIn):
 def coach(body: CoachIn):
     f = _fin()
     res = f.coach(engine.llm, body.question[:500])
+    if res.get("mode") in ("nemotron", "live"):
+        res["mode"] = engine.llm.mode
     for t in res.get("tool_trace", []):
         engine.emit("Nemotron coach", "tool", tool=t.get("tool"), input=json.dumps(t.get("args"))[:160],
                     output=str(t.get("result_summary"))[:200], mode=res.get("mode"))

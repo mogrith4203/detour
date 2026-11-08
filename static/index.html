@@ -1859,7 +1859,7 @@ function sendScam(t) {
     catch (e) { if (gen === E.gen) note(e && e.status === 429 ? "Decoy is pacing replies. Try again in a moment." : e && e.status ? `Decoy didn't reply: ${e.message}` : "Decoy Linda couldn't reply (server unreachable). Nothing was sent to the scammer."); return; }
     if (gen !== E.gen || !r) return;
     if (r.error) { note(`Decoy didn't reply: ${r.error}`); return; }
-    const tags = `${modeTag(r.mode)}${r.tactic ? `<span class="tag fallback">${esc(r.tactic)}</span>` : ""}`;
+    const tags = `${modeTag(r.mode)}${r.filtered ? `<span class="tag fallback" title="The safety check replaced the model's reply with a fixed stall line">filtered</span>` : ""}${r.tactic ? `<span class="tag fallback">${esc(r.tactic)}</span>` : ""}`;
     echoMsg("decoy", r.reply || "", tags);
     $("#decoyMode").innerHTML = modeTag(r.mode);
     if (r.canary) {
