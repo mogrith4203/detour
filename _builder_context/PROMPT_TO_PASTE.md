@@ -8,10 +8,11 @@ My project folder on my Mac: `~/Documents/Archives/AI Work/Claude/hackutd-resear
 
 The full handoff is in `_builder_context/`. Read it in this order:
 1. `00_START_HERE.md`
-2. `11_RESEARCH_AND_PRODUCT_STRATEGY.md` (what each sponsor actually ships and the Nemotron model family, which is how we win)
-3. `08_BACKLOG.md` (your work list, with what "done" means)
-4. Files 01–07, 09 and 10
-5. `adopted_skills/ADOPTION.md`: 32 curated skills we pulled from X and GitHub.
+2. **`12_REINVENTION_THE_WINNING_IDEA.md`: the strategy.** Detour is a carrier–bank scam fusion center fed by AI decoys. It stops a scam at the message (on-device skill), the moment (a content-free scam-in-progress risk token from T-Mobile to PNC, modeled on Australia's Telstra–CBA indicator and Telefónica's Scam Signal API) and the money (cash-out tripwires from decoy chats, plus a PNC payment hold with the Nemotron coach and a Trusted Contact). AI scam-baiting itself already exists (Apate.ai), so our edge is closing the loop across carrier and bank.
+3. `11_RESEARCH_AND_PRODUCT_STRATEGY.md` (what each sponsor actually ships and the Nemotron model family)
+4. `08_BACKLOG.md` (your work list, with what "done" means)
+5. Files 01–07, 09 and 10
+6. `adopted_skills/ADOPTION.md`: 32 curated skills we pulled from X and GitHub.
    - Sources:
      - an Anthropic hackathon winner's setup (ECC)
      - obra/superpowers
@@ -21,7 +22,7 @@ The full handoff is in `_builder_context/`. Read it in this order:
      - Trail of Bits security skills
    - **First action: install them into `.claude/skills/` with the command in ADOPTION.md** (taste-skill is reference-only, because it carries a hook).
    - Use them: superpowers for planning, parallel sub-agents, TDD, debugging and verification; impeccable/break-ui for the UI; the NVIDIA skills for the content-safety policy and embed/rerank; Trail of Bits for security.
-6. `api_samples/`, `screenshots/`, `snapshots/`
+7. `api_samples/`, `screenshots/`, `snapshots/`
 
 ## Situation
 
@@ -35,7 +36,7 @@ The full handoff is in `_builder_context/`. Read it in this order:
 
 1. Start with a 5-line summary: what you understood, and the top risks.
 2. **P0 first** (live model verification, tool-calling fallback, live prompt quality, live data and bench, replays). These need me, so give me commands early, and build in parallel while I run them.
-3. Then **P1** features in the order you judge to win the most across all three sponsors: semantic story memory with Nemotron embeddings and reranker, model routing, the Nemotron content-safety guard, screenshot checks with Nemotron OCR, T-Mobile Callback Protection / Safe Web Browsing / 7726 integration, PNC Money Bar / Low Cash Mode / lock actions, the cross-sponsor alert, SQLite persistence, audit log and skill rollback, observability.
+3. Then **P1-A, the differentiator: M1 cash-out tripwires → M2 risk token → M3 PNC payment intercept.** This is what no other team will have. Then **P1-B** in the order you judge to win the most: semantic story memory with Nemotron embeddings and reranker, model routing, the Nemotron content-safety guard, screenshot checks with Nemotron OCR, T-Mobile Callback Protection / Safe Web Browsing / 7726 integration, PNC Money Bar / Low Cash Mode / lock actions, the cross-sponsor alert, SQLite persistence, audit log and skill rollback, observability.
 4. Use sub-agents to work in parallel where the tasks don't overlap (git worktrees are fine). Run an independent reviewer (`santa-method`) that attacks every finished feature as a judge and as a hacker, and fix what it finds before moving on.
 5. After every feature:
    - `pytest` passes, including the JS↔Python parity test

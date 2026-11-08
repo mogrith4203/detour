@@ -24,7 +24,15 @@ Each item says who does it, what to do, and what "done" means. **Mog-run** means
    - **Done when:** the result is `mode: live` with no crashes on odd rows.
 5. **Record replays (Mog-run)** of the full demo path with `DETOUR_RECORD=1`, as the venue backup.
 
-## P1: product depth that wins each sponsor (see 11 for why)
+## P1-A: THE DIFFERENTIATOR. Build first, right after P0 (see 12_REINVENTION_THE_WINNING_IDEA.md)
+
+| # | Feature | Done when |
+|---|---|---|
+| M1 | **Cash-out tripwires.** Regex-derived payment destinations from decoy chats: Zelle/Venmo handles, crypto addresses, gift-card brand, wire/mule account, courier pickup. Stored on the story; a destination becomes a tripwire after corroboration, and allowlisted billers are protected. Shown in the story map. | Tests for every destination type; the story card lists the rails; a planted real biller is never a tripwire |
+| M2 | **Scam-in-progress risk token (carrier → bank).** Minted on a phone warn for a payment-type play, or by a simulated "on a call with an unknown number" toggle. Content-free, consented, expires in 2h. `GET /api/carrier/signal`, `POST /api/carrier/consent`. The token JSON is shown in the UI. | The token appears after the grandparent warn; it contains no text or numbers; expiry tested |
+| M3 | **PNC payment intercept.** A "Send money" panel (Zelle/wire). `POST /api/pnc/pay` runs a rules decision: a tripwire match, or a risk token AND a new payee AND a risky rail, means HOLD (cooling-off, not a block). On a hold: auto what-if on the pending payment (Low Cash Mode callout), the Nemotron coach explains the play with tools, a Trusted Contact call button, and release after cooling-off. Legit payees are released. | The demo storyline in 12 works end to end; legit bill payment released; tests for hold vs release |
+
+## P1-B: product depth that wins each sponsor (see 11 for why)
 
 | # | Feature | Sponsor | Done when |
 |---|---|---|---|

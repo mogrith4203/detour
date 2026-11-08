@@ -1,5 +1,9 @@
 # 01 · Product and sponsors
 
+## UPDATED 6:20 AM: the core idea is now in 12_REINVENTION_THE_WINNING_IDEA.md
+
+"Detour is a carrier–bank scam fusion center fed by AI decoys. It stops a scam at three chokepoints: the message, the moment, and the money." Everything below still holds; 12 adds the carrier→bank risk token and the cash-out tripwires.
+
 ## One-line pitch (NVIDIA framing, agreed with the team)
 
 "Most AI security waits for the attack. Detour sends Nemotron out to talk to the attackers first. It learns their playbook, then teaches the phone a few-KB skill that runs right on the device. Every lesson passes 4 regression checks before it ships."
