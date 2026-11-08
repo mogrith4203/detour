@@ -74,6 +74,8 @@ class Engine:
 
     # ------------------------------------------------------------ event stream (NVIDIA view)
     def emit(self, agent, stage, **data):
+        if getattr(self, "quiet", False):  # benchmark runs don't flood the live agent feed
+            return
         with self.lock:
             self.ev_seq += 1
             self.events.append({"id": self.ev_seq, "t": time.strftime("%H:%M:%S"), "agent": agent, "stage": stage, **data})
@@ -235,11 +237,11 @@ class Engine:
             return {"error": "That check has expired. Receive the message again."}
         steps = p["steps"]
         red = redact(p["text"])
-        sent = len(red.encode())
+        sent = len(red.encode()) + len((p["sender"] or "").encode())  # the sender ID goes too, for the registration check
         self.stats["rescues"] += 1
         self.stats["bytes_to_cloud"] += sent
         self.emit("Consent", "consent", output=f"Customer tapped 'Ask Detour'. Sent {sent} bytes, redacted.", mode="customer")
-        raw_verdict, trace, meta = self.agents.rescue(p["text"], p["sender"], p["local"], self.smap)
+        raw_verdict, trace, meta = self.agents.rescue(red, p["sender"], p["local"], self.smap)
         for t in trace:
             self.emit("Nemotron rescue", "tool", tool=t["tool"], input=short(t["args"], 160), output=short(t["result"], 200), mode=meta["mode"])
         verdict = self.decide(raw_verdict, trace, p["local"]["asks"])
@@ -337,6 +339,7 @@ class Engine:
     def benchmark(self):
         saved = (self.smap, self.stats, self.good, self.threads, self.pending)
         calls0 = self.llm.calls
+        self.quiet = True
         self.smap = StoryMap()
         self.seed()
         base = copy.deepcopy(self.smap)
@@ -399,5 +402,7 @@ class Engine:
                               f"{promoted} skills promoted, {rejected} rejected by the gate"))
         total_calls = self.llm.calls - calls0
         self.smap, self.stats, self.good, self.threads, self.pending = saved
+        self.quiet = False
+        self.emit("Scoreboard", "benchmark", output=f"Benchmark done: {total_calls} hosted calls", mode=self.llm.mode)
         return {"mode": self.llm.mode, "model": self.llm.describe()["model"], "rows": rows, "campaign": campaign,
                 "api_calls": total_calls, "thresholds": {"warn": 0.60, "clear": 0.30, "frozen": True}}

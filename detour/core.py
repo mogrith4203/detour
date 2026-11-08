@@ -28,7 +28,7 @@ GENERIC = set("""https http www com net org top info help xyz call calling text 
 account accounts today tonight hours hour within avoid number numbers card balance notice final day days time
 more learn new please thanks thank use using send sent get got need needs right away want like make sure
 can't isn't won't doesn't didn't don't i'm it's i'll you'll we'll way used team applies goes keep enter process
-link site online clear update click details again only fastest""".split())
+link site online clear update click details again only fastest else anyone through stuck money someone something back""".split())
 STOP |= GENERIC
 
 CATEGORY_STEPS = {
@@ -320,7 +320,7 @@ class Agents:
 
     def _mock_persona(self, persona, n):
         lines = [
-            "Oh dear, who is this exactly? Which company did you say you're with?",
+            "Oh dear, who is this exactly? I don't think I know this number.",
             "I'm not very good with these phones. What number should I use to reach you, and what do I need to do?",
             "How would I pay that? My grandson usually helps me with the computer. Can you send the details again?",
             "I see. And this has to be done today?",

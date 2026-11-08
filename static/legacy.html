@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Detour</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Film room: dark by choice (projector-friendly). Three panels: decoys, story map, customer phone. */
+:root{
+  color-scheme:dark;
+  --bg:#0e131a; --panel:#151c26; --raised:#1c2531; --line:#283444; --ink:#e9eef3; --muted:#8e9bab;
+  --accent:#ff8a3d; --warn:#ff5f5f; --watch:#f3b63f; --clear:#4cc38a; --nv:#76b900; --scam:#f06aae;
+  --display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 var(--body)}
+button{font:inherit;cursor:pointer}
+button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:14px 24px;padding:14px 20px;border-bottom:1px solid var(--line);background:var(--panel)}
+.brand{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.brand h1{font:700 34px/1 var(--display);letter-spacing:.06em;margin:0}
+.brand p{margin:0;color:var(--muted);font-size:13px}
+.spacer{flex:1}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{font:500 12px var(--mono);padding:4px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.chip b{color:var(--ink);font-weight:500}
+.chip.live{border-color:var(--nv);color:var(--nv)} .chip.mock{border-color:var(--watch);color:var(--watch)}
+.btn{background:var(--raised);color:var(--ink);border:1px solid var(--line);border-radius:7px;padding:7px 12px}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#1a0d02;font-weight:600}
+.btn.danger{border-color:var(--warn);color:var(--warn)}
+.btn:disabled{opacity:.5;cursor:default}
+main{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr) minmax(0,1fr);gap:16px;padding:16px 20px}
+section.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;display:flex;flex-direction:column;min-width:0;min-height:0}
+.ph{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line)}
+.ph h2{font:700 21px/1 var(--display);letter-spacing:.05em;margin:0;text-transform:uppercase}
+.ph .sub{color:var(--muted);font-size:12px}
+.pb{padding:14px;display:flex;flex-direction:column;gap:12px;overflow:auto;max-height:calc(100vh - 160px)}
+.label{font:500 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.persona{background:var(--raised);border:1px solid var(--line);border-radius:8px;padding:7px 10px;text-align:left;color:var(--ink)}
+.persona small{display:block;color:var(--muted);font-size:11px}
+.persona[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+select,input,textarea{background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:7px;padding:7px 9px;font:inherit;width:100%}
+textarea{resize:vertical;min-height:74px}
+.chat{display:flex;flex-direction:column;gap:8px}
+.bubble{max-width:88%;padding:8px 11px;border-radius:12px;font-size:13.5px}
+.bubble .who{font:500 10.5px var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted);display:flex;gap:6px;margin-bottom:3px}
+.bubble.scammer{background:#2a1820;border:1px solid #4a2333;align-self:flex-start;border-bottom-left-radius:3px}
+.bubble.decoy{background:#16263a;border:1px solid #23405f;align-self:flex-end;border-bottom-right-radius:3px}
+.tag{font:500 10px var(--mono);padding:1px 6px;border-radius:4px;border:1px solid currentColor}
+.tag.nemotron{color:var(--nv)} .tag.mock{color:var(--watch)} .tag.fallback{color:var(--warn)} .tag.rules{color:#8fb4ff}
+.stage{background:var(--raised);border:1px solid var(--line);border-radius:9px;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.stage h3{margin:0;font:600 13px var(--body);display:flex;gap:8px;align-items:center}
+.kv{display:grid;grid-template-columns:110px minmax(0,1fr);gap:3px 10px;font-size:12.5px}
+.kv dt{color:var(--muted)} .kv dd{margin:0;overflow-wrap:anywhere}
+.checks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px;font-size:12.5px}
+.checks li{display:grid;grid-template-columns:18px minmax(0,1fr);gap:6px}
+.ok{color:var(--clear)} .no{color:var(--warn)}
+.story{border:1px solid var(--line);border-left:4px solid var(--watch);border-radius:9px;padding:10px 12px;background:var(--raised);display:flex;flex-direction:column;gap:7px}
+.story.warn{border-left-color:var(--warn)}
+.story .hd{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.story .id{font:500 12px var(--mono);color:var(--muted)}
+.story .title{font:600 15px var(--body)}
+.status{font:600 10.5px var(--mono);letter-spacing:.06em;padding:2px 7px;border-radius:4px}
+.status.watch{background:rgba(243,182,63,.15);color:var(--watch)} .status.warn{background:rgba(255,95,95,.15);color:var(--warn)}
+.dots{display:flex;gap:4px} .dot{width:9px;height:9px;border-radius:50%;border:1px solid var(--muted)} .dot.on{background:var(--accent);border-color:var(--accent)}
+.ind{display:flex;flex-direction:column;gap:3px;font:12px var(--mono)}
+.ind div{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.att{padding:0 5px;border-radius:3px;border:1px solid var(--line);font-size:11px}
+.istatus{color:var(--muted)} .istatus.blocked{color:var(--warn)} .istatus.rejected{color:var(--clear)} .istatus.review{color:var(--watch)}
+.kw{display:flex;flex-wrap:wrap;gap:4px}
+.kw span{font:11px var(--mono);padding:1px 6px;border-radius:4px;background:var(--bg);border:1px solid var(--line);color:var(--muted)}
+.kw span.new{border-color:var(--nv);color:var(--nv)}
+.mini{font-size:11.5px;padding:3px 8px}
+.empty{color:var(--muted);font-size:13px;border:1px dashed var(--line);border-radius:9px;padding:14px;text-align:center}
+.log{font:11.5px var(--mono);color:var(--muted);display:flex;flex-direction:column;gap:3px}
+.log b{color:var(--ink);font-weight:500}
+.phone{border:1px solid var(--line);border-radius:22px;padding:14px;background:var(--bg);display:flex;flex-direction:column;gap:10px}
+.sms{background:var(--raised);border-radius:14px 14px 14px 4px;padding:9px 12px;font-size:13.5px}
+.sms small{display:block;color:var(--muted);font:11px var(--mono);margin-bottom:3px}
+.card{border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;border:1px solid}
+.card.warn{background:rgba(255,95,95,.10);border-color:var(--warn)} .card.clear{background:rgba(76,195,138,.10);border-color:var(--clear)} .card.unsure{background:rgba(243,182,63,.10);border-color:var(--watch)}
+.card h3{margin:0;font:700 20px/1.1 var(--display);letter-spacing:.03em}
+.card ul{margin:0;padding-left:18px;font-size:13px}
+.card .next{font-size:13px;border-top:1px solid var(--line);padding-top:6px}
+.meter{position:relative;height:10px;border-radius:5px;background:linear-gradient(90deg,rgba(76,195,138,.35) 0 30%,rgba(243,182,63,.35) 30% 60%,rgba(255,95,95,.35) 60% 100%)}
+.meter i{position:absolute;top:-3px;width:3px;height:16px;background:var(--ink);border-radius:2px}
+.tool{font:12px var(--mono);border-left:2px solid var(--nv);padding:3px 8px;display:flex;flex-direction:column;gap:2px}
+.tool span{color:var(--muted);overflow-wrap:anywhere}
+.samples{display:flex;flex-wrap:wrap;gap:6px}
+.samples button{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:3px 9px;font-size:11.5px}
+.samples button:hover{color:var(--ink);border-color:var(--muted)}
+.bench{margin:0 20px 24px;background:var(--panel);border:1px solid var(--line);border-radius:12px}
+.tbl{overflow-x:auto;padding:0 14px 14px}
+table{border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font:500 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+td.num{font-family:var(--mono)}
+.bar{display:inline-block;height:8px;border-radius:4px;background:var(--accent);vertical-align:middle;margin-right:8px}
+.note{color:var(--muted);font-size:12px;padding:0 14px 12px}
+@media (max-width:1180px){ main{grid-template-columns:minmax(0,1fr)} .pb{max-height:none} }
+@media (prefers-reduced-motion:no-preference){ .bubble,.stage,.story,.card{animation:in .25s ease-out} @keyframes in{from{transform:translateY(4px)}to{transform:none}} }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><h1>DETOUR</h1><p>Scammers change their numbers. They don't change their plays.</p></div>
+  <div class="spacer"></div>
+  <div class="chips" id="chips"></div>
+  <div class="row">
+    <button class="btn" id="seedBtn" title="Replay scripted decoy sessions for every play">Load decoy history</button>
+    <button class="btn" id="resetBtn">Reset</button>
+  </div>
+</header>
+
+<main>
+  <section class="panel" aria-labelledby="h-film">
+    <div class="ph"><h2 id="h-film">Film room</h2><span class="sub">Decoy lines talking to scammers</span></div>
+    <div class="pb">
+      <div class="label">Decoy persona (fully synthetic)</div>
+      <div class="row" id="personas"></div>
+      <div class="label">Scammer's play (simulated)</div>
+      <div class="row">
+        <select id="scenario" aria-label="Scam play"></select>
+      </div>
+      <div class="row">
+        <button class="btn primary" id="runBtn">Run decoy conversation</button>
+        <button class="btn danger" id="attackBtn" title="A scammer who knows about decoys tries to get a real bank number blocked">Attack: plant a real bank number</button>
+      </div>
+      <div class="chat" id="chat"><div class="empty">Pick a decoy and a play, then run the conversation.</div></div>
+      <div id="stages" style="display:flex;flex-direction:column;gap:10px"></div>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="h-map">
+    <div class="ph"><h2 id="h-map">Story map</h2><span class="sub">Plays learned from decoys, not numbers</span></div>
+    <div class="pb">
+      <div id="stories"></div>
+      <div class="label">Activity</div>
+      <div class="log" id="log"></div>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="h-phone">
+    <div class="ph"><h2 id="h-phone">Customer phone</h2><span class="sub">Matching happens on the phone</span></div>
+    <div class="pb">
+      <div class="label">Try a message</div>
+      <div class="samples" id="samples"></div>
+      <label class="label" for="sender">From</label>
+      <input id="sender" placeholder="(972) 555-0177">
+      <label class="label" for="msg">Message</label>
+      <textarea id="msg" placeholder="Paste or type a text message"></textarea>
+      <div class="row"><button class="btn primary" id="checkBtn">Receive message</button></div>
+      <div id="phoneOut"></div>
+      <div id="trace" style="display:flex;flex-direction:column;gap:10px"></div>
+    </div>
+  </section>
+</main>
+
+<section class="bench" aria-labelledby="h-bench">
+  <div class="ph"><h2 id="h-bench">Scoreboard</h2><span class="sub" id="benchSub">Held-out test messages: 12 scams, 6 legitimate</span><div class="spacer"></div><button class="btn" id="benchBtn">Run benchmark</button></div>
+  <div class="tbl"><table><thead><tr><th>Approach</th><th>Scams caught</th><th>False alarms</th><th>Still unsure</th><th>Hosted Nemotron checks</th></tr></thead><tbody id="benchBody"><tr><td colspan="5" class="note">No benchmark yet.</td></tr></tbody></table></div>
+  <div class="note" id="benchNote"></div>
+</section>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let S = null, decoy = "decoy-01", lastSkillVersions = {};
+
+async function api(path, body){
+  const r = await fetch(path, body === undefined ? {} : {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
+  if(!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+function modeTag(m){ return m ? `<span class="tag ${esc(m.mode)}">${m.mode === "nemotron" ? "NEMOTRON" : m.mode.toUpperCase()}${m.ms ? " · " + m.ms + "ms" : ""}</span>` : ""; }
+
+function renderChips(){
+  const l = S.llm, st = S.stats;
+  $("#chips").innerHTML = `
+    <span class="chip ${l.mode}">${l.mode === "live" ? "LIVE · " + esc(l.model) : "MOCK MODE · no API key"}</span>
+    <span class="chip">Hosted calls <b>${l.hosted_calls}</b></span>
+    <span class="chip">Phone checks <b>${st.phone_checks}</b> · on-device <b>${st.handled_on_device}</b></span>
+    <span class="chip">Skills promoted <b>${st.skills_promoted}</b> · rejected <b>${st.skills_rejected}</b></span>`;
+}
+function renderPersonas(){
+  $("#personas").innerHTML = Object.values(S.personas).map(p =>
+    `<button class="persona" data-id="${p.id}" aria-pressed="${p.id === decoy}">${esc(p.name)}, ${p.age}<small>${esc(p.number)} · ${esc(p.seeded_on.split(" (")[0])}</small></button>`).join("");
+  document.querySelectorAll(".persona").forEach(b => b.onclick = () => { decoy = b.dataset.id; renderPersonas(); });
+}
+function renderScenarios(){
+  const sel = $("#scenario");
+  if(sel.options.length) return;
+  sel.innerHTML = Object.entries(S.scenarios).filter(([k]) => k !== "poison").map(([k,v]) => `<option value="${k}">${esc(v)}</option>`).join("");
+}
+function renderStories(){
+  const list = Object.values(S.stories);
+  if(!list.length){ $("#stories").innerHTML = `<div class="empty">No plays learned yet. Run a decoy conversation or load decoy history.</div>`; }
+  else $("#stories").innerHTML = list.map(s => {
+    const decoys = new Set(s.decoys);
+    const prev = lastSkillVersions[s.id];
+    const nums = Object.entries(s.numbers).map(([n,i]) => {
+      const cls = i.status === "blocked" ? "blocked" : i.status === "rejected" ? "rejected" : i.status === "needs human review" ? "review" : "";
+      const label = i.status === "rejected" ? "verified business, never flagged" : i.status;
+      const approve = i.status === "needs human review" ? ` <button class="btn mini" data-approve="${s.id}|${esc(n)}">Approve block</button>` : "";
+      return `<div>${esc(n)} <span class="att" title="STIR/SHAKEN attestation">${esc(i.attestation)}</span> <span class="istatus ${cls}">${esc(label)}</span>${approve}</div>`;
+    }).join("");
+    const doms = Object.entries(s.domains).map(([d,i]) => `<div>${esc(d)} <span class="istatus ${i.status === "rejected" ? "rejected" : ""}">${i.status === "rejected" ? "verified business, never flagged" : "unverified link"}</span></div>`).join("");
+    return `<article class="story ${s.status}" style="margin-bottom:10px">
+      <div class="hd"><span class="id">${s.id}</span><span class="title">${esc(s.title)}</span><span class="status ${s.status}">${s.status.toUpperCase()}</span>
+        <span class="spacer"></span><span class="dots" title="${decoys.size} of 3 decoys">${["decoy-01","decoy-02","decoy-03"].map(d => `<span class="dot ${decoys.has(d) ? "on" : ""}"></span>`).join("")}</span></div>
+      <div style="font-size:12.5px;color:var(--muted)">Impersonates <b style="color:var(--ink)">${esc(s.impersonates)}</b>${s.payment ? " · wants " + esc(s.payment) : ""} · ${s.reports} report(s)</div>
+      ${nums || doms ? `<div class="ind">${nums}${doms}</div>` : ""}
+      <div class="label">On-device skill v${s.skill.version}</div>
+      <div class="kw">${Object.keys(s.skill.keywords).concat(s.skill.phrases).map(k => `<span>${esc(k)}</span>`).join("")}</div>
+      <div class="row"><button class="btn mini" data-report="${s.id}">+ Customer report</button></div>
+    </article>`;
+  }).join("");
+  document.querySelectorAll("[data-report]").forEach(b => b.onclick = async () => { S = await api("/api/report", {story_id:b.dataset.report}); render(); });
+  document.querySelectorAll("[data-approve]").forEach(b => b.onclick = async () => { const [id,n] = b.dataset.approve.split("|"); S = await api("/api/approve", {story_id:id, number:n}); render(); });
+  $("#log").innerHTML = S.events.map(e => `<div><b>${e.t}</b> ${esc(e.text)}</div>`).join("") || "<div>Nothing yet.</div>";
+}
+function render(){ renderChips(); renderPersonas(); renderScenarios(); renderStories(); }
+
+function runSession(scenario, who){
+  $("#runBtn").disabled = $("#attackBtn").disabled = true;
+  $("#chat").innerHTML = ""; $("#stages").innerHTML = "";
+  const es = new EventSource(`/api/honeypot?scenario=${encodeURIComponent(scenario)}&decoy=${encodeURIComponent(who)}`);
+  es.onmessage = ev => {
+    const d = JSON.parse(ev.data);
+    if(d.type === "start"){
+      $("#chat").insertAdjacentHTML("beforeend", `<div class="label">${esc(d.scenario)} → ${esc(d.persona.name)}'s decoy line ${esc(d.persona.number)}</div>`);
+    } else if(d.type === "msg"){
+      const who = d.who === "scammer" ? `Scammer ${esc(d.agent.includes("scripted") ? "· simulated" : "")}` : `${esc(d.agent)} ${modeTag(d.meta)}`;
+      $("#chat").insertAdjacentHTML("beforeend", `<div class="bubble ${d.who}"><div class="who">${who}</div>${esc(d.text)}</div>`);
+    } else if(d.type === "stage" && d.stage === "extract"){
+      const x = d.data;
+      $("#stages").insertAdjacentHTML("beforeend", `<div class="stage"><h3>Intel extractor ${modeTag(d.meta)}</h3><dl class="kv">
+        <dt>Story</dt><dd>${esc(x.story_title)}</dd><dt>Impersonates</dt><dd>${esc(x.impersonates)}</dd>
+        <dt>Claim</dt><dd>${esc(x.claim)}</dd><dt>Payment</dt><dd>${esc(x.payment_method || "—")} ${esc(x.amount || "")}</dd>
+        <dt>Callbacks</dt><dd>${esc((x.callback_numbers||[]).join(", ") || "—")}</dd><dt>Links</dt><dd>${esc((x.domains||[]).join(", ") || "—")}</dd>
+        <dt>Tactics</dt><dd>${esc((x.tactics||[]).join(", ") || "—")}</dd></dl></div>`);
+    } else if(d.type === "stage" && d.stage === "validate"){
+      $("#stages").insertAdjacentHTML("beforeend", `<div class="stage"><h3>Validator <span class="tag rules">RULES · model can't overrule</span></h3><ul class="checks">
+        ${d.data.checks.map(c => `<li><span class="${c.ok ? "ok" : "no"}">${c.ok ? "✓" : "✗"}</span><span><b>${esc(c.check)}.</b> ${esc(c.note)}</span></li>`).join("")}</ul></div>`);
+    } else if(d.type === "done"){
+      es.close(); S = d.state; render();
+      $("#runBtn").disabled = $("#attackBtn").disabled = false;
+    }
+  };
+  es.onerror = () => { es.close(); $("#runBtn").disabled = $("#attackBtn").disabled = false; };
+}
+
+function renderCheck(r){
+  const c = r.card;
+  const why = (c.why || []).filter(Boolean);
+  $("#phoneOut").innerHTML = `<div class="phone">
+    <div class="sms"><small>${esc($("#sender").value || "Unknown sender")}</small>${esc($("#msg").value)}</div>
+    <div class="card ${c.level}"><h3>${esc(c.title)}</h3>${c.story ? `<div class="label">${esc(c.story)}</div>` : ""}
+      ${why.length ? `<ul>${why.map(w => `<li>${esc(w)}</li>`).join("")}</ul>` : ""}
+      ${c.next_step ? `<div class="next"><b>What to do:</b> ${esc(c.next_step)}</div>` : ""}</div></div>`;
+  const parts = [];
+  for(const s of r.steps){
+    if(s.stage === "local"){
+      const d = s.data;
+      parts.push(`<div class="stage"><h3>On-device matcher <span class="tag rules">ON PHONE</span></h3>
+        <div class="meter" aria-label="score ${d.score}"><i style="left:calc(${Math.min(99, d.score*100)}% - 1px)"></i></div>
+        <div style="font-size:12px;color:var(--muted)">Score ${d.score} · ${d.decision === "unsure" ? "unsure, asking Nemotron (redacted)" : d.decision === "warn" ? "warned on-device" : "clear on-device"}${d.note ? " · " + esc(d.note) : ""}</div>
+        ${d.ranked && d.ranked.length ? `<div class="ind">${d.ranked.map(x => `<div>${x.story_id} ${esc(x.title)} · ${x.score}${x.detail.kw.length ? " · matched: " + esc(x.detail.kw.join(", ")) : ""}</div>`).join("")}</div>` : ""}
+        ${d.asks && d.asks.length ? `<div style="font-size:12px">Risky asks: ${esc(d.asks.join("; "))}</div>` : ""}</div>`);
+    } else if(s.stage === "rescue"){
+      parts.push(`<div class="stage"><h3>Nemotron rescue ${modeTag(s.meta)}</h3>
+        <div style="font-size:12px;color:var(--muted)">Sent: ${esc(s.meta.redacted)}</div>
+        ${s.trace.map(t => `<div class="tool"><b>${esc(t.tool)}</b><span>${esc(JSON.stringify(t.args))}</span><span>→ ${esc(JSON.stringify(t.result)).slice(0,220)}</span></div>`).join("")}
+        <div style="font-size:12.5px"><b>Verdict:</b> ${esc(s.data.verdict)} (${esc(s.data.confidence)}) · ${esc(s.data.reason)}</div></div>`);
+    } else if(s.stage === "forge"){
+      const p = s.data.proposal;
+      parts.push(`<div class="stage"><h3>Skill forge + gate ${modeTag(s.meta)}</h3>
+        <div class="kw">${p.add_keywords.concat(p.add_phrases).map(k => `<span class="new">+ ${esc(k)}</span>`).join("") || "<span>no proposal</span>"}</div>
+        <ul class="checks">${s.data.gate.map(g => `<li><span class="${g.ok ? "ok" : "no"}">${g.ok ? "✓" : "✗"}</span><span>${esc(g.test)}</span></li>`).join("")}</ul>
+        <div style="font-size:12.5px"><b>${s.data.promoted ? "Promoted to every phone. Next copy is caught on-device." : "Rejected. The phone keeps its old skill."}</b></div></div>`);
+    }
+  }
+  $("#trace").innerHTML = parts.join("");
+}
+
+function renderBench(b){
+  if(!b || !b.rows) return;
+  const all = b.rows.concat([{divider:true}], b.campaign || []);
+  $("#benchBody").innerHTML = all.map(r => r.divider ? `<tr><td colspan="5" class="label" style="padding-top:14px">Campaign replay: each test message reaches 5 customers</td></tr>` :
+    `<tr><td>${esc(r.mode)}</td><td class="num"><span class="bar" style="width:${Math.round(60*r.caught/r.scams)}px"></span>${r.caught}/${r.scams}</td>
+     <td class="num">${r.false_alarms}/${r.legit}</td><td class="num">${r.unsure}</td><td class="num">${r.hosted_calls}</td></tr>`).join("");
+  const camp = (b.campaign || [])[1];
+  $("#benchNote").innerHTML = `${b.mode === "mock" ? "<b style='color:var(--watch)'>MOCK MODE: these numbers come from the offline stand-in, not Nemotron. Set an API key and rerun before quoting them.</b> " : `Live run on ${esc(b.model)}. `}${b.ran_at ? "Ran " + esc(b.ran_at) + ". " : ""}${camp && camp.note ? esc(camp.note) + "." : ""}`;
+}
+
+$("#runBtn").onclick = () => runSession($("#scenario").value, decoy);
+$("#attackBtn").onclick = () => runSession("poison", decoy);
+$("#seedBtn").onclick = async () => { $("#seedBtn").disabled = true; try { S = await api("/api/seed", {}); render(); } finally { $("#seedBtn").disabled = false; } };
+$("#resetBtn").onclick = async () => { S = await api("/api/reset", {}); $("#chat").innerHTML = ""; $("#stages").innerHTML = ""; $("#phoneOut").innerHTML = ""; $("#trace").innerHTML = ""; render(); };
+$("#checkBtn").onclick = async () => {
+  if(!$("#msg").value.trim()) return;
+  $("#checkBtn").disabled = true;
+  try { const r = await api("/api/check", {text:$("#msg").value, sender:$("#sender").value}); S = r.state; renderCheck(r); render(); }
+  finally { $("#checkBtn").disabled = false; }
+};
+$("#benchBtn").onclick = async () => {
+  $("#benchBtn").disabled = true; $("#benchBtn").textContent = "Running…";
+  try { renderBench(await api("/api/benchmark", {})); } finally { $("#benchBtn").disabled = false; $("#benchBtn").textContent = "Run benchmark"; }
+};
+
+(async () => {
+  S = await api("/api/state"); render();
+  const samples = await api("/api/samples");
+  $("#samples").innerHTML = samples.map((s,i) => `<button data-i="${i}">${esc(s.label)}</button>`).join("");
+  document.querySelectorAll("#samples button").forEach(b => b.onclick = () => { const s = samples[b.dataset.i]; $("#sender").value = s.sender; $("#msg").value = s.text; });
+  renderBench(await api("/api/benchmark/last"));
+})();
+</script>
+</body>
+</html>

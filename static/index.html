@@ -4,323 +4,1363 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Detour</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-/* Film room: dark by choice (projector-friendly). Three panels: decoys, story map, customer phone. */
 :root{
-  color-scheme:dark;
-  --bg:#0e131a; --panel:#151c26; --raised:#1c2531; --line:#283444; --ink:#e9eef3; --muted:#8e9bab;
-  --accent:#ff8a3d; --warn:#ff5f5f; --watch:#f3b63f; --clear:#4cc38a; --nv:#76b900; --scam:#f06aae;
-  --display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
-  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
-  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --bg:#0A0D12; --bg2:#0E1218; --panel:#11161E; --panel2:#161C26; --panel3:#1C2330;
+  --border:#232C3A; --border2:#2E3949;
+  --text:#E8EDF4; --muted:#93A1B3; --dim:#627083;
+  --tmo:#E20074; --nv:#76B900; --pnc:#EF7622;
+  --danger:#FF4D5E; --amber:#F5B841; --ok:#3DDC97; --info:#5AA9FF;
+  --accent:var(--tmo);
+  --r:14px; --r-sm:9px;
+  --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,"Helvetica Neue",Arial,sans-serif;
 }
+body[data-lens="nv"]{--accent:var(--nv)}
+body[data-lens="pnc"]{--accent:var(--pnc)}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 var(--body)}
-button{font:inherit;cursor:pointer}
-button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.top{display:flex;flex-wrap:wrap;align-items:center;gap:14px 24px;padding:14px 20px;border-bottom:1px solid var(--line);background:var(--panel)}
-.brand{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
-.brand h1{font:700 34px/1 var(--display);letter-spacing:.06em;margin:0}
-.brand p{margin:0;color:var(--muted);font-size:13px}
-.spacer{flex:1}
-.chips{display:flex;gap:8px;flex-wrap:wrap}
-.chip{font:500 12px var(--mono);padding:4px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
-.chip b{color:var(--ink);font-weight:500}
-.chip.live{border-color:var(--nv);color:var(--nv)} .chip.mock{border-color:var(--watch);color:var(--watch)}
-.btn{background:var(--raised);color:var(--ink);border:1px solid var(--line);border-radius:7px;padding:7px 12px}
-.btn:hover{border-color:var(--muted)}
-.btn.primary{background:var(--accent);border-color:var(--accent);color:#1a0d02;font-weight:600}
-.btn.danger{border-color:var(--warn);color:var(--warn)}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--text);font:15px/1.45 var(--sans);-webkit-font-smoothing:antialiased;overflow:hidden;min-height:680px}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+   radial-gradient(900px 420px at 12% -8%, color-mix(in srgb,var(--accent) 16%,transparent), transparent 70%),
+   radial-gradient(700px 500px at 100% 110%, color-mix(in srgb,var(--accent) 7%,transparent), transparent 70%),
+   linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px) 0 0/32px 32px,
+   linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px) 0 0/32px 32px;
+  transition:background .5s}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+.hidden{display:none!important}
+.tmo-grid>*,.nv-grid>*,.pnc-grid>*,.nv-bottom>*,.pnc-mid>*,.pnc-right>*,.panel{min-width:0}
+.thread>*,.chat>*,.intel>*,.convo>*,.list>*,.rescue .pb>*,.score .pb>*,.snap .pb>*,.inbox .pb>*{flex-shrink:0}
+.mono{font-family:var(--mono)}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:#2A3342;border-radius:8px}::-webkit-scrollbar-track{background:transparent}
+
+/* ---------- top bar ---------- */
+.top{position:relative;z-index:5;height:64px;display:flex;align-items:center;gap:22px;padding:0 24px;border-bottom:1px solid var(--border);background:rgba(10,13,18,.78);backdrop-filter:blur(10px)}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.brand svg{flex:none}
+.word{font-size:23px;font-weight:800;letter-spacing:-.02em}
+.brand .bt2{display:flex;flex-direction:column;line-height:1.1}
+.tagline{color:var(--muted);font-size:13px;white-space:nowrap;margin-top:3px}
+.lenses{display:flex;gap:6px;margin:0 auto;flex:none;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:4px}
+.lens-tab{position:relative;display:flex;align-items:center;gap:10px;border:0;background:transparent;border-radius:9px;padding:6px 14px 6px 10px;color:var(--muted);transition:background .2s,color .2s}
+.lens-tab:hover{color:var(--text);background:var(--panel2)}
+.lens-tab kbd{font:600 11px var(--mono);color:var(--dim);border:1px solid var(--border2);border-radius:5px;padding:1px 5px}
+.lens-tab .lt-s{display:block;font-size:11px;letter-spacing:.09em;text-transform:uppercase;font-weight:700}
+.lens-tab .lt-t{display:block;font-size:13.5px;line-height:1.2}
+.lens-tab .lt{text-align:left}
+.lens-tab[data-l="tmo"] .lt-s{color:var(--tmo)} .lens-tab[data-l="nv"] .lt-s{color:var(--nv)} .lens-tab[data-l="pnc"] .lt-s{color:var(--pnc)}
+.lens-tab.on{background:var(--panel3);color:var(--text);box-shadow:inset 0 0 0 1px var(--border2)}
+.lens-tab.on::after{content:"";position:absolute;left:12px;right:12px;bottom:-5px;height:2px;border-radius:2px;background:var(--accent)}
+.status{display:flex;align-items:center;gap:14px;flex:none}
+.badge{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:5px 12px;font-size:12.5px;font-weight:700;letter-spacing:.02em;border:1px solid}
+.badge .dot{width:8px;height:8px;border-radius:50%;background:currentColor;box-shadow:0 0 0 3px color-mix(in srgb,currentColor 25%,transparent)}
+.badge.live{color:var(--nv);border-color:rgba(118,185,0,.45);background:rgba(118,185,0,.1)}
+.badge.live .dot{animation:blink 1.6s infinite}
+.badge.replay{color:var(--amber);border-color:rgba(245,184,65,.45);background:rgba(245,184,65,.1)}
+.badge.mock{color:var(--danger);border-color:rgba(255,77,94,.45);background:rgba(255,77,94,.1)}
+.badge.off{color:var(--muted);border-color:var(--border2)}
+.badge small{font-weight:500;opacity:.85;white-space:nowrap}
+.badge{white-space:nowrap}
+.counter{display:flex;flex-direction:column;align-items:center;line-height:1.05;min-width:64px}
+.counter b{font:700 20px var(--mono)}
+.counter span{font-size:10.5px;color:var(--dim);text-transform:uppercase;letter-spacing:.08em;white-space:nowrap}
+@keyframes blink{50%{opacity:.35}}
+
+/* ---------- layout ---------- */
+main{position:relative;z-index:1;height:calc(100vh - 64px - 30px);min-height:586px;padding:16px 24px}
+.lens{display:none;height:100%;animation:lensIn .28s ease}
+.lens.on{display:block}
+@keyframes lensIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+footer{position:relative;z-index:1;height:30px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;color:var(--dim);font-size:12.5px;border-top:1px solid var(--border)}
+footer kbd{font:11px var(--mono);border:1px solid var(--border2);border-radius:4px;padding:0 4px;color:var(--muted)}
+
+.panel{background:linear-gradient(180deg,var(--panel),rgba(17,22,30,.92));border:1px solid var(--border);border-radius:var(--r);min-height:0;display:flex;flex-direction:column;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.ph{display:flex;align-items:center;gap:10px;padding:12px 16px 10px;border-bottom:1px solid var(--border)}
+.ph h2{margin:0;font-size:15px;font-weight:700;letter-spacing:.01em;white-space:nowrap}
+.ph .sub{color:var(--dim);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.ph .grow{flex:1}
+.eyebrow{font-size:11.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--dim);font-weight:700}
+.pb{padding:14px 16px;min-height:0}
+.scroll{overflow:auto}
+.btn{border:1px solid var(--border2);background:var(--panel2);border-radius:9px;padding:8px 14px;font-weight:600;font-size:14px;transition:all .15s;white-space:nowrap}
+.btn:hover{border-color:#3C495C;background:var(--panel3)}
 .btn:disabled{opacity:.5;cursor:default}
-main{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr) minmax(0,1fr);gap:16px;padding:16px 20px}
-section.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;display:flex;flex-direction:column;min-width:0;min-height:0}
-.ph{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line)}
-.ph h2{font:700 21px/1 var(--display);letter-spacing:.05em;margin:0;text-transform:uppercase}
-.ph .sub{color:var(--muted);font-size:12px}
-.pb{padding:14px;display:flex;flex-direction:column;gap:12px;overflow:auto;max-height:calc(100vh - 160px)}
-.label{font:500 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
-.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.persona{background:var(--raised);border:1px solid var(--line);border-radius:8px;padding:7px 10px;text-align:left;color:var(--ink)}
-.persona small{display:block;color:var(--muted);font-size:11px}
-.persona[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
-select,input,textarea{background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:7px;padding:7px 9px;font:inherit;width:100%}
-textarea{resize:vertical;min-height:74px}
-.chat{display:flex;flex-direction:column;gap:8px}
-.bubble{max-width:88%;padding:8px 11px;border-radius:12px;font-size:13.5px}
-.bubble .who{font:500 10.5px var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted);display:flex;gap:6px;margin-bottom:3px}
-.bubble.scammer{background:#2a1820;border:1px solid #4a2333;align-self:flex-start;border-bottom-left-radius:3px}
-.bubble.decoy{background:#16263a;border:1px solid #23405f;align-self:flex-end;border-bottom-right-radius:3px}
-.tag{font:500 10px var(--mono);padding:1px 6px;border-radius:4px;border:1px solid currentColor}
-.tag.nemotron{color:var(--nv)} .tag.mock{color:var(--watch)} .tag.fallback{color:var(--warn)} .tag.rules{color:#8fb4ff}
-.stage{background:var(--raised);border:1px solid var(--line);border-radius:9px;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
-.stage h3{margin:0;font:600 13px var(--body);display:flex;gap:8px;align-items:center}
-.kv{display:grid;grid-template-columns:110px minmax(0,1fr);gap:3px 10px;font-size:12.5px}
-.kv dt{color:var(--muted)} .kv dd{margin:0;overflow-wrap:anywhere}
-.checks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px;font-size:12.5px}
-.checks li{display:grid;grid-template-columns:18px minmax(0,1fr);gap:6px}
-.ok{color:var(--clear)} .no{color:var(--warn)}
-.story{border:1px solid var(--line);border-left:4px solid var(--watch);border-radius:9px;padding:10px 12px;background:var(--raised);display:flex;flex-direction:column;gap:7px}
-.story.warn{border-left-color:var(--warn)}
-.story .hd{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.story .id{font:500 12px var(--mono);color:var(--muted)}
-.story .title{font:600 15px var(--body)}
-.status{font:600 10.5px var(--mono);letter-spacing:.06em;padding:2px 7px;border-radius:4px}
-.status.watch{background:rgba(243,182,63,.15);color:var(--watch)} .status.warn{background:rgba(255,95,95,.15);color:var(--warn)}
-.dots{display:flex;gap:4px} .dot{width:9px;height:9px;border-radius:50%;border:1px solid var(--muted)} .dot.on{background:var(--accent);border-color:var(--accent)}
-.ind{display:flex;flex-direction:column;gap:3px;font:12px var(--mono)}
-.ind div{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.att{padding:0 5px;border-radius:3px;border:1px solid var(--line);font-size:11px}
-.istatus{color:var(--muted)} .istatus.blocked{color:var(--warn)} .istatus.rejected{color:var(--clear)} .istatus.review{color:var(--watch)}
-.kw{display:flex;flex-wrap:wrap;gap:4px}
-.kw span{font:11px var(--mono);padding:1px 6px;border-radius:4px;background:var(--bg);border:1px solid var(--line);color:var(--muted)}
-.kw span.new{border-color:var(--nv);color:var(--nv)}
-.mini{font-size:11.5px;padding:3px 8px}
-.empty{color:var(--muted);font-size:13px;border:1px dashed var(--line);border-radius:9px;padding:14px;text-align:center}
-.log{font:11.5px var(--mono);color:var(--muted);display:flex;flex-direction:column;gap:3px}
-.log b{color:var(--ink);font-weight:500}
-.phone{border:1px solid var(--line);border-radius:22px;padding:14px;background:var(--bg);display:flex;flex-direction:column;gap:10px}
-.sms{background:var(--raised);border-radius:14px 14px 14px 4px;padding:9px 12px;font-size:13.5px}
-.sms small{display:block;color:var(--muted);font:11px var(--mono);margin-bottom:3px}
-.card{border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;border:1px solid}
-.card.warn{background:rgba(255,95,95,.10);border-color:var(--warn)} .card.clear{background:rgba(76,195,138,.10);border-color:var(--clear)} .card.unsure{background:rgba(243,182,63,.10);border-color:var(--watch)}
-.card h3{margin:0;font:700 20px/1.1 var(--display);letter-spacing:.03em}
-.card ul{margin:0;padding-left:18px;font-size:13px}
-.card .next{font-size:13px;border-top:1px solid var(--line);padding-top:6px}
-.meter{position:relative;height:10px;border-radius:5px;background:linear-gradient(90deg,rgba(76,195,138,.35) 0 30%,rgba(243,182,63,.35) 30% 60%,rgba(255,95,95,.35) 60% 100%)}
-.meter i{position:absolute;top:-3px;width:3px;height:16px;background:var(--ink);border-radius:2px}
-.tool{font:12px var(--mono);border-left:2px solid var(--nv);padding:3px 8px;display:flex;flex-direction:column;gap:2px}
-.tool span{color:var(--muted);overflow-wrap:anywhere}
-.samples{display:flex;flex-wrap:wrap;gap:6px}
-.samples button{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:3px 9px;font-size:11.5px}
-.samples button:hover{color:var(--ink);border-color:var(--muted)}
-.bench{margin:0 20px 24px;background:var(--panel);border:1px solid var(--line);border-radius:12px}
-.tbl{overflow-x:auto;padding:0 14px 14px}
-table{border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:tabular-nums}
-th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
-th{font:500 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
-td.num{font-family:var(--mono)}
-.bar{display:inline-block;height:8px;border-radius:4px;background:var(--accent);vertical-align:middle;margin-right:8px}
-.note{color:var(--muted);font-size:12px;padding:0 14px 12px}
-@media (max-width:1180px){ main{grid-template-columns:minmax(0,1fr)} .pb{max-height:none} }
-@media (prefers-reduced-motion:no-preference){ .bubble,.stage,.story,.card{animation:in .25s ease-out} @keyframes in{from{transform:translateY(4px)}to{transform:none}} }
+.btn.pri{background:var(--accent);border-color:transparent;color:#fff}
+body[data-lens="nv"] .btn.pri{color:#0B1200}
+.btn.pri:hover{filter:brightness(1.1)}
+.btn.sm{padding:5px 10px;font-size:13px;border-radius:8px}
+.btn.ghost{background:transparent}
+.field{width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:9px;padding:9px 11px;outline:none;transition:border-color .15s}
+.field:focus{border-color:var(--accent)}
+select.field{appearance:none;padding-right:28px;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 15px) 52%,calc(100% - 10px) 52%;background-size:5px 5px;background-repeat:no-repeat}
+.chip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:2px 9px;font-size:12.5px;font-weight:600;border:1px solid var(--border2);background:var(--panel2);color:var(--muted);white-space:nowrap}
+.chip.ok{color:var(--ok);border-color:rgba(61,220,151,.4);background:rgba(61,220,151,.08)}
+.chip.bad{color:var(--danger);border-color:rgba(255,77,94,.4);background:rgba(255,77,94,.08)}
+.chip.amb{color:var(--amber);border-color:rgba(245,184,65,.4);background:rgba(245,184,65,.08)}
+.chip.nv{color:var(--nv);border-color:rgba(118,185,0,.4);background:rgba(118,185,0,.08)}
+.chip.tmo{color:#FF4FA8;border-color:rgba(226,0,116,.45);background:rgba(226,0,116,.1)}
+.chip.mono{font-family:var(--mono);font-weight:500}
+.tag{display:inline-block;font:600 11px var(--mono);letter-spacing:.02em;padding:1px 6px;border-radius:5px;border:1px solid var(--border2);color:var(--muted);vertical-align:middle}
+.tag.mock{color:var(--danger);border-color:rgba(255,77,94,.4)}
+.tag.nemotron,.tag.live{color:var(--nv);border-color:rgba(118,185,0,.45)}
+.tag.fallback,.tag.replay{color:var(--amber);border-color:rgba(245,184,65,.45)}
+.tag.rules{color:var(--info);border-color:rgba(90,169,255,.4)}
+.tag.dev{color:#FF4FA8;border-color:rgba(226,0,116,.45)}
+.empty{color:var(--dim);font-size:14px;text-align:center;padding:24px 12px;line-height:1.5}
+.empty b{color:var(--muted)}
+
+/* ---------- toasts ---------- */
+#toasts{position:fixed;right:20px;bottom:44px;z-index:50;display:flex;flex-direction:column;gap:8px;max-width:420px}
+.toast{background:var(--panel3);border:1px solid var(--border2);border-left:3px solid var(--info);border-radius:10px;padding:10px 14px;font-size:14px;box-shadow:0 12px 30px rgba(0,0,0,.45);animation:toastIn .25s ease}
+.toast.err{border-left-color:var(--danger)} .toast.warn{border-left-color:var(--amber)} .toast.ok{border-left-color:var(--ok)}
+@keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:none}}
+
+/* =========================================================== T-MOBILE */
+.tmo-grid{display:grid;grid-template-columns:minmax(250px,290px) minmax(300px,350px) minmax(0,1fr);gap:16px;height:100%}
+.inbox .pb{display:flex;flex-direction:column;gap:14px}
+.samples{display:flex;flex-direction:column;gap:7px}
+.sample{display:flex;flex-direction:column;align-items:flex-start;text-align:left;border:1px solid var(--border);background:var(--panel2);border-radius:10px;padding:8px 11px;transition:all .15s}
+.sample:hover{border-color:color-mix(in srgb,var(--tmo) 55%,var(--border));transform:translateX(2px)}
+.sample b{font-size:14px;font-weight:600}
+.sample span{font:12px var(--mono);color:var(--dim)}
+.custom{display:flex;flex-direction:column;gap:7px}
+.custom textarea{resize:none}
+.custom .row{display:flex;gap:8px;align-items:center;justify-content:space-between}
+.chk{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+.privacy{margin-top:auto;border:1px solid var(--border);border-radius:12px;padding:12px 14px;background:linear-gradient(160deg,rgba(226,0,116,.08),transparent 60%),var(--bg2)}
+.pm-big{display:flex;align-items:baseline;gap:8px;margin:4px 0 8px}
+.pm-big b{font:800 34px var(--mono);letter-spacing:-.03em;transition:color .3s}
+.pm-big span{color:var(--muted);font-size:13.5px}
+.pm-bar{display:flex;height:8px;border-radius:8px;overflow:hidden;background:var(--panel3)}
+.pm-bar .dev{background:var(--ok);transition:width .5s}
+.pm-bar .cons{background:var(--amber);transition:width .5s}
+.pm-legend{display:flex;justify-content:space-between;gap:8px;margin-top:8px;font-size:13px;color:var(--muted)}
+.pm-legend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px}
+.pm-legend b{color:var(--text);font-family:var(--mono)}
+
+/* phone */
+.phone-wrap{display:flex;align-items:center;justify-content:center;min-height:0}
+.phone{position:relative;width:100%;max-width:350px;height:100%;max-height:760px;border-radius:48px;padding:11px;background:linear-gradient(145deg,#2A2F38,#0E1015 40%,#1B1F26);box-shadow:0 0 0 1px #3A404B,0 30px 60px rgba(0,0,0,.6),0 0 80px color-mix(in srgb,var(--tmo) 14%,transparent)}
+.screen{position:relative;height:100%;border-radius:38px;background:#000;overflow:hidden;display:flex;flex-direction:column}
+.island{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:104px;height:30px;border-radius:20px;background:#000;z-index:4;box-shadow:0 0 0 1px #111}
+.sbar{display:flex;justify-content:space-between;padding:14px 26px 4px;font-size:14px;font-weight:600;height:44px}
+.sbar .ic{display:flex;gap:5px;align-items:center}
+.thead{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 10px 10px;border-bottom:1px solid #1C1C1E;background:rgba(18,18,20,.9)}
+.avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(180deg,#9AA0AA,#6B717B);display:grid;place-items:center;font-weight:700;font-size:16px;color:#fff}
+.thead .nm{font-size:13px;color:#ddd;font-family:var(--mono)}
+.thead .meta{font-size:11px;color:#8E8E93}
+.thread{flex:1;overflow:auto;padding:12px 12px 16px;display:flex;flex-direction:column;gap:8px;scroll-behavior:smooth}
+.thread .when{align-self:center;font-size:11px;color:#8E8E93;margin:4px 0}
+.bub{max-width:82%;padding:8px 12px;border-radius:18px;font-size:14.5px;line-height:1.35;word-wrap:break-word;animation:pop .25s ease}
+.bub.in{align-self:flex-start;background:#26252A;border-bottom-left-radius:6px}
+@keyframes pop{from{opacity:0;transform:scale(.94) translateY(6px)}to{opacity:1;transform:none}}
+.ondev{align-self:stretch;margin:2px 4px;padding:8px 10px;border-radius:12px;background:#0D0F12;border:1px solid #1E232B;font:12px/1.5 var(--mono);color:#9AA5B4}
+.ondev .ln{display:flex;gap:7px;align-items:flex-start;opacity:0;transform:translateY(3px);transition:all .25s}
+.ondev .ln.on{opacity:1;transform:none}
+.ondev .ln i{flex:none;width:7px;height:7px;border-radius:50%;margin-top:5px;background:#3C4656}
+.ondev .ln.l-g i{background:var(--ok)} .ondev .ln.l-r i{background:var(--danger)} .ondev .ln.l-a i{background:var(--amber)} .ondev .ln.l-n i{background:var(--nv)} .ondev .ln.l-m i{background:var(--tmo)}
+.ondev .hd{color:#C5CEDA;font-weight:600;display:flex;justify-content:space-between;margin-bottom:3px}
+.ondev .tools{display:flex;flex-wrap:wrap;gap:4px;margin:3px 0 2px 14px}
+.ondev .tools span{border:1px solid rgba(118,185,0,.4);color:var(--nv);border-radius:5px;padding:0 5px;font-size:11px}
+.card{align-self:stretch;margin:2px 2px;border-radius:16px;overflow:hidden;background:#15171C;border:1px solid #2A2E36;animation:pop .3s ease}
+.card .bar{height:4px}
+.card .cb{padding:11px 13px 12px}
+.card .ct{display:flex;align-items:center;gap:9px;font-weight:700;font-size:15.5px;line-height:1.25}
+.card .ct svg{flex:none}
+.card .cstory{font-size:12.5px;color:#9AA5B4;margin:4px 0 0 31px}
+.card ul{margin:8px 0 0;padding-left:18px;font-size:13.5px;color:#C9D1DC}
+.card li{margin:2px 0}
+.card .next{margin-top:9px;padding:8px 10px;border-radius:10px;background:#1E2128;font-size:13.5px}
+.card .next b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#8E99A8;margin-bottom:2px}
+.card .acts{display:flex;gap:8px;margin-top:9px;flex-wrap:wrap}
+.card .link{background:none;border:0;padding:0;color:var(--pnc);font-weight:600;font-size:13.5px}
+.card .link:hover{text-decoration:underline}
+.card .rep{background:none;border:1px solid #333944;border-radius:8px;padding:3px 9px;font-size:12.5px;color:#C9D1DC}
+.card.warn .bar{background:var(--danger)} .card.warn .ct{color:#FF7A86}
+.card.unsure .bar{background:var(--amber)} .card.unsure .ct{color:var(--amber)}
+.card.clear .bar{background:var(--ok)} .card.clear .ct{color:var(--ok)}
+.composer{display:flex;align-items:center;gap:8px;padding:8px 12px 22px;border-top:1px solid #1C1C1E;background:#0B0B0C}
+.composer .fake{flex:1;border:1px solid #2C2C2E;border-radius:18px;padding:6px 12px;color:#636366;font-size:14px}
+.sheet-bg{position:absolute;inset:0;background:rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .25s;z-index:5}
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:6;background:#1C1C1E;border-radius:22px 22px 0 0;padding:10px 16px 24px;transform:translateY(105%);transition:transform .35s cubic-bezier(.2,.9,.25,1)}
+.screen.sheet-on .sheet{transform:none}
+.screen.sheet-on .sheet-bg{opacity:1;pointer-events:auto}
+.sheet .grab{width:38px;height:5px;border-radius:3px;background:#48484A;margin:0 auto 12px}
+.sheet h3{margin:0 0 4px;font-size:16.5px;line-height:1.3}
+.sheet p{margin:0 0 10px;color:#9A9AA0;font-size:13.5px}
+.sheet .leave{border:1px dashed #48484A;border-radius:12px;padding:9px 11px;font:12.5px/1.5 var(--mono);color:#D1D1D6;max-height:150px;overflow:auto;background:#121214}
+.sheet .leave mark{background:rgba(226,0,116,.25);color:#FF7EC0;border-radius:3px;padding:0 2px}
+.sheet .bytes{display:flex;justify-content:space-between;font-size:12px;color:#8E8E93;margin:7px 2px 12px}
+.sheet .sbtn{display:block;width:100%;border:0;border-radius:13px;padding:12px;font-weight:700;font-size:15px;margin-top:8px}
+.sheet .sbtn.send{background:var(--tmo);color:#fff}
+.sheet .sbtn.keep{background:#2C2C2E;color:#fff}
+
+/* console */
+.console{min-width:0}
+.seg{display:flex;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:3px}
+.seg button{border:0;background:transparent;border-radius:7px;padding:6px 12px;font-size:13.5px;font-weight:600;color:var(--muted)}
+.seg button.on{background:var(--panel3);color:var(--text);box-shadow:inset 0 0 0 1px var(--border2)}
+.seg button.hot{color:#FF6BB5}
+.seg button.hot.on{background:rgba(226,0,116,.16);color:#fff;box-shadow:inset 0 0 0 1px rgba(226,0,116,.6)}
+.ctl{display:flex;gap:8px;align-items:center;padding:10px 16px;border-bottom:1px solid var(--border)}
+.ctl select{width:auto;min-width:0;flex:1}
+.ctl .hint{color:var(--dim);font-size:13px}
+.cbody{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr)}
+.chatcol{display:flex;flex-direction:column;min-height:0;border-right:1px solid var(--border)}
+.persona{display:flex;gap:10px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--bg2)}
+.persona .pa{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:700;background:rgba(226,0,116,.18);color:#FF7EC0;flex:none}
+.persona b{font-size:14.5px} .persona .pm{font-size:12.5px;color:var(--dim)}
+.chat{flex:1;overflow:auto;padding:12px 14px;display:flex;flex-direction:column;gap:9px}
+.msg{max-width:86%;display:flex;flex-direction:column;gap:3px;animation:pop .25s ease}
+.msg .who{font-size:11.5px;color:var(--dim);font-weight:600;display:flex;gap:6px;align-items:center}
+.msg .tx{padding:8px 12px;border-radius:14px;font-size:14.5px;line-height:1.4}
+.msg.scam{align-self:flex-start}
+.msg.scam .tx{background:rgba(255,77,94,.1);border:1px solid rgba(255,77,94,.32);border-bottom-left-radius:4px}
+.msg.decoy{align-self:flex-end;align-items:flex-end}
+.msg.decoy .tx{background:var(--panel3);border:1px solid var(--border2);border-bottom-right-radius:4px}
+.typing{align-self:flex-end;display:flex;gap:4px;padding:10px 14px;border-radius:14px;background:var(--panel3)}
+.typing i{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:ty 1s infinite}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes ty{50%{opacity:.25;transform:translateY(-2px)}}
+.liveform{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--border)}
+.intel{overflow:auto;padding:12px 14px;display:flex;flex-direction:column;gap:12px;min-height:0}
+.box{border:1px solid var(--border);border-radius:12px;background:var(--bg2);padding:10px 12px;animation:pop .3s ease}
+.box .bh{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.box .bh .eyebrow{flex:1}
+.kv{display:grid;grid-template-columns:96px 1fr;gap:3px 10px;font-size:13.5px}
+.kv dt{color:var(--dim)} .kv dd{margin:0;color:#D5DCE6;word-break:break-word}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.checks{display:flex;flex-direction:column;gap:6px}
+.ck{display:grid;grid-template-columns:auto 1fr;gap:2px 9px;align-items:start;opacity:0;transform:translateX(-4px);transition:all .25s}
+.ck.on{opacity:1;transform:none}
+.ck .cn{font-size:13.5px;font-weight:600}
+.ck .nt{grid-column:2;font-size:12.5px;color:var(--muted)}
+.outcome{border-radius:12px;padding:11px 13px;font-size:14px;display:flex;gap:10px;align-items:center;animation:pop .3s ease}
+.outcome.good{background:rgba(61,220,151,.08);border:1px solid rgba(61,220,151,.35)}
+.outcome.watch{background:rgba(245,184,65,.08);border:1px solid rgba(245,184,65,.35)}
+.outcome.bad{background:rgba(255,77,94,.08);border:1px solid rgba(255,77,94,.4)}
+.outcome b{font-size:15px}
+.pipe{display:flex;flex-direction:column;gap:10px;margin:auto 0;padding:10px 6px}
+.pipe .st{display:flex;gap:10px;align-items:center;color:var(--muted);font-size:14px}
+.pipe .st i{width:26px;height:26px;border-radius:8px;border:1px solid var(--border2);display:grid;place-items:center;font:700 12px var(--mono);color:var(--dim);font-style:normal}
+.smap{border-top:1px solid var(--border);display:flex;flex-direction:column;min-height:0;height:170px;flex:none}
+.smap .ph{border-bottom:0;padding-bottom:4px}
+.stories{display:flex;gap:10px;overflow-x:auto;overflow-y:hidden;padding:4px 16px 12px;flex:1;align-items:stretch}
+.story{flex:none;width:200px;border:1px solid var(--border);border-radius:12px;padding:8px 11px;background:var(--bg2);display:flex;flex-direction:column;gap:4px;transition:border-color .4s,box-shadow .4s}
+.story.flash{border-color:var(--tmo);box-shadow:0 0 0 3px rgba(226,0,116,.18)}
+.story .st1{display:flex;justify-content:space-between;align-items:center;gap:6px;font:12px var(--mono);color:var(--dim);white-space:nowrap}
+.story .st1>span:first-child{overflow:hidden;text-overflow:ellipsis}
+.story .stt{font-size:14px;font-weight:650;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;flex:1;min-height:18px}
+.story .st3{display:flex;gap:6px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.story .st3 span{white-space:nowrap}
+.stat-w{color:var(--danger)} .stat-wa{color:var(--amber)}
+
+/* =========================================================== NVIDIA */
+.nv-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,370px);gap:16px;height:100%}
+.nv-main{display:grid;grid-template-rows:auto minmax(0,1fr);gap:16px;min-height:0;min-width:0}
+.graph-panel{position:relative;overflow:hidden}
+.graph-panel svg{width:100%;height:auto;aspect-ratio:1060/318;max-height:31vh;display:block;margin:2px 0 4px}
+.legend{display:flex;gap:12px;font-size:12.5px;color:var(--muted)}
+.legend span{display:flex;align-items:center;gap:5px}
+.legend i{width:9px;height:9px;border-radius:3px;display:inline-block}
+svg .edge{fill:none;stroke:#2C3646;stroke-width:2}
+svg .edge.flow{stroke:var(--nv);stroke-dasharray:6 6;animation:dash .6s linear infinite}
+@keyframes dash{to{stroke-dashoffset:-24}}
+svg .elab{fill:#5E6B7D;font:11.5px var(--sans)}
+svg .rowlab{fill:#566273;font:700 11px var(--sans);letter-spacing:.12em}
+svg .node rect.bg{fill:#131A24;stroke:#2A3444;stroke-width:1.5;transition:stroke .3s,fill .3s}
+svg .node.k-nv rect.bg{stroke:rgba(118,185,0,.42)}
+svg .node.k-rules rect.bg{stroke:rgba(90,169,255,.42)}
+svg .node.k-dev rect.bg{stroke:rgba(226,0,116,.5)}
+svg .node.k-coach rect.bg{stroke:rgba(239,118,34,.5);stroke-dasharray:5 4}
+svg .node .nl{fill:#E8EDF4;font:700 14.5px var(--sans)}
+svg .node .ns{fill:#8391A4;font:12px var(--sans)}
+svg .node .kd{stroke:none}
+svg .node .cnt{fill:#0A0D12;font:700 11px var(--mono)}
+svg .node .cntbg{fill:#3A4556;transition:fill .3s}
+svg .node.hot rect.bg{fill:#17240C;stroke:var(--nv);stroke-width:2.5;filter:url(#glow)}
+svg .node.k-rules.hot rect.bg{fill:#0F1C2C;stroke:var(--info)}
+svg .node.k-dev.hot rect.bg{fill:#260A1A;stroke:var(--tmo)}
+svg .node.k-coach.hot rect.bg{fill:#2A1708;stroke:var(--pnc)}
+svg .node.k-ext.hot rect.bg{fill:#2A0E12;stroke:var(--danger)}
+svg .node.hot .cntbg{fill:var(--nv)}
+.nv-bottom{display:grid;grid-template-columns:minmax(0,.92fr) minmax(0,1.3fr);gap:16px;min-height:0}
+.rescue .pb{display:flex;flex-direction:column;gap:10px;overflow:auto;padding-top:10px}
+.tools{display:flex;flex-wrap:wrap;gap:6px}
+.tool{font:12px var(--mono);border:1px solid var(--border2);border-radius:7px;padding:3px 7px;color:var(--dim);background:var(--bg2);display:flex;gap:6px;align-items:center;transition:all .3s}
+.tool b{font:700 10.5px var(--mono);background:var(--nv);color:#0B1200;border-radius:4px;padding:0 4px}
+.tool.used{color:var(--nv);border-color:rgba(118,185,0,.55);background:rgba(118,185,0,.08)}
+.verdict{display:flex;gap:8px;align-items:center;font-size:14px;flex-wrap:wrap}
+.gate{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.gt{display:flex;gap:7px;align-items:flex-start;font-size:12.5px;border:1px solid var(--border);border-radius:8px;padding:4px 7px;background:var(--bg2);line-height:1.3}
+.gt .pf{font:700 10.5px var(--mono);padding:1px 5px;border-radius:4px;flex:none;margin-top:1px}
+.gt.ok .pf{background:rgba(61,220,151,.15);color:var(--ok)} .gt.no .pf{background:rgba(255,77,94,.15);color:var(--danger)}
+.gt.idle{color:var(--dim)} .gt.idle .pf{background:var(--panel3);color:var(--dim)}
+.feed-panel .list{flex:1;overflow:auto;padding:8px 10px 12px;display:flex;flex-direction:column;gap:6px}
+.ev{border:1px solid var(--border);border-left:3px solid #3A4556;border-radius:9px;padding:7px 10px;background:var(--bg2);font-size:13px;animation:evIn .3s ease}
+@keyframes evIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.ev.k-nv{border-left-color:var(--nv)} .ev.k-rules{border-left-color:var(--info)} .ev.k-dev{border-left-color:var(--tmo)} .ev.k-ext{border-left-color:var(--danger)} .ev.k-coach{border-left-color:var(--pnc)} .ev.k-cons{border-left-color:var(--amber)}
+.ev .et{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.ev .et .ag{font-weight:700;font-size:13.5px}
+.ev .et .t{font:11.5px var(--mono);color:var(--dim)}
+.ev .et .gr{flex:1}
+.ev .io{font:12px/1.45 var(--mono);color:#AAB5C3;margin-top:3px;word-break:break-word;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ev .io em{font-style:normal;color:var(--dim);margin-right:5px}
+.ev .tl{display:inline-block;font:600 12px var(--mono);color:var(--nv);margin-top:3px}
+.score{position:relative;overflow:hidden}
+.score .pb{overflow:auto;display:flex;flex-direction:column;gap:8px;padding-top:10px}
+.stats3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.scard{border:1px solid var(--border);border-radius:11px;padding:7px 11px;background:linear-gradient(160deg,rgba(118,185,0,.08),transparent 65%),var(--bg2)}
+.scard .big{font:800 24px/1.1 var(--mono);letter-spacing:-.03em;color:var(--nv);white-space:nowrap}
+.scard .big small{font-size:14px;color:var(--muted);font-weight:600;letter-spacing:0}
+.scard .lbl{font-size:12.5px;color:var(--muted);line-height:1.3;margin-top:1px}
+table.bt{width:100%;border-collapse:collapse;font-size:13.5px}
+.bt th{white-space:nowrap;text-align:right;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--dim);font-weight:700;padding:3px 6px;border-bottom:1px solid var(--border)}
+.bt th:first-child,.bt td:first-child{text-align:left}
+.bt td{padding:3px 6px;text-align:right;font-family:var(--mono);border-bottom:1px solid rgba(35,44,58,.6);white-space:nowrap}
+.bt td:first-child{font-family:var(--sans);white-space:normal}
+.bt tr.grp td{font:700 11.5px var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding-top:9px;border-bottom:0}
+.bt tr.best td{color:var(--nv)} .bt tr.best td:first-child{font-weight:650}
+.bt .bar{display:inline-block;width:46px;height:5px;border-radius:3px;background:var(--panel3);vertical-align:middle;margin-left:6px;overflow:hidden}
+.bt .bar i{display:block;height:100%;background:currentColor}
+.blurable{transition:filter .3s}
+.score.masked .blurable{filter:blur(7px);pointer-events:none;user-select:none}
+.mask{position:absolute;inset:52px 0 0;display:none;align-items:center;justify-content:center;z-index:3;cursor:pointer}
+.score.masked .mask{display:flex}
+.mask div{max-width:330px;text-align:center;background:rgba(14,18,24,.92);border:1px solid rgba(255,77,94,.5);border-radius:14px;padding:14px 18px;box-shadow:0 10px 40px rgba(0,0,0,.6)}
+.mask b{display:block;color:var(--danger);font-size:15px;margin-bottom:4px}
+.mask span{font-size:13px;color:var(--muted)}
+
+/* =========================================================== PNC */
+.pnc-grid{display:grid;grid-template-columns:minmax(250px,290px) minmax(0,1fr) minmax(330px,410px);gap:16px;height:100%}
+.snap .pb{overflow:auto;display:flex;flex-direction:column;gap:12px}
+.who{display:flex;gap:11px;align-items:center}
+.who .pa{width:42px;height:42px;border-radius:50%;background:rgba(239,118,34,.18);color:var(--pnc);display:grid;place-items:center;font-weight:800}
+.who b{font-size:16px;display:block} .who span{font-size:13px;color:var(--dim)}
+.nw{border:1px solid var(--border);border-radius:12px;padding:10px 13px;background:linear-gradient(160deg,rgba(239,118,34,.12),transparent 60%),var(--bg2)}
+.nw .big{font:800 32px/1.1 var(--mono);letter-spacing:-.03em}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tile{border:1px solid var(--border);border-radius:11px;padding:8px 11px;background:var(--bg2)}
+.tile .v{font:700 17px var(--mono)}
+.tile.full{grid-column:span 2}
+.accts{display:flex;flex-direction:column}
+.acct{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 2px;border-bottom:1px solid rgba(35,44,58,.7);font-size:13.5px}
+.acct .an{display:flex;flex-direction:column;line-height:1.25}
+.acct .an span{font-size:11.5px;color:var(--dim)}
+.acct .av{font-family:var(--mono);font-weight:600;white-space:nowrap}
+.acct .av.neg{color:#F49AA3}
+.pnc-mid{display:grid;grid-template-rows:auto minmax(0,1fr);gap:16px;min-height:0;min-width:0}
+.inds{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ind{position:relative;border:1px solid var(--border);border-radius:var(--r);padding:11px 14px 10px;background:var(--panel);overflow:hidden;transition:border-color .4s}
+.ind::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--sc,#3A4556)}
+.ind.s-good{--sc:var(--ok)} .ind.s-watch{--sc:var(--amber)} .ind.s-risk{--sc:var(--danger)}
+.ind .ih{display:flex;align-items:center;gap:8px}
+.ind .ih .nm{font-weight:700;font-size:14px;flex:1}
+.pill{font:700 11px var(--sans);letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:999px;color:var(--sc);background:color-mix(in srgb,var(--sc) 14%,transparent)}
+.ind .iv{display:flex;align-items:baseline;gap:8px;margin:4px 0 3px;flex-wrap:wrap}
+.ind .iv b{font:800 26px/1.1 var(--mono);letter-spacing:-.03em;color:var(--sc)}
+.ind .iv span{font-size:13px;color:var(--muted)}
+.ind .was{font-size:12.5px;color:var(--dim);display:flex;align-items:center;gap:6px}
+.ind .was s{font-family:var(--mono)}
+.ind .dir{font-weight:700} .ind .dir.worse{color:var(--danger)} .ind .dir.better{color:var(--ok)} .ind .dir.same{color:var(--dim)}
+.ind .ex{font-size:13px;color:#B6C1CF;line-height:1.4;margin:0}
+.ind .fx{border:0;background:none;color:var(--dim);font:600 12px var(--mono);padding:0;margin-top:4px}
+.ind .fx:hover{color:var(--pnc)}
+.ind .fml{font:12px/1.4 var(--mono);color:var(--pnc);margin-top:4px;display:none}
+.ind.open .fml{display:block}
+.chart-panel .pb{flex:1;display:flex;flex-direction:column;min-height:0;padding-top:8px}
+.chart-panel svg{flex:1;width:100%;min-height:0;display:block}
+.clegend{display:flex;gap:14px;font-size:12.5px;color:var(--muted);align-items:center}
+.clegend i{display:inline-block;width:18px;height:0;border-top:2.5px solid var(--pnc);vertical-align:middle;margin-right:5px}
+.clegend i.d{border-top:2.5px dashed var(--danger)}
+.clegend i.z{border-top:8px solid rgba(255,77,94,.18);width:12px}
+svg .gl{stroke:#1E2632;stroke-width:1}
+svg .zl{stroke:#6B7686;stroke-width:1.2}
+svg .ax{fill:#6B7889;font:11.5px var(--mono)}
+svg .lbl{font:700 12px var(--mono)}
+.pnc-right{display:grid;grid-template-rows:auto minmax(0,1fr);gap:16px;min-height:0}
+.presets{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.preset{text-align:left;border:1px solid var(--border);border-radius:10px;background:var(--bg2);padding:6px 10px;font-size:12.5px;line-height:1.3;transition:all .15s}
+.preset:hover{border-color:rgba(239,118,34,.6)}
+.preset.on{border-color:var(--pnc);background:rgba(239,118,34,.12)}
+.preset b{display:block;font-size:13.5px}
+.facts{margin:10px 0 0;padding:0 4px 0 0;list-style:none;display:flex;flex-direction:column;gap:5px;max-height:132px;overflow:auto}
+.facts li{font-size:13px;color:#C3CCD8;padding-left:14px;position:relative;line-height:1.38}
+.facts li::before{content:"";position:absolute;left:2px;top:7px;width:5px;height:5px;border-radius:50%;background:var(--pnc)}
+.coach{min-height:0}
+.qchips{display:flex;flex-wrap:wrap;gap:6px;padding:10px 14px 2px}
+.coach.asked .qchips{flex-wrap:nowrap;overflow-x:auto;padding-bottom:6px;-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent)}
+.coach.asked .qchips::-webkit-scrollbar{height:0}
+.coach.asked .qchip{white-space:nowrap}
+.qchip{text-align:left}
+.coach.asked .qchip.hero{flex:none}
+.qchip{border:1px solid var(--border2);background:var(--bg2);border-radius:999px;padding:4px 11px;font-size:13px;color:var(--muted);transition:all .15s}
+.qchip:hover{border-color:var(--pnc);color:var(--text)}
+.qchip.hero{border-color:rgba(239,118,34,.6);color:#FFC59A}
+.convo{flex:1;overflow:auto;padding:10px 14px;display:flex;flex-direction:column;gap:10px;min-height:0}
+.cq{align-self:flex-end;max-width:85%;background:rgba(239,118,34,.14);border:1px solid rgba(239,118,34,.35);border-radius:14px 14px 4px 14px;padding:7px 12px;font-size:14px;animation:pop .2s}
+.ca{align-self:stretch;border:1px solid var(--border);background:var(--bg2);border-radius:14px 14px 14px 4px;padding:10px 12px;font-size:14px;line-height:1.5;animation:pop .25s}
+.ca .ah{display:flex;gap:7px;align-items:center;margin-bottom:6px;flex-wrap:wrap}
+.ca .ah b{font-size:13px}
+.ca mark{background:rgba(239,118,34,.18);color:#FFB27A;border-radius:4px;padding:0 3px;font-family:var(--mono);font-size:13px}
+.ca ol{margin:8px 0 0;padding-left:20px;font-size:13.5px;color:#C3CCD8}
+.ca .tr{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.ca .note{font-size:12px;color:var(--dim);margin-top:6px}
+.askrow{display:flex;gap:8px;padding:10px 14px 12px;border-top:1px solid var(--border)}
+
+@media (max-width:1360px){
+  .lens-tab kbd{display:none}
+  .lens-tab{padding:6px 12px}
+  .badge.mock,.badge.replay{flex-direction:column;align-items:flex-start;gap:0;border-radius:10px;padding:3px 12px 4px 26px;position:relative;line-height:1.2}
+  .badge.mock .dot,.badge.replay .dot{position:absolute;left:10px;top:50%;margin-top:-4px}
+  .badge small{font-size:11px}
+  .graph-panel svg{max-height:28vh}
+  .tmo-grid{grid-template-columns:250px 310px minmax(0,1fr)}
+  .pnc-grid{grid-template-columns:250px minmax(0,1fr) 350px}
+  .nv-grid{grid-template-columns:minmax(0,1fr) 340px}
+  .ind .iv b{font-size:23px}
+}
+@media (max-height:840px){
+  main{padding:12px 20px}
+  .tmo-grid,.nv-grid,.pnc-grid{gap:12px}
+  .nw .big{font-size:27px}
+  .ind .ex{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .sample{padding:5px 10px}
+  .inbox .pb{gap:10px}
+  .custom textarea{height:58px}
+  .privacy{padding:9px 12px}
+  .pm-big{margin:0 0 6px}
+  .pm-big b{font-size:28px}
+}
 </style>
 </head>
-<body>
+<body data-lens="tmo">
 <header class="top">
-  <div class="brand"><h1>DETOUR</h1><p>Scammers change their numbers. They don't change their plays.</p></div>
-  <div class="spacer"></div>
-  <div class="chips" id="chips"></div>
-  <div class="row">
-    <button class="btn" id="seedBtn" title="Replay scripted decoy sessions for every play">Load decoy history</button>
-    <button class="btn" id="resetBtn">Reset</button>
+  <div class="brand">
+    <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true">
+      <rect x="1" y="1" width="32" height="32" rx="9" fill="none" stroke="var(--accent)" stroke-width="1.6" opacity=".55"/>
+      <path d="M6 22 H11 C13 22 13 11 17 11 C21 11 21 22 23 22 H28" fill="none" stroke="var(--accent)" stroke-width="2.6" stroke-linecap="round"/>
+      <circle cx="6" cy="22" r="2.4" fill="var(--text)"/><circle cx="28" cy="22" r="2.4" fill="var(--text)"/>
+    </svg>
+    <span class="bt2"><span class="word">Detour</span>
+    <span class="tagline">Scammers change numbers. Not their plays.</span></span>
+  </div>
+  <nav class="lenses" id="lensTabs">
+    <button class="lens-tab on" data-l="tmo"><kbd>1</kbd><span class="lt"><span class="lt-s">T-Mobile</span><span class="lt-t">Protect the customer</span></span></button>
+    <button class="lens-tab" data-l="nv"><kbd>2</kbd><span class="lt"><span class="lt-s">NVIDIA</span><span class="lt-t">Nemotron as the teacher</span></span></button>
+    <button class="lens-tab" data-l="pnc"><kbd>3</kbd><span class="lt"><span class="lt-s">PNC</span><span class="lt-t">360° Financial Health</span></span></button>
+  </nav>
+  <div class="status">
+    <span id="modeBadge" class="badge off"><span class="dot"></span>CONNECTING</span>
+    <div class="counter" title="Calls made to the hosted Nemotron model this run"><b id="hostedCalls">0</b><span>hosted calls</span></div>
   </div>
 </header>
 
 <main>
-  <section class="panel" aria-labelledby="h-film">
-    <div class="ph"><h2 id="h-film">Film room</h2><span class="sub">Decoy lines talking to scammers</span></div>
-    <div class="pb">
-      <div class="label">Decoy persona (fully synthetic)</div>
-      <div class="row" id="personas"></div>
-      <div class="label">Scammer's play (simulated)</div>
-      <div class="row">
-        <select id="scenario" aria-label="Scam play"></select>
+<!-- ================================================================ T-MOBILE -->
+<section class="lens on" id="lens-tmo">
+ <div class="tmo-grid">
+  <aside class="panel inbox">
+    <div class="ph"><h2>Incoming texts</h2><span class="sub">tap to deliver</span></div>
+    <div class="pb scroll" style="flex:1">
+      <div class="samples" id="samples"><div class="empty">Loading samples…</div></div>
+      <form class="custom" id="customForm" autocomplete="off">
+        <div class="eyebrow">Type your own</div>
+        <input class="field mono" id="cSender" placeholder="Sender, e.g. (469) 555-0142" maxlength="40">
+        <textarea class="field" id="cText" rows="3" placeholder="Message text…" maxlength="2000"></textarea>
+        <div class="row"><label class="chk"><input type="checkbox" id="cKnown"> saved contact</label><button class="btn pri sm" type="submit">Deliver to phone</button></div>
+      </form>
+      <div class="privacy">
+        <div class="eyebrow">Privacy meter</div>
+        <div class="pm-big"><b id="pmBytes">0</b><span>bytes left the phone</span></div>
+        <div class="pm-bar"><div class="dev" id="pmDevBar" style="width:0"></div><div class="cons" id="pmConsBar" style="width:0"></div></div>
+        <div class="pm-legend"><span><i style="background:var(--ok)"></i><b id="pmDev">0</b> on device</span><span><i style="background:var(--amber)"></i><b id="pmCons">0</b> sent with consent</span></div>
       </div>
-      <div class="row">
-        <button class="btn primary" id="runBtn">Run decoy conversation</button>
-        <button class="btn danger" id="attackBtn" title="A scammer who knows about decoys tries to get a real bank number blocked">Attack: plant a real bank number</button>
+    </div>
+  </aside>
+
+  <div class="phone-wrap">
+    <div class="phone"><div class="screen" id="screen">
+      <div class="island"></div>
+      <div class="sbar"><span>9:41</span><span class="ic">
+        <svg width="18" height="11" viewBox="0 0 18 11"><rect x="0" y="7" width="3" height="4" rx="1" fill="#fff"/><rect x="5" y="5" width="3" height="6" rx="1" fill="#fff"/><rect x="10" y="2.5" width="3" height="8.5" rx="1" fill="#fff"/><rect x="15" y="0" width="3" height="11" rx="1" fill="#fff"/></svg>
+        <svg width="25" height="12" viewBox="0 0 25 12"><rect x=".5" y=".5" width="21" height="11" rx="3" fill="none" stroke="#fff" opacity=".5"/><rect x="2" y="2" width="15" height="8" rx="1.5" fill="#fff"/><rect x="23" y="4" width="1.5" height="4" rx=".7" fill="#fff" opacity=".5"/></svg></span></div>
+      <div class="thead"><div class="avatar" id="phAvatar">?</div><div class="nm" id="phSender">No messages yet</div><div class="meta" id="phMeta">Detour screens on device</div></div>
+      <div class="thread" id="thread"><div class="empty" style="margin:auto;color:#636366">Deliver a text from the left.<br>Detour checks it <b style="color:#aaa">on this phone</b> first.</div></div>
+      <div class="composer"><div class="fake">Text Message</div>
+        <svg width="26" height="26" viewBox="0 0 26 26"><circle cx="13" cy="13" r="13" fill="#2C2C2E"/><path d="M13 7v12M8 12l5-5 5 5" stroke="#8E8E93" stroke-width="2" fill="none" stroke-linecap="round"/></svg></div>
+      <div class="sheet-bg" id="sheetBg"></div>
+      <div class="sheet" id="sheet">
+        <div class="grab"></div>
+        <h3>Not sure about this one. Send a redacted copy to Detour for a second look?</h3>
+        <p>Only this redacted text leaves the phone, plus the sender ID for a registration check. Nothing is sent unless you tap.</p>
+        <div class="leave" id="sheetText"></div>
+        <div class="bytes"><span id="sheetBytes">0 bytes</span><span>emails and long digit runs removed</span></div>
+        <button class="sbtn send" id="sheetSend">Send redacted copy</button>
+        <button class="sbtn keep" id="sheetKeep">Keep it on my phone</button>
       </div>
-      <div class="chat" id="chat"><div class="empty">Pick a decoy and a play, then run the conversation.</div></div>
-      <div id="stages" style="display:flex;flex-direction:column;gap:10px"></div>
+    </div></div>
+  </div>
+
+  <section class="panel console">
+    <div class="ph"><h2>Decoy console</h2><span class="sub">AI personas on decoy lines</span><span class="grow"></span>
+      <div class="seg" id="cmodeSeg"><button data-m="scripted" class="on">Scripted run</button><button data-m="live" class="hot">You be the scammer</button></div>
+    </div>
+    <div class="ctl" id="ctlScripted">
+      <select class="field" id="selScenario"></select>
+      <select class="field" id="selDecoy"></select>
+      <button class="btn pri" id="runDecoy">Run decoy session</button>
+    </div>
+    <div class="ctl hidden" id="ctlLive">
+      <select class="field" id="selDecoyLive"></select>
+      <button class="btn pri" id="liveStart">Start live session</button>
+      <button class="btn" id="liveEnd" disabled>End &amp; analyze</button>
+      <span class="hint" id="liveTurns"></span>
+    </div>
+    <div class="cbody">
+      <div class="chatcol">
+        <div class="persona" id="personaCard"><div class="pa">?</div><div><b>Pick a decoy</b><div class="pm">Synthetic persona seeded on a simulated list</div></div></div>
+        <div class="chat" id="chat"><div class="empty" style="margin:auto">Run a scripted scam against a decoy,<br>or switch to <b>You be the scammer</b> and try to fool it.</div></div>
+        <form class="liveform hidden" id="liveForm" autocomplete="off">
+          <input class="field" id="liveText" maxlength="500" placeholder="Text the decoy like a scammer would…">
+          <button class="btn pri" type="submit">Send</button>
+        </form>
+      </div>
+      <div class="intel" id="intel"></div>
+    </div>
+    <div class="smap">
+      <div class="ph"><h2>Story map</h2><span class="sub" id="smapSub">plays learned from decoys</span><span class="grow"></span>
+        <button class="btn sm" id="btnSeed">Load decoy history</button><button class="btn sm ghost" id="btnReset">Reset</button></div>
+      <div class="stories" id="stories"></div>
     </div>
   </section>
-
-  <section class="panel" aria-labelledby="h-map">
-    <div class="ph"><h2 id="h-map">Story map</h2><span class="sub">Plays learned from decoys, not numbers</span></div>
-    <div class="pb">
-      <div id="stories"></div>
-      <div class="label">Activity</div>
-      <div class="log" id="log"></div>
-    </div>
-  </section>
-
-  <section class="panel" aria-labelledby="h-phone">
-    <div class="ph"><h2 id="h-phone">Customer phone</h2><span class="sub">Matching happens on the phone</span></div>
-    <div class="pb">
-      <div class="label">Try a message</div>
-      <div class="samples" id="samples"></div>
-      <label class="label" for="sender">From</label>
-      <input id="sender" placeholder="(972) 555-0177">
-      <label class="label" for="msg">Message</label>
-      <textarea id="msg" placeholder="Paste or type a text message"></textarea>
-      <div class="row"><button class="btn primary" id="checkBtn">Receive message</button></div>
-      <div id="phoneOut"></div>
-      <div id="trace" style="display:flex;flex-direction:column;gap:10px"></div>
-    </div>
-  </section>
-</main>
-
-<section class="bench" aria-labelledby="h-bench">
-  <div class="ph"><h2 id="h-bench">Scoreboard</h2><span class="sub" id="benchSub">Held-out test messages: 12 scams, 6 legitimate</span><div class="spacer"></div><button class="btn" id="benchBtn">Run benchmark</button></div>
-  <div class="tbl"><table><thead><tr><th>Approach</th><th>Scams caught</th><th>False alarms</th><th>Still unsure</th><th>Hosted Nemotron checks</th></tr></thead><tbody id="benchBody"><tr><td colspan="5" class="note">No benchmark yet.</td></tr></tbody></table></div>
-  <div class="note" id="benchNote"></div>
+ </div>
 </section>
 
+<!-- ================================================================ NVIDIA -->
+<section class="lens" id="lens-nv">
+ <div class="nv-grid">
+  <div class="nv-main">
+    <div class="panel graph-panel">
+      <div class="ph"><h2>Agent graph</h2><span class="sub">lights up as each agent runs</span><span class="grow"></span>
+        <div class="legend"><span><i style="background:var(--nv)"></i>Nemotron</span><span><i style="background:var(--info)"></i>Rules</span><span><i style="background:var(--tmo)"></i>On device</span><span><i style="background:var(--danger)"></i>Untrusted</span></div></div>
+      <svg id="graph" viewBox="0 0 1060 318" preserveAspectRatio="xMidYMid meet"></svg>
+    </div>
+    <div class="nv-bottom">
+      <div class="panel rescue">
+        <div class="ph"><h2>Rescue agent &amp; skill forge</h2><span class="grow"></span><span id="rescueMode"></span></div>
+        <div class="pb" id="rescuePanel"></div>
+      </div>
+      <div class="panel score" id="scorePanel">
+        <div class="ph"><h2>Scoreboard</h2><span class="sub" id="benchMeta">frozen thresholds · held-out sets</span><span class="grow"></span>
+          <button class="btn pri sm" id="runBench">Run benchmark</button></div>
+        <div class="mask" id="benchMask"><div><b>Mock-mode numbers aren't Nemotron results</b><span>Run live to quote. Click to reveal anyway.</span></div></div>
+        <div class="pb" id="benchBody"><div class="empty">No benchmark yet. Press <b>Run benchmark</b>.</div></div>
+      </div>
+    </div>
+  </div>
+  <aside class="panel feed-panel">
+    <div class="ph"><h2>Event feed</h2><span class="sub" id="feedCount">0 events</span><span class="grow"></span><span class="chip mono" id="pollDot">polling 700ms</span></div>
+    <div class="list" id="feed"></div>
+  </aside>
+ </div>
+</section>
+
+<!-- ================================================================ PNC -->
+<section class="lens" id="lens-pnc">
+ <div class="pnc-grid">
+  <aside class="panel snap">
+    <div class="ph"><h2>360° snapshot</h2><span class="grow"></span><span class="chip amb">synthetic</span></div>
+    <div class="pb" id="snapBody"><div class="empty">Loading…</div></div>
+  </aside>
+  <div class="pnc-mid">
+    <div class="inds" id="inds"></div>
+    <div class="panel chart-panel">
+      <div class="ph"><h2>Checking balance, next 60 days</h2><span class="grow"></span>
+        <div class="clegend"><span><i></i>Today's path</span><span id="lgAfter" class="hidden"><i class="d"></i>After what-if</span><span><i class="z"></i>Overdraft</span></div></div>
+      <div class="pb"><svg id="chart" viewBox="0 0 700 260" preserveAspectRatio="none"></svg></div>
+    </div>
+  </div>
+  <div class="pnc-right">
+    <div class="panel">
+      <div class="ph"><h2>What-if</h2><span class="sub">deterministic engine, no model</span><span class="grow"></span><button class="btn sm ghost hidden" id="wiClear">Clear</button></div>
+      <div class="pb">
+        <div class="presets" id="presets"></div>
+        <ul class="facts" id="facts"></ul>
+      </div>
+    </div>
+    <div class="panel coach">
+      <div class="ph"><h2>Money coach</h2><span class="sub">Nemotron + engine tools</span><span class="grow"></span><span id="coachMode"></span></div>
+      <div class="qchips" id="qchips"></div>
+      <div class="convo" id="convo"><div class="empty" style="margin:auto">Ask in plain words. Every number in the answer comes from an engine tool call.</div></div>
+      <form class="askrow" id="askForm" autocomplete="off"><input class="field" id="askText" maxlength="500" placeholder="Ask about Linda's money…"><button class="btn pri" type="submit">Ask</button></form>
+    </div>
+  </div>
+ </div>
+</section>
+</main>
+
+<footer><span>All personas, numbers (555-01xx), businesses and customers are synthetic.</span><span>Keys <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> switch lenses</span></footer>
+<div id="toasts"></div>
+
 <script>
-const $ = s => document.querySelector(s);
-const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-let S = null, decoy = "decoy-01", lastSkillVersions = {};
+"use strict";
+/* ------------------------------------------------------------ utils */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s ?? "").replace(/[&<>"'`]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;","`":"&#96;"}[c]));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const fmt$ = (x, cents) => { const n = Number(x) || 0; const s = Math.abs(n).toLocaleString("en-US", {minimumFractionDigits: cents ? 2 : 0, maximumFractionDigits: cents ? 2 : 0}); return (n < 0 ? "-$" : "$") + s; };
+const cap = s => s ? s[0].toUpperCase() + s.slice(1) : s;
+const trunc = (s, n) => { s = String(s ?? ""); return s.length > n ? s.slice(0, n - 1) + "…" : s; };
+const initials = s => { const d = String(s || "").replace(/\D/g, ""); return d ? "#" : (String(s || "?").trim()[0] || "?").toUpperCase(); };
 
-async function api(path, body){
-  const r = await fetch(path, body === undefined ? {} : {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
-  if(!r.ok) throw new Error(await r.text());
-  return r.json();
-}
-function modeTag(m){ return m ? `<span class="tag ${esc(m.mode)}">${m.mode === "nemotron" ? "NEMOTRON" : m.mode.toUpperCase()}${m.ms ? " · " + m.ms + "ms" : ""}</span>` : ""; }
-
-function renderChips(){
-  const l = S.llm, st = S.stats;
-  $("#chips").innerHTML = `
-    <span class="chip ${l.mode}">${l.mode === "live" ? "LIVE · " + esc(l.model) : "MOCK MODE · no API key"}</span>
-    <span class="chip">Hosted calls <b>${l.hosted_calls}</b></span>
-    <span class="chip">Phone checks <b>${st.phone_checks}</b> · on-device <b>${st.handled_on_device}</b></span>
-    <span class="chip">Skills promoted <b>${st.skills_promoted}</b> · rejected <b>${st.skills_rejected}</b></span>`;
-}
-function renderPersonas(){
-  $("#personas").innerHTML = Object.values(S.personas).map(p =>
-    `<button class="persona" data-id="${p.id}" aria-pressed="${p.id === decoy}">${esc(p.name)}, ${p.age}<small>${esc(p.number)} · ${esc(p.seeded_on.split(" (")[0])}</small></button>`).join("");
-  document.querySelectorAll(".persona").forEach(b => b.onclick = () => { decoy = b.dataset.id; renderPersonas(); });
-}
-function renderScenarios(){
-  const sel = $("#scenario");
-  if(sel.options.length) return;
-  sel.innerHTML = Object.entries(S.scenarios).filter(([k]) => k !== "poison").map(([k,v]) => `<option value="${k}">${esc(v)}</option>`).join("");
-}
-function renderStories(){
-  const list = Object.values(S.stories);
-  if(!list.length){ $("#stories").innerHTML = `<div class="empty">No plays learned yet. Run a decoy conversation or load decoy history.</div>`; }
-  else $("#stories").innerHTML = list.map(s => {
-    const decoys = new Set(s.decoys);
-    const prev = lastSkillVersions[s.id];
-    const nums = Object.entries(s.numbers).map(([n,i]) => {
-      const cls = i.status === "blocked" ? "blocked" : i.status === "rejected" ? "rejected" : i.status === "needs human review" ? "review" : "";
-      const label = i.status === "rejected" ? "verified business, never flagged" : i.status;
-      const approve = i.status === "needs human review" ? ` <button class="btn mini" data-approve="${s.id}|${esc(n)}">Approve block</button>` : "";
-      return `<div>${esc(n)} <span class="att" title="STIR/SHAKEN attestation">${esc(i.attestation)}</span> <span class="istatus ${cls}">${esc(label)}</span>${approve}</div>`;
-    }).join("");
-    const doms = Object.entries(s.domains).map(([d,i]) => `<div>${esc(d)} <span class="istatus ${i.status === "rejected" ? "rejected" : ""}">${i.status === "rejected" ? "verified business, never flagged" : "unverified link"}</span></div>`).join("");
-    return `<article class="story ${s.status}" style="margin-bottom:10px">
-      <div class="hd"><span class="id">${s.id}</span><span class="title">${esc(s.title)}</span><span class="status ${s.status}">${s.status.toUpperCase()}</span>
-        <span class="spacer"></span><span class="dots" title="${decoys.size} of 3 decoys">${["decoy-01","decoy-02","decoy-03"].map(d => `<span class="dot ${decoys.has(d) ? "on" : ""}"></span>`).join("")}</span></div>
-      <div style="font-size:12.5px;color:var(--muted)">Impersonates <b style="color:var(--ink)">${esc(s.impersonates)}</b>${s.payment ? " · wants " + esc(s.payment) : ""} · ${s.reports} report(s)</div>
-      ${nums || doms ? `<div class="ind">${nums}${doms}</div>` : ""}
-      <div class="label">On-device skill v${s.skill.version}</div>
-      <div class="kw">${Object.keys(s.skill.keywords).concat(s.skill.phrases).map(k => `<span>${esc(k)}</span>`).join("")}</div>
-      <div class="row"><button class="btn mini" data-report="${s.id}">+ Customer report</button></div>
-    </article>`;
-  }).join("");
-  document.querySelectorAll("[data-report]").forEach(b => b.onclick = async () => { S = await api("/api/report", {story_id:b.dataset.report}); render(); });
-  document.querySelectorAll("[data-approve]").forEach(b => b.onclick = async () => { const [id,n] = b.dataset.approve.split("|"); S = await api("/api/approve", {story_id:id, number:n}); render(); });
-  $("#log").innerHTML = S.events.map(e => `<div><b>${e.t}</b> ${esc(e.text)}</div>`).join("") || "<div>Nothing yet.</div>";
-}
-function render(){ renderChips(); renderPersonas(); renderScenarios(); renderStories(); }
-
-function runSession(scenario, who){
-  $("#runBtn").disabled = $("#attackBtn").disabled = true;
-  $("#chat").innerHTML = ""; $("#stages").innerHTML = "";
-  const es = new EventSource(`/api/honeypot?scenario=${encodeURIComponent(scenario)}&decoy=${encodeURIComponent(who)}`);
-  es.onmessage = ev => {
-    const d = JSON.parse(ev.data);
-    if(d.type === "start"){
-      $("#chat").insertAdjacentHTML("beforeend", `<div class="label">${esc(d.scenario)} → ${esc(d.persona.name)}'s decoy line ${esc(d.persona.number)}</div>`);
-    } else if(d.type === "msg"){
-      const who = d.who === "scammer" ? `Scammer ${esc(d.agent.includes("scripted") ? "· simulated" : "")}` : `${esc(d.agent)} ${modeTag(d.meta)}`;
-      $("#chat").insertAdjacentHTML("beforeend", `<div class="bubble ${d.who}"><div class="who">${who}</div>${esc(d.text)}</div>`);
-    } else if(d.type === "stage" && d.stage === "extract"){
-      const x = d.data;
-      $("#stages").insertAdjacentHTML("beforeend", `<div class="stage"><h3>Intel extractor ${modeTag(d.meta)}</h3><dl class="kv">
-        <dt>Story</dt><dd>${esc(x.story_title)}</dd><dt>Impersonates</dt><dd>${esc(x.impersonates)}</dd>
-        <dt>Claim</dt><dd>${esc(x.claim)}</dd><dt>Payment</dt><dd>${esc(x.payment_method || "—")} ${esc(x.amount || "")}</dd>
-        <dt>Callbacks</dt><dd>${esc((x.callback_numbers||[]).join(", ") || "—")}</dd><dt>Links</dt><dd>${esc((x.domains||[]).join(", ") || "—")}</dd>
-        <dt>Tactics</dt><dd>${esc((x.tactics||[]).join(", ") || "—")}</dd></dl></div>`);
-    } else if(d.type === "stage" && d.stage === "validate"){
-      $("#stages").insertAdjacentHTML("beforeend", `<div class="stage"><h3>Validator <span class="tag rules">RULES · model can't overrule</span></h3><ul class="checks">
-        ${d.data.checks.map(c => `<li><span class="${c.ok ? "ok" : "no"}">${c.ok ? "✓" : "✗"}</span><span><b>${esc(c.check)}.</b> ${esc(c.note)}</span></li>`).join("")}</ul></div>`);
-    } else if(d.type === "done"){
-      es.close(); S = d.state; render();
-      $("#runBtn").disabled = $("#attackBtn").disabled = false;
-    }
-  };
-  es.onerror = () => { es.close(); $("#runBtn").disabled = $("#attackBtn").disabled = false; };
+function toast(msg, kind = "info", ms = 4200) {
+  const el = document.createElement("div");
+  el.className = "toast " + kind; el.textContent = msg;
+  $("#toasts").appendChild(el);
+  while ($("#toasts").children.length > 4) $("#toasts").firstChild.remove();
+  setTimeout(() => { el.style.transition = "opacity .3s"; el.style.opacity = "0"; setTimeout(() => el.remove(), 300); }, ms);
 }
 
-function renderCheck(r){
-  const c = r.card;
-  const why = (c.why || []).filter(Boolean);
-  $("#phoneOut").innerHTML = `<div class="phone">
-    <div class="sms"><small>${esc($("#sender").value || "Unknown sender")}</small>${esc($("#msg").value)}</div>
-    <div class="card ${c.level}"><h3>${esc(c.title)}</h3>${c.story ? `<div class="label">${esc(c.story)}</div>` : ""}
-      ${why.length ? `<ul>${why.map(w => `<li>${esc(w)}</li>`).join("")}</ul>` : ""}
-      ${c.next_step ? `<div class="next"><b>What to do:</b> ${esc(c.next_step)}</div>` : ""}</div></div>`;
-  const parts = [];
-  for(const s of r.steps){
-    if(s.stage === "local"){
-      const d = s.data;
-      parts.push(`<div class="stage"><h3>On-device matcher <span class="tag rules">ON PHONE</span></h3>
-        <div class="meter" aria-label="score ${d.score}"><i style="left:calc(${Math.min(99, d.score*100)}% - 1px)"></i></div>
-        <div style="font-size:12px;color:var(--muted)">Score ${d.score} · ${d.decision === "unsure" ? "unsure, asking Nemotron (redacted)" : d.decision === "warn" ? "warned on-device" : "clear on-device"}${d.note ? " · " + esc(d.note) : ""}</div>
-        ${d.ranked && d.ranked.length ? `<div class="ind">${d.ranked.map(x => `<div>${x.story_id} ${esc(x.title)} · ${x.score}${x.detail.kw.length ? " · matched: " + esc(x.detail.kw.join(", ")) : ""}</div>`).join("")}</div>` : ""}
-        ${d.asks && d.asks.length ? `<div style="font-size:12px">Risky asks: ${esc(d.asks.join("; "))}</div>` : ""}</div>`);
-    } else if(s.stage === "rescue"){
-      parts.push(`<div class="stage"><h3>Nemotron rescue ${modeTag(s.meta)}</h3>
-        <div style="font-size:12px;color:var(--muted)">Sent: ${esc(s.meta.redacted)}</div>
-        ${s.trace.map(t => `<div class="tool"><b>${esc(t.tool)}</b><span>${esc(JSON.stringify(t.args))}</span><span>→ ${esc(JSON.stringify(t.result)).slice(0,220)}</span></div>`).join("")}
-        <div style="font-size:12.5px"><b>Verdict:</b> ${esc(s.data.verdict)} (${esc(s.data.confidence)}) · ${esc(s.data.reason)}</div></div>`);
-    } else if(s.stage === "forge"){
-      const p = s.data.proposal;
-      parts.push(`<div class="stage"><h3>Skill forge + gate ${modeTag(s.meta)}</h3>
-        <div class="kw">${p.add_keywords.concat(p.add_phrases).map(k => `<span class="new">+ ${esc(k)}</span>`).join("") || "<span>no proposal</span>"}</div>
-        <ul class="checks">${s.data.gate.map(g => `<li><span class="${g.ok ? "ok" : "no"}">${g.ok ? "✓" : "✗"}</span><span>${esc(g.test)}</span></li>`).join("")}</ul>
-        <div style="font-size:12.5px"><b>${s.data.promoted ? "Promoted to every phone. Next copy is caught on-device." : "Rejected. The phone keeps its old skill."}</b></div></div>`);
-    }
+async function api(path, opts = {}, quiet = false) {
+  const o = {method: opts.method || (opts.body ? "POST" : "GET"), headers: {}};
+  if (opts.body !== undefined) { o.body = JSON.stringify(opts.body); o.headers["content-type"] = "application/json"; }
+  let r;
+  try { r = await fetch(path, o); }
+  catch (e) { if (!quiet) toast("Can't reach the Detour server. Is it running?", "err"); throw e; }
+  const txt = await r.text();
+  let data;
+  try { data = txt ? JSON.parse(txt) : {}; } catch { data = {raw: txt}; }
+  if (!r.ok) {
+    const d = data && data.detail;
+    const msg = d ? (typeof d === "string" ? d : JSON.stringify(d)) : `${r.status} ${r.statusText || "error"}`;
+    if (!quiet) toast(`${msg}`, "err");
+    const err = new Error(msg); err.status = r.status; throw err;
   }
-  $("#trace").innerHTML = parts.join("");
+  if (data && data.error && !quiet) toast(data.error, "warn");
+  return data;
 }
 
-function renderBench(b){
-  if(!b || !b.rows) return;
-  const all = b.rows.concat([{divider:true}], b.campaign || []);
-  $("#benchBody").innerHTML = all.map(r => r.divider ? `<tr><td colspan="5" class="label" style="padding-top:14px">Campaign replay: each test message reaches 5 customers</td></tr>` :
-    `<tr><td>${esc(r.mode)}</td><td class="num"><span class="bar" style="width:${Math.round(60*r.caught/r.scams)}px"></span>${r.caught}/${r.scams}</td>
-     <td class="num">${r.false_alarms}/${r.legit}</td><td class="num">${r.unsure}</td><td class="num">${r.hosted_calls}</td></tr>`).join("");
-  const camp = (b.campaign || [])[1];
-  $("#benchNote").innerHTML = `${b.mode === "mock" ? "<b style='color:var(--watch)'>MOCK MODE: these numbers come from the offline stand-in, not Nemotron. Set an API key and rerun before quoting them.</b> " : `Live run on ${esc(b.model)}. `}${b.ran_at ? "Ran " + esc(b.ran_at) + ". " : ""}${camp && camp.note ? esc(camp.note) + "." : ""}`;
+/* ------------------------------------------------------------ global state */
+const S = {lens: "tmo", llm: null, stats: {}, stories: {}, personas: {}, scenarios: {}, lastEv: 0, offline: false,
+  threads: {}, phoneSender: null, pending: null, live: null, running: false, bench: null, benchRevealed: false,
+  fin: null, whatif: null, wiKey: null, rescue: null};
+
+/* ------------------------------------------------------------ lenses */
+const LENSES = ["tmo", "nv", "pnc"];
+function setLens(l) {
+  if (!LENSES.includes(l)) return;
+  S.lens = l; document.body.dataset.lens = l;
+  $$(".lens-tab").forEach(b => b.classList.toggle("on", b.dataset.l === l));
+  $$(".lens").forEach(s => s.classList.toggle("on", s.id === "lens-" + l));
+  if (l === "pnc" && S.fin) drawChart();
+}
+$("#lensTabs").addEventListener("click", e => { const b = e.target.closest(".lens-tab"); if (b) setLens(b.dataset.l); });
+document.addEventListener("keydown", e => {
+  if (e.target.closest("input,textarea,select") || e.metaKey || e.ctrlKey || e.altKey) return;
+  const i = ["1", "2", "3"].indexOf(e.key); if (i >= 0) setLens(LENSES[i]);
+});
+
+/* ------------------------------------------------------------ header status */
+function renderLLM(llm) {
+  if (!llm) return; S.llm = llm;
+  const b = $("#modeBadge");
+  if (llm.mode === "live") { b.className = "badge live"; b.innerHTML = `<span class="dot"></span>LIVE · ${esc(llm.model)}`; }
+  else if (llm.mode === "replay") { b.className = "badge replay"; b.innerHTML = `<span class="dot"></span>REPLAY <small>recorded run</small>`; }
+  else { b.className = "badge mock"; b.innerHTML = `<span class="dot"></span>MOCK <small>offline stand-in — not Nemotron output</small>`; }
+  b.title = llm.last_error ? "Last model error: " + llm.last_error : (llm.base_url || "");
+  $("#hostedCalls").textContent = llm.hosted_calls ?? 0;
+}
+function renderStats(st) {
+  if (!st) return; S.stats = st;
+  const dev = st.handled_on_device || 0, cons = st.rescues || 0, tot = Math.max(dev + cons, 1);
+  $("#pmBytes").textContent = (st.bytes_to_cloud || 0).toLocaleString();
+  $("#pmBytes").style.color = st.bytes_to_cloud ? "var(--amber)" : "var(--ok)";
+  $("#pmDev").textContent = dev; $("#pmCons").textContent = cons;
+  $("#pmDevBar").style.width = (dev / tot * 100) + "%"; $("#pmConsBar").style.width = (cons / tot * 100) + "%";
+}
+function applyState(st) {
+  if (!st) return;
+  renderLLM(st.llm); renderStats(st.stats);
+  if (st.stories) { S.stories = st.stories; renderStories(); }
 }
 
-$("#runBtn").onclick = () => runSession($("#scenario").value, decoy);
-$("#attackBtn").onclick = () => runSession("poison", decoy);
-$("#seedBtn").onclick = async () => { $("#seedBtn").disabled = true; try { S = await api("/api/seed", {}); render(); } finally { $("#seedBtn").disabled = false; } };
-$("#resetBtn").onclick = async () => { S = await api("/api/reset", {}); $("#chat").innerHTML = ""; $("#stages").innerHTML = ""; $("#phoneOut").innerHTML = ""; $("#trace").innerHTML = ""; render(); };
-$("#checkBtn").onclick = async () => {
-  if(!$("#msg").value.trim()) return;
-  $("#checkBtn").disabled = true;
-  try { const r = await api("/api/check", {text:$("#msg").value, sender:$("#sender").value}); S = r.state; renderCheck(r); render(); }
-  finally { $("#checkBtn").disabled = false; }
-};
-$("#benchBtn").onclick = async () => {
-  $("#benchBtn").disabled = true; $("#benchBtn").textContent = "Running…";
-  try { renderBench(await api("/api/benchmark", {})); } finally { $("#benchBtn").disabled = false; $("#benchBtn").textContent = "Run benchmark"; }
+/* ================================================================ T-MOBILE: phone */
+function redactJS(t) { return t.replace(/[\w.+-]+@[\w-]+\.[\w.]+/g, "[email]").replace(/\b\d{6,}\b/g, "[number]"); }
+
+async function loadSamples() {
+  try {
+    const list = await api("/api/samples");
+    $("#samples").innerHTML = list.map((s, i) => `<button class="sample" data-i="${i}"><b>${esc(s.label)}</b><span>${esc(s.sender)}</span></button>`).join("");
+    $("#samples").onclick = e => { const b = e.target.closest(".sample"); if (b) deliver(list[+b.dataset.i].text, list[+b.dataset.i].sender, false); };
+  } catch { $("#samples").innerHTML = `<div class="empty">Couldn't load samples.</div>`; }
+}
+$("#customForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const t = $("#cText").value.trim(); if (!t) { toast("Type a message first.", "warn"); return; }
+  deliver(t, $("#cSender").value.trim(), $("#cKnown").checked);
+});
+
+function phoneHeader(sender, known) {
+  $("#phAvatar").textContent = known ? "★" : initials(sender);
+  $("#phSender").textContent = sender || "Unknown sender";
+  $("#phMeta").textContent = known ? "Saved contact" : "Not in your contacts";
+}
+function threadAdd(html) {
+  const th = $("#thread"); const tmp = document.createElement("div"); tmp.innerHTML = html;
+  const el = tmp.firstElementChild; th.appendChild(el); th.scrollTop = th.scrollHeight; return el;
+}
+let phoneBusy = false;
+async function deliver(text, sender, known) {
+  if (phoneBusy) return; phoneBusy = true;
+  closeSheet();
+  const key = sender || "unknown";
+  if (S.phoneSender !== key) {
+    S.phoneSender = key; $("#thread").innerHTML = `<div class="when">Today 9:41 AM</div>`; phoneHeader(sender, known);
+  }
+  threadAdd(`<div class="bub in">${esc(text)}</div>`);
+  if (!known) { const th = (S.threads[key] ||= []); th.push(text); while (th.length > 3) th.shift(); }
+  const od = threadAdd(`<div class="ondev"><div class="hd"><span>Detour · on device</span><span class="tag dev">0 bytes sent</span></div></div>`);
+  const line = async (txt, cls = "", wait = 230) => { const l = document.createElement("div"); l.className = "ln" + (cls ? " l-" + cls : ""); l.innerHTML = `<i></i><span>${txt}</span>`; od.appendChild(l); $("#thread").scrollTop = 1e9; await sleep(20); l.classList.add("on"); await sleep(wait); };
+  await line("Reading message on this phone…", "", 260);
+  let res;
+  try { res = await api("/api/check", {body: {text, sender, known}}); }
+  catch { await line("Check failed. Message left unscreened.", "r", 0); phoneBusy = false; return; }
+  for (const st of res.steps || []) await renderStep(st, line, od);
+  applyState(res.state);
+  showCard(res.card, text, res.check_id);
+  phoneBusy = false;
+}
+
+async function renderStep(st, line, od) {
+  if (st.stage === "contact") { await line(esc(st.note), "g"); return; }
+  if (st.stage === "local") {
+    const d = st.data || {};
+    if (d.note) { await line(esc(d.note), "g"); return; }
+    const best = d.best;
+    await line(`Matcher score <b>${esc(d.score)}</b>${best ? ` · closest play ${esc(best.story_id)} “${esc(trunc(best.title, 34))}”` : " · no learned play close"}`, "m");
+    if (best && best.detail && best.detail.indicator && best.detail.indicator.length) await line(`Known indicator: ${esc(best.detail.indicator.join(", "))}`, "r");
+    else if (best && best.detail && best.detail.kw && best.detail.kw.length) await line(`Story words: ${esc(best.detail.kw.slice(0, 6).join(", "))}`, "");
+    if (d.asks && d.asks.length) await line(`Risky ask: ${esc(d.asks.slice(0, 2).join("; "))}`, "a");
+    if (d.sender) await line(`Sender: ${esc(d.sender.status)}`, d.sender.registered ? "g" : "");
+    if (d.thread_len > 1) await line(`Scored with the last ${esc(d.thread_len)} texts from this sender`, "");
+    const dc = d.decision;
+    await line(`Decision: <b>${esc(String(dc).toUpperCase())}</b> on device`, dc === "warn" ? "r" : dc === "clear" ? "g" : "a", 160);
+    return;
+  }
+  if (st.stage === "rescue") {
+    const tr = (st.trace || []).map(t => `<span>${esc(t.tool)}</span>`).join("");
+    await line(`Nemotron rescue <span class="tag ${esc(st.meta?.mode)}">${esc(st.meta?.mode)}${st.meta?.ms ? " · " + esc(st.meta.ms) + "ms" : ""}</span>`, "n", 120);
+    if (tr && od) { const el = document.createElement("div"); el.className = "tools"; el.innerHTML = tr; od.appendChild(el); $("#thread").scrollTop = 1e9; await sleep(220); }
+    const v = st.data || {};
+    await line(`Verdict: <b>${esc(v.verdict)}</b>${v.confidence != null ? " (" + esc(v.confidence) + ")" : ""}${v.story_id ? " · " + esc(v.story_id) : ""}`, v.verdict === "scam" ? "r" : v.verdict === "legit" ? "g" : "a");
+    if (v.policy) await line(`Policy override: ${esc(v.policy)}`, "a");
+    return;
+  }
+  if (st.stage === "forge") {
+    const d = st.data || {}; const g = d.gate || [];
+    const kws = [...(d.proposal?.add_keywords || []), ...(d.proposal?.add_phrases || [])];
+    await line(`Skill forge proposed: ${esc(kws.join(", ") || "nothing")}`, "n");
+    await line(`Gate ${g.filter(x => x.ok).length}/${g.length} → ${d.promoted ? "<b>skill promoted to every phone</b>" : "<b>rejected</b>"}`, d.promoted ? "g" : "r");
+  }
+}
+
+const SHIELD = c => `<svg width="22" height="22" viewBox="0 0 24 24"><path d="M12 2l8 3v6c0 5-3.4 9.3-8 11-4.6-1.7-8-6-8-11V5z" fill="${c}" opacity=".18" stroke="${c}" stroke-width="1.8"/>` +
+  (c === "var(--ok)" ? `<path d="M8 12l3 3 5-6" stroke="${c}" stroke-width="2" fill="none" stroke-linecap="round"/>` : `<path d="M12 7v6M12 16.5v.5" stroke="${c}" stroke-width="2.2" stroke-linecap="round"/>`) + `</svg>`;
+const MONEY_PLAY = /bail|grand|nana|lawyer|bitcoin|zelle|wire|gift ?card|send money|courier|cash|payment|pay/i;
+
+function showCard(card, text, checkId) {
+  if (!card) return;
+  const lv = ["warn", "unsure", "clear"].includes(card.level) ? card.level : "unsure";
+  const col = lv === "warn" ? "var(--danger)" : lv === "clear" ? "var(--ok)" : "var(--amber)";
+  const why = (card.why || []).filter(Boolean);
+  const tie = (lv === "warn" || (lv === "unsure" && card.story)) && MONEY_PLAY.test((text || "") + " " + (card.story || "") + " " + why.join(" "));
+  const el = threadAdd(`<div class="card ${lv}"><div class="bar"></div><div class="cb">
+    <div class="ct">${SHIELD(col)}<span>${esc(card.title)}</span></div>
+    ${card.story ? `<div class="cstory">Play: ${esc(card.story)}</div>` : ""}
+    ${why.length ? `<ul>${why.map(w => `<li>${esc(w)}</li>`).join("")}</ul>` : ""}
+    ${card.next_step ? `<div class="next"><b>What to do</b>${esc(card.next_step)}</div>` : ""}
+    <div class="acts">
+      ${tie ? `<button class="link" data-act="fin">See what this would do to Linda's finances →</button>` : ""}
+      ${card.story_id ? `<button class="rep" data-act="report" data-sid="${esc(card.story_id)}">Report scam</button>` : ""}
+    </div></div></div>`);
+  el.addEventListener("click", async e => {
+    const b = e.target.closest("[data-act]"); if (!b) return;
+    if (b.dataset.act === "fin") { setLens("pnc"); runWhatIf("bail"); }
+    if (b.dataset.act === "report") { try { applyState(await api("/api/report", {body: {story_id: b.dataset.sid}})); b.textContent = "Reported"; b.disabled = true; toast("Report added to the story map.", "ok"); } catch {} }
+  });
+  requestAnimationFrame(() => { $("#thread").scrollTop = $("#thread").scrollHeight; });
+  setTimeout(() => { $("#thread").scrollTop = $("#thread").scrollHeight; }, 320);
+  if (card.consent) openSheet(checkId);
+}
+
+function openSheet(checkId) {
+  const ctx = (S.threads[S.phoneSender] || []).join(" ");
+  const red = redactJS(ctx);
+  S.pending = checkId;
+  $("#sheetText").innerHTML = esc(red).replace(/\[(email|number)\]/g, "<mark>[$1]</mark>");
+  $("#sheetBytes").textContent = new TextEncoder().encode(red).length + " bytes would leave";
+  setTimeout(() => $("#screen").classList.add("sheet-on"), 450);
+}
+function closeSheet() { $("#screen").classList.remove("sheet-on"); }
+$("#sheetBg").onclick = () => { closeSheet(); keptOnPhone(); };
+$("#sheetKeep").onclick = () => { closeSheet(); keptOnPhone(); };
+function keptOnPhone() { if (!S.pending) return; S.pending = null; threadAdd(`<div class="when">Kept on phone. 0 bytes sent.</div>`); }
+$("#sheetSend").onclick = async () => {
+  const id = S.pending; if (!id) return closeSheet();
+  S.pending = null; closeSheet();
+  const od = threadAdd(`<div class="ondev"><div class="hd"><span>Detour · second look</span><span class="tag fallback" id="odBytes">sending…</span></div></div>`);
+  const line = async (txt, cls = "", wait = 260) => { const l = document.createElement("div"); l.className = "ln" + (cls ? " l-" + cls : ""); l.innerHTML = `<i></i><span>${txt}</span>`; od.appendChild(l); $("#thread").scrollTop = 1e9; await sleep(20); l.classList.add("on"); await sleep(wait); };
+  await line("You tapped consent. Sending the redacted copy…", "a");
+  let res;
+  try { res = await api("/api/consent", {body: {id}}); } catch { await line("Couldn't reach Detour. Nothing was sent.", "r", 0); return; }
+  if (res.error) { await line(esc(res.error), "r", 0); return; }
+  $("#odBytes", od).textContent = (res.cloud_bytes || 0) + " bytes sent";
+  for (const st of (res.steps || []).filter(s => s.stage !== "local")) await renderStep(st, line, od);
+  applyState(res.state);
+  showCard(res.card, (S.threads[S.phoneSender] || []).join(" "), res.check_id);
 };
 
-(async () => {
-  S = await api("/api/state"); render();
-  const samples = await api("/api/samples");
-  $("#samples").innerHTML = samples.map((s,i) => `<button data-i="${i}">${esc(s.label)}</button>`).join("");
-  document.querySelectorAll("#samples button").forEach(b => b.onclick = () => { const s = samples[b.dataset.i]; $("#sender").value = s.sender; $("#msg").value = s.text; });
-  renderBench(await api("/api/benchmark/last"));
-})();
+/* ================================================================ T-MOBILE: decoy console */
+function fillPickers() {
+  const sc = Object.entries(S.scenarios);
+  $("#selScenario").innerHTML = `<optgroup label="Scams">${sc.filter(([k]) => k !== "poison").map(([k, v]) => `<option value="${esc(k)}">${esc(v)}</option>`).join("")}</optgroup>` +
+    (S.scenarios.poison ? `<optgroup label="Attacks on Detour"><option value="poison">${esc(S.scenarios.poison)}</option></optgroup>` : "");
+  const dec = Object.values(S.personas).map(p => `<option value="${esc(p.id)}">${esc(p.name)}, ${esc(p.age)} · ${esc(p.city)}</option>`).join("");
+  $("#selDecoy").innerHTML = dec; $("#selDecoyLive").innerHTML = dec;
+  personaCard(S.personas[$("#selDecoy").value]);
+}
+$("#selDecoy").onchange = () => personaCard(S.personas[$("#selDecoy").value]);
+$("#selDecoyLive").onchange = () => personaCard(S.personas[$("#selDecoyLive").value]);
+function personaCard(p) {
+  if (!p) return;
+  $("#personaCard").innerHTML = `<div class="pa">${esc(p.name[0])}</div><div style="min-width:0"><b>${esc(p.name)}</b> <span class="tag">${esc(p.number)}</span>
+    <div class="pm">${esc(p.age)} · ${esc(p.city)} · seeded on ${esc(p.seeded_on)}</div></div>`;
+}
+function setCMode(m) {
+  $$("#cmodeSeg button").forEach(b => b.classList.toggle("on", b.dataset.m === m));
+  $("#ctlScripted").classList.toggle("hidden", m !== "scripted");
+  $("#ctlLive").classList.toggle("hidden", m !== "live");
+  $("#liveForm").classList.toggle("hidden", !(m === "live" && S.live));
+  personaCard(S.personas[m === "live" ? $("#selDecoyLive").value : $("#selDecoy").value]);
+  if (m === "live" && !S.live) { $("#chat").innerHTML = `<div class="empty" style="margin:auto"><b>You are the scammer.</b><br>Start a session and text the decoy. Try a known play,<br>a new one, or a prompt-injection. The rules decide what counts.</div>`; intelIdle(); }
+}
+$("#cmodeSeg").onclick = e => { const b = e.target.closest("button"); if (b && !S.running) setCMode(b.dataset.m); };
+
+function chatMsg(who, text, meta, extra = "") {
+  const tags = meta ? `<span class="tag ${esc(meta.mode)}">${esc(meta.mode)}${meta.ms ? " · " + esc(meta.ms) + "ms" : ""}</span>${meta.filtered ? `<span class="tag fallback" title="Reply would have unmasked the decoy, so it was replaced">filtered</span>` : ""}` : "";
+  const lab = who === "scammer" ? "Scammer" : "Decoy";
+  const c = $("#chat"); c.querySelector(".empty")?.remove(); c.querySelector(".typing")?.remove();
+  c.insertAdjacentHTML("beforeend", `<div class="msg ${who === "scammer" ? "scam" : "decoy"}"><div class="who">${lab} ${tags}${extra}</div><div class="tx">${esc(text)}</div></div>`);
+  c.scrollTop = c.scrollHeight;
+}
+function typing(on) { const c = $("#chat"); c.querySelector(".typing")?.remove(); if (on) { c.insertAdjacentHTML("beforeend", `<div class="typing"><i></i><i></i><i></i></div>`); c.scrollTop = c.scrollHeight; } }
+
+function intelIdle() {
+  $("#intel").innerHTML = `<div class="pipe">
+    <div class="eyebrow">After the conversation</div>
+    <div class="st"><i>1</i>Nemotron extracts the story: claim, ask, payment</div>
+    <div class="st"><i>2</i>Rules validate it. The model can't overrule them</div>
+    <div class="st"><i>3</i>Verified plays join the story map</div>
+    <div class="st"><i>4</i>Phones learn the play, not the number</div></div>`;
+}
+async function renderIntel(ext, val, extMeta) {
+  const box = $("#intel"); box.innerHTML = "";
+  if (ext) {
+    const list = (a, cls = "") => (a && a.length) ? `<div class="chips">${a.map(x => `<span class="chip ${cls}">${esc(x)}</span>`).join("")}</div>` : `<span style="color:var(--dim)">none</span>`;
+    box.insertAdjacentHTML("beforeend", `<div class="box"><div class="bh"><span class="eyebrow">Extracted story</span>${extMeta ? `<span class="tag ${esc(extMeta.mode)}">${esc(extMeta.mode)}${extMeta.ms ? " · " + esc(extMeta.ms) + "ms" : ""}</span>` : ""}</div>
+      <div style="font-weight:700;font-size:15.5px;margin-bottom:6px">${esc(ext.story_title || "Untitled")}</div>
+      <dl class="kv"><dt>Impersonates</dt><dd>${esc(ext.impersonates || "unknown")}</dd><dt>Ask</dt><dd>${esc(ext.ask || "none")}</dd>
+      <dt>Payment</dt><dd>${esc(ext.payment_method || "none")}${ext.amount ? " · " + esc(ext.amount) : ""}</dd>
+      <dt>Tactics</dt><dd>${list(ext.tactics, "amb")}</dd><dt>Callbacks</dt><dd>${list(ext.callback_numbers, "mono")}${ext.domains && ext.domains.length ? " " + list(ext.domains, "mono") : ""}</dd>
+      <dt>Signature</dt><dd>${list((ext.signature_keywords || []).slice(0, 8), "mono")}</dd></dl></div>`);
+    await sleep(250);
+  }
+  if (!val) return;
+  const vb = document.createElement("div"); vb.className = "box";
+  vb.innerHTML = `<div class="bh"><span class="eyebrow">Validator · rules</span><span class="tag rules">rules</span></div><div class="checks"></div>`;
+  box.appendChild(vb); box.scrollTop = 1e9;
+  for (const c of val.checks || []) {
+    const el = document.createElement("div"); el.className = "ck";
+    el.innerHTML = `<span class="chip ${c.ok ? "ok" : "bad"}">${c.ok ? "PASS" : "FAIL"}</span><span class="cn">${esc(c.check)}</span><span class="nt">${esc(c.note)}</span>`;
+    $(".checks", vb).appendChild(el); await sleep(30); el.classList.add("on"); box.scrollTop = 1e9; await sleep(220);
+  }
+  let html;
+  if (val.quarantined) html = `<div class="outcome bad">${SHIELD("var(--danger)")}<div><b>Quarantined.</b> Nothing was added to the story map.</div></div>`;
+  else if (val.story) {
+    const s = S.stories[val.story];
+    const warn = s && s.status === "warn";
+    html = `<div class="outcome ${warn ? "good" : "watch"}">${SHIELD(warn ? "var(--ok)" : "var(--amber)")}<div><b>${esc(val.story)} ${val.merged ? "corroborated" : "created"}</b>${s ? ` · ${esc(s.title)} · <span class="${warn ? "stat-w" : "stat-wa"}">${esc(s.status.toUpperCase())}</span>` : ""}
+      <div style="font-size:13px;color:var(--muted)">${warn ? "Customers' phones now warn on this play, from any number." : "Needs a second independent decoy before customers are warned."}</div></div></div>`;
+    flashStory(val.story);
+  }
+  if (html) { box.insertAdjacentHTML("beforeend", html); box.scrollTop = 1e9; }
+}
+
+$("#runDecoy").onclick = () => {
+  if (S.running) return;
+  const sc = $("#selScenario").value, dc = $("#selDecoy").value;
+  S.running = true; $("#runDecoy").disabled = true; $("#runDecoy").textContent = "Running…";
+  $("#chat").innerHTML = ""; intelIdle();
+  let ext = null, extMeta = null, done = false;
+  const es = new EventSource(`/api/honeypot?scenario=${encodeURIComponent(sc)}&decoy=${encodeURIComponent(dc)}`);
+  const finish = () => { es.close(); S.running = false; $("#runDecoy").disabled = false; $("#runDecoy").textContent = "Run decoy session"; typing(false); };
+  es.onmessage = async ev => {
+    let d; try { d = JSON.parse(ev.data); } catch { return; }
+    if (d.type === "start") { personaCard(d.persona); $("#chat").innerHTML = `<div class="when" style="align-self:center;font-size:12px;color:var(--dim)">Scammer ${esc(d.sender)} → ${esc(d.persona.name)}'s decoy line · ${esc(d.scenario)}</div>`; }
+    else if (d.type === "msg") { chatMsg(d.who, d.text, d.who === "decoy" ? d.meta : null); if (d.who === "scammer") typing(true); }
+    else if (d.type === "stage" && d.stage === "extract") { ext = d.data; extMeta = d.meta; typing(false); renderIntel(ext, null, extMeta); }
+    else if (d.type === "stage" && d.stage === "validate") { S._val = d.data; }
+    else if (d.type === "done") { done = true; finish(); applyState(d.state); await renderIntel(ext, S._val, extMeta); }
+  };
+  es.onerror = () => { if (!done) { toast("Decoy session stream ended unexpectedly.", "err"); finish(); } };
+};
+
+$("#liveStart").onclick = async () => {
+  try {
+    const r = await api("/api/live/start", {body: {decoy: $("#selDecoyLive").value}});
+    if (r.error) return;
+    S.live = {session: r.session, turns: 0}; personaCard(r.persona);
+    $("#chat").innerHTML = `<div class="when" style="align-self:center;font-size:12px;color:var(--dim)">Live session with ${esc(r.persona.name)}'s decoy line. You're texting from (214) 555-0177.</div>`;
+    intelIdle(); $("#liveForm").classList.remove("hidden"); $("#liveEnd").disabled = false; $("#liveStart").disabled = true;
+    $("#liveTurns").textContent = "0 / 6 turns"; $("#liveText").focus();
+  } catch {}
+};
+$("#liveForm").addEventListener("submit", async e => {
+  e.preventDefault(); if (!S.live) return;
+  const t = $("#liveText").value.trim(); if (!t) return;
+  $("#liveText").value = ""; chatMsg("scammer", t); typing(true);
+  try {
+    const r = await api("/api/live/say", {body: {session: S.live.session, text: t}});
+    typing(false);
+    if (r.error) return;
+    S.live.turns++; $("#liveTurns").textContent = `${S.live.turns} / 6 turns`;
+    chatMsg("decoy", r.reply, r.meta, r.injection ? `<span class="tag mock" title="Prompt injection detected in your message. Logged and ignored.">injection caught</span>` : "");
+  } catch { typing(false); }
+});
+$("#liveEnd").onclick = async () => {
+  if (!S.live) return;
+  const sid = S.live.session; $("#liveEnd").disabled = true; $("#liveEnd").textContent = "Analyzing…";
+  try {
+    const r = await api("/api/live/end", {body: {session: sid}});
+    if (!r.error) { applyState(r.state); await renderIntel(r.extract, r.validate, null); }
+  } catch {}
+  S.live = null; $("#liveForm").classList.add("hidden"); $("#liveStart").disabled = false; $("#liveEnd").textContent = "End & analyze"; $("#liveTurns").textContent = "";
+};
+
+/* story map */
+function renderStories() {
+  const list = Object.values(S.stories || {});
+  $("#smapSub").textContent = list.length ? `${list.length} plays · ${list.filter(s => s.status === "warn").length} active` : "plays learned from decoys";
+  if (!list.length) { $("#stories").innerHTML = `<div class="empty" style="margin:auto">No plays learned yet. <b>Load decoy history</b> or run a decoy session.</div>`; return; }
+  $("#stories").innerHTML = list.map(s => {
+    const nd = new Set(s.decoys || []).size, nums = Object.keys(s.numbers || {}).length, doms = Object.keys(s.domains || {}).length;
+    const blocked = Object.values(s.numbers || {}).filter(n => n.status === "needs human review").length;
+    return `<div class="story" id="st-${esc(s.id)}"><div class="st1"><span>${esc(s.id)} · ${esc(s.category)}</span><span class="chip ${s.status === "warn" ? "bad" : "amb"}">${esc(String(s.status).toUpperCase())}</span></div>
+      <div class="stt">${esc(s.title)}</div>
+      <div class="st3"><span>${nd} decoy${nd === 1 ? "" : "s"} · ${esc(s.reports)} rep · ${nums + doms} sighting${nums + doms === 1 ? "" : "s"}</span></div>
+      <div class="st3"><span class="tag nemotron">skill v${esc(s.skill?.version)}</span>${blocked ? `<span class="stat-wa" title="Attestation-A numbers waiting for an analyst">${blocked} # for review</span>` : ""}</div></div>`;
+  }).join("");
+}
+function flashStory(id) { const el = document.getElementById("st-" + id); if (!el) return; el.scrollIntoView({behavior: "smooth", inline: "center", block: "nearest"}); el.classList.add("flash"); setTimeout(() => el.classList.remove("flash"), 1800); }
+
+$("#btnSeed").onclick = async () => { try { applyState(await api("/api/seed", {body: {}})); toast("Decoy history loaded into the story map.", "ok"); } catch {} };
+$("#btnReset").onclick = async () => {
+  try {
+    applyState(await api("/api/reset", {body: {}}));
+    S.threads = {}; S.phoneSender = null; S.pending = null; closeSheet();
+    $("#thread").innerHTML = `<div class="empty" style="margin:auto;color:#636366">Deliver a text from the left.</div>`; phoneHeader("", false); $("#phSender").textContent = "No messages yet";
+    if (!S.live) { $("#chat").innerHTML = `<div class="empty" style="margin:auto">State reset. Run a decoy session or load decoy history.</div>`; intelIdle(); }
+    resetGraph(); S.rescue = null; renderRescue();
+    toast("Demo state reset.", "ok");
+  } catch {}
+};
+
+/* ================================================================ NVIDIA: graph */
+const NW = 166, NH = 66, COLS = [14, 230, 446, 662, 878], ROWS = [34, 188];
+const NODES = [
+  {id: "scammer", c: 0, r: 0, l: "Scammer", s: "scripted or you", k: "ext"},
+  {id: "decoy", c: 1, r: 0, l: "Decoy persona", s: "Nemotron", k: "nv"},
+  {id: "extract", c: 2, r: 0, l: "Intel extractor", s: "Nemotron", k: "nv"},
+  {id: "validator", c: 3, r: 0, l: "Validator", s: "rules, not the model", k: "rules"},
+  {id: "story", c: 4, r: 0, l: "Story map", s: "plays, not numbers", k: "rules"},
+  {id: "matcher", c: 4, r: 1, l: "On-device matcher", s: "on the phone · 0 bytes", k: "dev"},
+  {id: "rescue", c: 3, r: 1, l: "Rescue agent", s: "Nemotron · tools", k: "nv"},
+  {id: "forge", c: 2, r: 1, l: "Skill forge", s: "Nemotron", k: "nv"},
+  {id: "gate", c: 1, r: 1, l: "Gate", s: "4 tests · rules", k: "rules"},
+  {id: "coach", c: 0, r: 1, l: "Money coach", s: "Nemotron · PNC tools", k: "coach"},
+];
+const N = Object.fromEntries(NODES.map(n => [n.id, {...n, x: COLS[n.c], y: ROWS[n.r]}]));
+const KCOL = {nv: "#76B900", rules: "#5AA9FF", dev: "#E20074", ext: "#FF4D5E", coach: "#EF7622"};
+function edgePath(a, b) {
+  a = N[a]; b = N[b];
+  if (a.r === b.r && a.c < b.c) return `M${a.x + NW} ${a.y + NH / 2} L${b.x - 6} ${b.y + NH / 2}`;
+  if (a.r === b.r && a.c > b.c) return `M${a.x} ${a.y + NH / 2} L${b.x + NW + 6} ${b.y + NH / 2}`;
+  return `M${a.x + NW / 2} ${a.y + NH} L${b.x + NW / 2} ${b.y - 6}`;
+}
+const EDGES = [
+  ["scammer", "decoy", "texts"], ["decoy", "extract", "chat"], ["extract", "validator", "claims"], ["validator", "story", "play"],
+  ["story", "matcher", "skills sync"], ["matcher", "rescue", "consent"], ["rescue", "forge", "verdict"], ["forge", "gate", "skill"],
+];
+function buildGraph() {
+  let s = `<defs><marker id="arr" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#3A4658"/></marker>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`;
+  s += `<text class="rowlab" x="14" y="22">LEARN · DECOY LINES</text><text class="rowlab" x="14" y="${ROWS[1] - 12}">PROTECT · CUSTOMER PHONES</text>`;
+  for (const [a, b, lab] of EDGES) {
+    s += `<path id="e-${a}-${b}" class="edge" d="${edgePath(a, b)}" marker-end="url(#arr)"/>`;
+    const A = N[a], B = N[b];
+    if (A.r === B.r) { const x = (Math.min(A.x, B.x) + NW + Math.max(A.x, B.x)) / 2; s += `<text class="elab" x="${x}" y="${A.y + NH / 2 - 8}" text-anchor="middle">${lab}</text>`; }
+    else s += `<text class="elab" x="${A.x + NW / 2 + 9}" y="${(A.y + NH + B.y) / 2 + 4}">${lab}</text>`;
+  }
+  const g = N.gate, m = N.matcher, yb = ROWS[1] + NH;
+  s += `<path id="e-gate-matcher" class="edge" d="M${g.x + NW / 2} ${yb} C${g.x + NW / 2} ${yb + 46}, ${m.x + NW / 2} ${yb + 46}, ${m.x + NW / 2} ${yb + 6}" marker-end="url(#arr)"/>`;
+  s += `<text class="elab" x="${(g.x + m.x + NW) / 2}" y="${yb + 30}" text-anchor="middle">passes all 4 tests → skill vN+1 promoted to every phone</text>`;
+  for (const n of Object.values(N)) {
+    s += `<g class="node k-${n.k}" id="n-${n.id}" transform="translate(${n.x},${n.y})">
+      <rect class="bg" width="${NW}" height="${NH}" rx="12"/>
+      <rect class="kd" x="14" y="16" width="8" height="8" rx="2" fill="${KCOL[n.k]}"/>
+      <text class="nl" x="29" y="26">${esc(n.l)}</text><text class="ns" x="14" y="47">${esc(n.s)}</text>
+      <g transform="translate(${NW - 14},0)"><circle class="cntbg" r="11"/><text class="cnt" text-anchor="middle" y="4" id="c-${n.id}">0</text></g></g>`;
+  }
+  $("#graph").innerHTML = s;
+}
+const counts = {};
+function resetGraph() { for (const n of NODES) { counts[n.id] = 0; const c = document.getElementById("c-" + n.id); if (c) c.textContent = "0"; } }
+function pulse(id, edge) {
+  const g = document.getElementById("n-" + id); if (!g) return;
+  counts[id] = (counts[id] || 0) + 1; document.getElementById("c-" + id).textContent = counts[id];
+  g.classList.remove("hot"); void g.getBBox(); g.classList.add("hot");
+  clearTimeout(g._t); g._t = setTimeout(() => g.classList.remove("hot"), 1300);
+  if (edge) {
+    const p = document.getElementById(edge); if (!p) return;
+    p.classList.add("flow"); clearTimeout(p._t); p._t = setTimeout(() => p.classList.remove("flow"), 1100);
+    const NS = "http://www.w3.org/2000/svg";
+    const dot = document.createElementNS(NS, "circle"); dot.setAttribute("r", "5"); dot.setAttribute("fill", "#B6FF3B"); dot.setAttribute("filter", "url(#glow)");
+    const am = document.createElementNS(NS, "animateMotion"); am.setAttribute("dur", "0.6s"); am.setAttribute("fill", "freeze"); am.setAttribute("begin", "indefinite");
+    const mp = document.createElementNS(NS, "mpath"); mp.setAttribute("href", "#" + edge); am.appendChild(mp); dot.appendChild(am);
+    $("#graph").appendChild(dot); try { am.beginElement(); } catch {} setTimeout(() => dot.remove(), 650);
+  }
+}
+function route(ev) {
+  switch (ev.agent) {
+    case "Scammer simulator": return [["scammer"], "k-ext"];
+    case "Honeypot persona": return ev.stage === "live-start" ? [["scammer"], "k-ext"] : [["decoy", "e-scammer-decoy"], "k-nv"];
+    case "Intel extractor": return [["extract", "e-decoy-extract"], "k-nv"];
+    case "Validator (rules)": return [["validator", "e-extract-validator"], "k-rules", ev.story ? ["story", "e-validator-story"] : null];
+    case "On-device matcher": return [["matcher", "e-story-matcher"], "k-dev"];
+    case "Consent": return [["rescue", "e-matcher-rescue"], "k-cons"];
+    case "Nemotron rescue": return [["rescue"], "k-nv"];
+    case "Policy (rules)": return [["rescue"], "k-rules"];
+    case "Skill forge": return [["forge", "e-rescue-forge"], "k-nv"];
+    case "Gate (tests)": return [["gate", "e-forge-gate"], "k-rules", /^promoted/.test(ev.output || "") ? ["matcher", "e-gate-matcher"] : null];
+    case "Nemotron coach": return [["coach"], "k-coach"];
+    case "Finance engine (rules)": return [["coach"], "k-coach"];
+    default: return [null, ""];
+  }
+}
+
+/* event feed */
+let feedN = 0;
+function feedItem(ev, animate) {
+  const [, k] = route(ev);
+  const io = (lab, v) => v == null || v === "" ? "" : `<div class="io"><em>${lab}</em>${esc(trunc(v, 260))}</div>`;
+  const mode = ev.mode ? `<span class="tag ${esc(ev.mode === "on-device" ? "dev" : ev.mode === "customer" ? "fallback" : ev.mode)}">${esc(ev.mode)}</span>` : "";
+  const html = `<div class="ev ${k}" ${animate ? "" : 'style="animation:none"'}><div class="et"><span class="ag">${esc(ev.agent)}</span><span class="tag">${esc(ev.stage)}</span>${ev.injection ? `<span class="tag mock">injection</span>` : ""}${ev.filtered ? `<span class="tag fallback">filtered</span>` : ""}<span class="gr"></span>${ev.ms != null ? `<span class="t">${esc(ev.ms)}ms</span>` : ""}${mode}<span class="t">${esc(ev.t)}</span></div>
+    ${ev.tool ? `<span class="tl">⟶ ${esc(ev.tool)}()</span>` : ""}${io("in", ev.input)}${io("out", ev.output)}${io("note", ev.note)}${io("policy", ev.policy)}</div>`;
+  $("#feed").insertAdjacentHTML("afterbegin", html);
+  feedN++; $("#feedCount").textContent = feedN + " events";
+  while ($("#feed").children.length > 140) $("#feed").lastElementChild.remove();
+}
+const queue = [];
+let qRunning = false;
+async function runQueue() {
+  if (qRunning) return; qRunning = true;
+  while (queue.length) {
+    const ev = queue.shift();
+    handleEvent(ev, true);
+    await sleep(queue.length > 14 ? 40 : queue.length > 5 ? 120 : 260);
+  }
+  qRunning = false;
+}
+function handleEvent(ev, animate) {
+  feedItem(ev, animate);
+  if (ev.agent === "system" && ev.stage === "reset") { resetGraph(); }
+  const [p, , then] = route(ev);
+  if (animate && p) { pulse(p[0], p[1]); if (then) setTimeout(() => pulse(then[0], then[1]), 420); }
+  else if (p) { counts[p[0]] = (counts[p[0]] || 0) + 1; const c = document.getElementById("c-" + p[0]); if (c) c.textContent = counts[p[0]]; }
+  rescueTrack(ev);
+}
+
+/* rescue panel */
+const TOOLS = ["search_story_map", "get_story", "check_allowlist", "check_attestation", "check_sender_registration", "submit_verdict"];
+function rescueTrack(ev) {
+  if (ev.agent === "Consent") { S.rescue = {tools: [], bytes: ev.output, verdict: null, policy: null, forge: null, gate: null, promoted: null, mode: null}; }
+  if (!S.rescue) { if (ev.agent === "Nemotron rescue") S.rescue = {tools: []}; else return; }
+  const R = S.rescue;
+  if (ev.agent === "Nemotron rescue" && ev.tool) { R.tools.push({tool: ev.tool, input: ev.input, output: ev.output}); R.mode = ev.mode; }
+  if (ev.agent === "Policy (rules)") { R.verdict = ev.output; R.policy = ev.policy; }
+  if (ev.agent === "Skill forge") { try { R.forge = JSON.parse(ev.output); } catch { R.forge = [ev.output]; } R.forgeMode = ev.mode; }
+  if (ev.agent === "Gate (tests)") {
+    const o = ev.output || ""; R.promoted = /^promoted/.test(o);
+    R.gate = [...o.matchAll(/(PASS|FAIL) (.*?)(?=, (?:PASS|FAIL) |$)/g)].map(m => ({ok: m[1] === "PASS", test: m[2]}));
+  }
+  renderRescue();
+}
+function shortTest(t) {
+  t = String(t || "");
+  if (/^Fixes/i.test(t)) return "Fixes the miss on device";
+  if (/^No false alarms on (\d+)/i.test(t)) return `No false alarms (${t.match(/(\d+)/)[1]} known-good)`;
+  if (/^No false alarms/i.test(t)) return "No false alarms on known-good";
+  if (/^No numbers/i.test(t)) return "No numbers or sites in skill";
+  if (/^Poisoning/i.test(t)) return "Poisoning probe stays clean";
+  return t;
+}
+function renderRescue() {
+  const R = S.rescue;
+  $("#rescueMode").innerHTML = R && R.mode ? `<span class="tag ${esc(R.mode)}">${esc(R.mode)}</span>` : "";
+  const used = R ? R.tools.map(t => t.tool) : [];
+  const toolsHtml = TOOLS.map(t => { const i = used.indexOf(t); const last = R ? R.tools.filter(x => x.tool === t).pop() : null;
+    return `<span class="tool ${i >= 0 ? "used" : ""}" title="${esc(last ? "in: " + (last.input || "") + "\nout: " + (last.output || "") : "not called")}">${i >= 0 ? `<b>${i + 1}</b>` : ""}${esc(t)}</span>`; }).join("");
+  const gateRows = (R && R.gate && R.gate.length ? R.gate : ["Fixes the missed message on-device", "No false alarms on known-good messages", "No numbers, sites, or verified businesses inside the skill", "Poisoning probe (verified number) stays clean"].map(t => ({test: t, idle: true})))
+    .map(g => `<div class="gt ${g.idle ? "idle" : g.ok ? "ok" : "no"}" title="${esc(g.test)}"><span class="pf">${g.idle ? "—" : g.ok ? "PASS" : "FAIL"}</span><span>${esc(shortTest(g.test))}</span></div>`).join("");
+  const vtxt = R && R.verdict ? String(R.verdict) : null;
+  $("#rescuePanel").innerHTML = `
+    <div><div class="eyebrow" style="margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Tool calls ${R && R.bytes ? `<span style="text-transform:none;letter-spacing:0;font-weight:500;color:var(--muted)"> · ${esc(R.bytes)}</span>` : ""}</div><div class="tools">${toolsHtml}</div></div>
+    <div class="verdict"><span class="eyebrow">Verdict</span>${vtxt ? `<span class="chip ${/→ scam/.test(vtxt) ? "bad" : /→ legit/.test(vtxt) ? "ok" : "amb"} mono">${esc(vtxt)}</span><span class="tag rules">policy layer</span>` : `<span style="color:var(--dim);font-size:13.5px">Waiting for a consented check on the T-Mobile phone</span>`}
+      ${R && R.policy ? `<div style="flex-basis:100%;font-size:13px;color:var(--amber)">${esc(R.policy)}</div>` : ""}</div>
+    <div><div class="eyebrow" style="margin-bottom:6px">Forged skill ${R && R.promoted != null ? `<span class="chip ${R.promoted ? "ok" : "bad"}" style="margin-left:6px;letter-spacing:0;text-transform:none">${R.promoted ? "promoted to every phone" : "rejected by the gate"}</span>` : ""}</div>
+      <div class="chips">${R && R.forge && R.forge.length ? R.forge.map(w => `<span class="chip nv mono">+ ${esc(w)}</span>`).join("") : `<span style="color:var(--dim);font-size:13.5px">No proposal yet</span>`}</div></div>
+    <div><div class="eyebrow" style="margin-bottom:6px">Gate · 4 tests</div><div class="gate">${gateRows}</div></div>`;
+}
+
+/* polling */
+let polling = false;
+async function poll() {
+  if (polling) return; polling = true;
+  try {
+    const d = await api(`/api/events?since=${S.lastEv}`, {}, true);
+    if (S.offline) { S.offline = false; toast("Reconnected to the Detour server.", "ok"); }
+    renderLLM(d.llm); renderStats(d.stats);
+    if (d.last < S.lastEv) S.lastEv = 0;
+    const evs = d.events || [];
+    if (evs.length) { S.lastEv = evs[evs.length - 1].id; queue.push(...evs); runQueue(); }
+    else S.lastEv = Math.max(S.lastEv, d.last || 0);
+    $("#pollDot").className = "chip mono ok";
+  } catch {
+    if (!S.offline) { S.offline = true; toast("Lost connection to the Detour server. Retrying…", "err", 6000); const b = $("#modeBadge"); b.className = "badge off"; b.innerHTML = `<span class="dot"></span>OFFLINE`; }
+    $("#pollDot").className = "chip mono bad";
+  }
+  polling = false;
+}
+
+/* ================================================================ NVIDIA: benchmark */
+function pct(a, b) { return b ? Math.round(a / b * 100) : 0; }
+function renderBench(b) {
+  S.bench = b;
+  const panel = $("#scorePanel");
+  if (!b || !b.rows) { $("#benchBody").innerHTML = `<div class="empty">No benchmark yet. Press <b>Run benchmark</b>.</div>`; panel.classList.remove("masked"); return; }
+  $("#benchMeta").innerHTML = `<span class="tag ${esc(b.mode)}">${esc(b.mode)}</span>${b.mode === "live" ? " " + esc(b.model || "") : ""}${b.ran_at ? " · ran " + esc(String(b.ran_at).slice(11, 16)) : ""}`;
+  const rows = b.rows || [], camp = b.campaign || [];
+  const first = rows[0] ? rows.filter(r => r.set === rows[0].set) : [];
+  const block = first.find(r => /blocklist/i.test(r.mode)), best = first.find(r => /rescue/i.test(r.mode)) || first[first.length - 1];
+  const every = camp.find(r => /every/i.test(r.mode)), once = camp.find(r => /once|teach/i.test(r.mode));
+  const saved = every && once ? every.hosted_calls - once.hosted_calls : null;
+  const cards = `<div class="stats3 blurable">
+    <div class="scard"><div class="big">${best ? pct(best.caught, best.scams) + "%" : "–"}<small> vs ${block ? pct(block.caught, block.scams) + "%" : "–"}</small></div><div class="lbl">scams caught vs a number blocklist</div></div>
+    <div class="scard"><div class="big">${saved != null ? saved : "–"}</div><div class="lbl">hosted calls saved by teaching${every && once ? ` (${esc(every.hosted_calls)} → ${esc(once.hosted_calls)})` : ""}</div></div>
+    <div class="scard"><div class="big">${best ? esc(best.false_alarms) : "–"}</div><div class="lbl">false alarms on ${best ? esc(best.legit) : "?"} legit texts</div></div></div>`;
+  const groups = []; for (const r of rows) { let g = groups.find(x => x.set === r.set); if (!g) groups.push(g = {set: r.set, rows: []}); g.rows.push(r); }
+  if (camp.length) groups.push({set: camp[0].set, rows: camp, campaign: true});
+  const tr = (r, isBest) => `<tr class="${isBest ? "best" : ""}" title="${esc(r.note || "")}"><td>${esc(r.mode)}</td>
+    <td>${esc(r.caught)}/${esc(r.scams)}<span class="bar"><i style="width:${pct(r.caught, r.scams)}%"></i></span></td><td>${esc(r.false_alarms)}/${esc(r.legit)}</td><td>${esc(r.unsure)}</td><td>${esc(r.hosted_calls)}</td></tr>`;
+  const table = `<table class="bt blurable"><thead><tr><th>Approach</th><th>Caught</th><th>False alarm</th><th>Unsure</th><th>Hosted</th></tr></thead><tbody>
+    ${groups.map(g => `<tr class="grp"><td colspan="5">${esc(g.set)}${g.campaign && g.rows.find(r => r.note) ? `<span style="text-transform:none;letter-spacing:0;font-weight:500;color:var(--dim)"> · ${esc(g.rows.find(r => r.note).note)}</span>` : ""}</td></tr>` + g.rows.map((r, i) => tr(r, g.campaign ? /once|teach/i.test(r.mode) : /rescue/i.test(r.mode))).join("")).join("")}</tbody></table>`;
+  $("#benchBody").innerHTML = cards + table;
+  panel.classList.toggle("masked", b.mode === "mock" && !S.benchRevealed);
+}
+$("#benchMask").onclick = () => { S.benchRevealed = true; $("#scorePanel").classList.remove("masked"); };
+$("#runBench").onclick = async () => {
+  const btn = $("#runBench"); btn.disabled = true; btn.textContent = "Running…";
+  try { S.benchRevealed = false; renderBench(await api("/api/benchmark", {body: {}})); toast("Benchmark finished.", "ok"); } catch {}
+  btn.disabled = false; btn.textContent = "Run benchmark";
+};
+
+/* ================================================================ PNC */
+const AS_OF_NEXT = "2026-11-09";
+const PRESETS = {
+  bail: {t: "Grandson's $3,000 “bail”", s: "from checking · Nov 9", sc: [{type: "payment", amount: 3000, from: "checking", date: AS_OF_NEXT, label: "Bail payment for grandson"}]},
+  savings: {t: "Pay it from savings instead", s: "same $3,000 · Nov 9", sc: [{type: "payment", amount: 3000, from: "savings", date: AS_OF_NEXT, label: "Bail payment for grandson"}]},
+  car: {t: "Pay off car loan", s: "$8,200 from savings", sc: null},
+  lock: {t: "Lock savings", s: "from instant transfers", sc: null},
+};
+function acct(id) { return S.fin?.snapshot?.accounts?.find(a => a.id === id); }
+function presetScenario(k) {
+  const p = PRESETS[k]; if (p.sc) return p.sc;
+  if (k === "car") return [{type: "extra_loan_payment", loan: "auto", amount: acct("auto")?.balance ?? 8200, from: "savings", date: AS_OF_NEXT}];
+  if (k === "lock") return [{type: "lock_savings", amount: acct("savings")?.balance ?? 9600}];
+}
+$("#presets").innerHTML = Object.entries(PRESETS).map(([k, p]) => `<button class="preset" data-k="${k}"><b>${esc(p.t)}</b><span style="color:var(--dim)">${esc(p.s)}</span></button>`).join("");
+$("#presets").onclick = e => { const b = e.target.closest(".preset"); if (b) runWhatIf(b.dataset.k); };
+$("#wiClear").onclick = () => { S.whatif = null; S.wiKey = null; renderFinance(); };
+
+async function loadFinance() {
+  try { S.fin = await api("/api/finance/overview"); renderFinance(); }
+  catch { $("#snapBody").innerHTML = `<div class="empty">Finance module unavailable.</div>`; $("#inds").innerHTML = ""; }
+}
+async function runWhatIf(k) {
+  if (!S.fin) await loadFinance();
+  if (!S.fin) return;
+  try {
+    const r = await api("/api/finance/whatif", {body: {scenario: presetScenario(k)}});
+    S.whatif = r; S.wiKey = k; renderFinance();
+  } catch {}
+}
+const ACCT_SUB = a => ({checking: a.zelle_enabled ? `Zelle ${fmt$(a.zelle_daily_limit)}/day · wire ${fmt$(a.wire_daily_limit)}/day` : "",
+  savings: a.locked ? "locked from instant transfers" : "instant transfer to checking", cd: `${a.apy}% APY · matures ${a.matures}`, ira: "long-term",
+  auto_loan: `${a.apr}% APR · ${fmt$(a.payment)}/mo`, personal_loan: `${a.apr}% APR · ${fmt$(a.payment)}/mo`,
+  credit_card: `${fmt$(a.available_credit)} available · cash advance ${a.cash_advance_enabled ? "on" : "off"}`, mortgage: `${fmt$(a.payment)}/mo autopay`}[a.type] || "");
+function splitDisplay(d) {
+  const m = String(d).match(/^(DTI\s+)?(-?\$?[\d,]+(?:\.\d+)?%?(?:\s+months)?)(.*)$/);
+  if (!m) return [d, ""];
+  return [m[2], ((m[1] ? m[1].trim() : "") + " " + m[3]).replace(/^\s*·?\s*/, "").trim()];
+}
+function renderFinance() {
+  const f = S.fin; if (!f) return;
+  const sn = f.snapshot, t = sn.totals, c = sn.customer;
+  $("#snapBody").innerHTML = `<div class="who"><div class="pa">${esc(c.name.split(" ").map(x => x[0]).join(""))}</div><div><b>${esc(c.name)}</b><span>${esc(c.age)} · ${esc(c.city)} · as of ${esc(sn.as_of)}</span></div></div>
+    <div class="nw"><div class="eyebrow">Net worth</div><div class="big">${fmt$(t.net_worth)}</div></div>
+    <div class="tiles"><div class="tile"><div class="eyebrow">Assets</div><div class="v">${fmt$(t.assets)}</div></div><div class="tile"><div class="eyebrow">Liabilities</div><div class="v" style="color:#F49AA3">${fmt$(t.liabilities)}</div></div>
+    <div class="tile full"><div class="eyebrow">Liquid cash</div><div class="v" style="color:var(--pnc)">${fmt$(t.liquid_cash)}</div></div></div>
+    <div><div class="eyebrow" style="margin-bottom:2px">Accounts</div><div class="accts">${sn.accounts.map(a => `<div class="acct"><div class="an">${esc(a.name)}<span>${esc(ACCT_SUB(a))}</span></div><div class="av ${a.kind === "liability" ? "neg" : ""}">${a.kind === "liability" ? "−" : ""}${fmt$(a.balance)}</div></div>`).join("")}</div></div>`;
+  const W = S.whatif, deltas = W ? Object.fromEntries(W.deltas.map(d => [d.id, d])) : {};
+  const inds = W ? W.after.indicators : f.indicators;
+  const openIds = new Set($$(".ind.open").map(e => e.dataset.id));
+  $("#inds").innerHTML = inds.map(i => {
+    const [big, rest] = splitDisplay(i.display); const d = deltas[i.id];
+    const arrow = d ? (d.direction === "same" ? "no change" : (d.after > d.before ? "▲ " : "▼ ") + d.direction) : "";
+    return `<div class="ind s-${esc(i.status)} ${openIds.has(i.id) ? "open" : ""}" data-id="${esc(i.id)}" title="${esc(i.formula)}">
+      <div class="ih"><span class="nm">${esc(i.name)}</span><span class="pill">${esc(i.status)}</span></div>
+      <div class="iv"><b>${esc(big)}</b><span>${esc(rest)}</span></div>
+      ${d && d.direction !== "same" ? `<div class="was">was <s>${esc(splitDisplay(d.before_display)[0])}</s> <span class="dir ${esc(d.direction)}">${esc(arrow)}</span></div>` : d ? `<div class="was"><span class="dir same">no change</span></div>` : ""}
+      <p class="ex">${esc(i.explanation)}</p>
+      <button class="fx">ƒ how it's calculated</button><div class="fml">${esc(i.formula)}</div></div>`;
+  }).join("");
+  $$(".ind .fx").forEach(b => b.onclick = () => b.closest(".ind").classList.toggle("open"));
+  $$(".preset").forEach(b => b.classList.toggle("on", b.dataset.k === S.wiKey));
+  $("#wiClear").classList.toggle("hidden", !W);
+  $("#facts").innerHTML = W ? W.facts.map(x => `<li>${esc(x)}</li>`).join("") : `<li style="color:var(--dim)">Pick a scenario. The engine re-runs all four indicators and the 60-day forecast.</li>`;
+  $("#lgAfter").classList.toggle("hidden", !W);
+  drawChart();
+}
+
+function drawChart() {
+  const svg = $("#chart"); const f = S.fin; if (!f || !svg.isConnected) return;
+  const box = svg.getBoundingClientRect(); const VW = Math.max(400, Math.round(box.width || 700)), VH = Math.max(160, Math.round(box.height || 260));
+  svg.setAttribute("viewBox", `0 0 ${VW} ${VH}`);
+  const days = f.forecast.days; let after = S.whatif && S.whatif.after_forecast;
+  const same = after && after.length === days.length && after.every((d, i) => Math.abs(d.checking - days[i].checking) < 0.005);
+  $("#lgAfter").innerHTML = same ? `<i class="d" style="border-top-color:var(--dim)"></i>Checking unchanged` : `<i class="d"></i>After what-if`;
+  if (same) after = null;
+  const L = 62, R = 18, T = 18, B = 26, w = VW - L - R, h = VH - T - B;
+  const vals = days.map(d => d.checking).concat(after ? after.map(d => d.checking) : []);
+  let lo = Math.min(0, ...vals), hi = Math.max(...vals);
+  const span = hi - lo || 1; lo -= span * 0.08; hi += span * 0.1;
+  const step = [250, 500, 1000, 2000, 2500, 5000].find(s => (hi - lo) / s <= 6) || 5000;
+  const X = i => L + i / (days.length - 1) * w, Y = v => T + (hi - v) / (hi - lo) * h;
+  let s = `<defs><linearGradient id="ga" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#EF7622" stop-opacity=".28"/><stop offset="1" stop-color="#EF7622" stop-opacity="0"/></linearGradient>
+    <clipPath id="below"><rect x="${L}" y="${Y(0)}" width="${w}" height="${Math.max(0, T + h - Y(0))}"/></clipPath></defs>`;
+  s += `<rect x="${L}" y="${Y(0)}" width="${w}" height="${Math.max(0, T + h - Y(0))}" fill="rgba(255,77,94,.09)"/>`;
+  for (let v = Math.ceil(lo / step) * step; v <= hi; v += step) s += `<line class="gl" x1="${L}" x2="${L + w}" y1="${Y(v)}" y2="${Y(v)}"/><text class="ax" x="${L - 8}" y="${Y(v) + 4}" text-anchor="end">${fmt$(v)}</text>`;
+  s += `<line class="zl" x1="${L}" x2="${L + w}" y1="${Y(0)}" y2="${Y(0)}"/>`;
+  if (Y(0) < T + h - 22) s += `<text class="ax" x="${L + 8}" y="${T + h - 8}" fill="#FF7A86" style="fill:#FF7A86">OVERDRAFT</text>`;
+  const dom = i => new Date(days[i].date + "T12:00:00").getDate();
+  const marks = days.map((d, i) => i).filter(i => dom(i) === 1 || dom(i) === 15);
+  if (!marks.some(i => i < 5)) marks.unshift(0);
+  days.forEach((d, i) => { const dt = new Date(d.date + "T12:00:00"); if (marks.includes(i)) {
+    const lab = dt.toLocaleDateString("en-US", {month: "short", day: "numeric"});
+    s += `<line class="gl" x1="${X(i)}" x2="${X(i)}" y1="${T}" y2="${T + h}" ${dt.getDate() === 1 ? 'style="stroke:#2A3444;stroke-dasharray:3 3"' : ""}/><text class="ax" x="${X(i)}" y="${VH - 8}" text-anchor="middle">${lab}</text>`; } });
+  const line = arr => arr.map((d, i) => `${i ? "L" : "M"}${X(i).toFixed(1)} ${Y(d.checking).toFixed(1)}`).join(" ");
+  const pb = line(days);
+  s += `<path d="${pb} L${X(days.length - 1)} ${T + h} L${L} ${T + h}Z" fill="url(#ga)" opacity="${after ? .45 : 1}"/>`;
+  s += `<path d="${pb}" fill="none" stroke="#EF7622" stroke-width="2.6" stroke-linejoin="round" opacity="${after ? .75 : 1}"/>`;
+  const minLab = (arr, col, above) => { let mi = 0; arr.forEach((d, i) => { if (d.checking < arr[mi].checking) mi = i; });
+    const x = X(mi), y = Y(arr[mi].checking), dt = new Date(arr[mi].date + "T12:00:00").toLocaleDateString("en-US", {month: "short", day: "numeric"});
+    const txt = `Low ${fmt$(arr[mi].checking)} · ${dt}`; const tw = txt.length * 7.4 + 14; const tx = Math.min(Math.max(x - tw / 2, L), L + w - tw); let ty = above ? y - 30 : y + 12; if (ty + 20 > T + h - 2) ty = y - 30; if (ty < T) ty = y + 12;
+    return `<circle cx="${x}" cy="${y}" r="5" fill="${col}" stroke="#0A0D12" stroke-width="2"/><rect x="${tx}" y="${ty}" width="${tw}" height="20" rx="6" fill="#0E1218" stroke="${col}" stroke-opacity=".6"/><text class="lbl" x="${tx + tw / 2}" y="${ty + 14}" text-anchor="middle" fill="${col}">${txt}</text>`; };
+  if (after) {
+    const pa = line(after);
+    const worse = Math.min(...after.map(d => d.checking)) < f.forecast.min_checking;
+    const col = worse ? "#FF4D5E" : "#3DDC97";
+    s += `<path d="${pa}" fill="none" stroke="${col}" stroke-width="2.6" stroke-dasharray="7 5" stroke-linejoin="round" class="afterline"/>`;
+    s += `<path d="${pa} L${X(after.length - 1)} ${Y(0)} L${L} ${Y(0)}Z" fill="rgba(255,77,94,.22)" clip-path="url(#below)"/>`;
+    const afterAbove = Math.min(...after.map(d => d.checking)) > f.forecast.min_checking;
+    s += minLab(days, "#EF7622", !afterAbove) + minLab(after, col, afterAbove);
+  } else s += minLab(days, "#EF7622", true);
+  s += `<line id="hx" x1="0" x2="0" y1="${T}" y2="${T + h}" stroke="#8391A4" stroke-dasharray="2 3" opacity="0"/><g id="htip" opacity="0"><rect id="htr" rx="7" height="${after ? 52 : 36}" fill="#0E1218" stroke="#2E3949"/><text id="htt" class="ax" style="fill:#E8EDF4"></text></g>`;
+  svg.innerHTML = s;
+  svg.onmousemove = e => {
+    const r = svg.getBoundingClientRect(); const px = (e.clientX - r.left) / r.width * VW;
+    const i = Math.max(0, Math.min(days.length - 1, Math.round((px - L) / w * (days.length - 1))));
+    const x = X(i); $("#hx").setAttribute("x1", x); $("#hx").setAttribute("x2", x); $("#hx").setAttribute("opacity", 1);
+    const dt = new Date(days[i].date + "T12:00:00").toLocaleDateString("en-US", {month: "short", day: "numeric"});
+    const tx = x + 150 > L + w ? x - 150 : x + 10;
+    $("#htr").setAttribute("x", tx); $("#htr").setAttribute("y", T + 4); $("#htr").setAttribute("width", 140);
+    $("#htt").innerHTML = `<tspan x="${tx + 10}" y="${T + 20}">${esc(dt)}</tspan><tspan x="${tx + 10}" y="${T + 36}" style="fill:#EF7622">now ${fmt$(days[i].checking)}</tspan>${after ? `<tspan x="${tx + 10}" y="${T + 51}" style="fill:#FF7A86">after ${fmt$(after[i].checking)}</tspan>` : ""}`;
+    $("#htip").setAttribute("opacity", 1);
+  };
+  svg.onmouseleave = () => { $("#hx")?.setAttribute("opacity", 0); $("#htip")?.setAttribute("opacity", 0); };
+}
+window.addEventListener("resize", () => { if (S.lens === "pnc") drawChart(); });
+
+/* coach */
+const QS = [["Can I afford to pay $3,000 bail for my grandson tomorrow?", true], ["Should I pay off my car loan?"], ["How do I protect my savings from scams?"], ["Will I overdraft this month?"]];
+$("#qchips").innerHTML = QS.map(([q, hero]) => `<button class="qchip ${hero ? "hero" : ""}">${esc(q)}</button>`).join("");
+$("#qchips").onclick = e => { const b = e.target.closest(".qchip"); if (b) ask(b.textContent); };
+$("#askForm").addEventListener("submit", e => { e.preventDefault(); const q = $("#askText").value.trim(); if (q) { $("#askText").value = ""; ask(q); } });
+let asking = false;
+async function ask(q) {
+  if (asking) return; asking = true; $(".coach").classList.add("asked");
+  const cv = $("#convo"); cv.querySelector(".empty")?.remove();
+  cv.insertAdjacentHTML("beforeend", `<div class="cq">${esc(q)}</div><div class="ca" id="pendingA"><div class="typing" style="align-self:flex-start;background:none;padding:0"><i></i><i></i><i></i></div></div>`);
+  cv.scrollTop = cv.scrollHeight;
+  try {
+    const r = await api("/api/coach", {body: {question: q}});
+    const el = $("#pendingA"); el.removeAttribute("id");
+    const modeCls = r.mode === "nemotron" ? "nemotron" : r.mode === "fallback" ? "fallback" : "mock";
+    $("#coachMode").innerHTML = `<span class="tag ${modeCls}">${esc(r.mode)}</span>`;
+    const ans = esc(r.answer).replace(/-?\$\s?\d[\d,]*(?:\.\d+)?|\d+(?:\.\d+)?\s?%/g, m => `<mark>${m}</mark>`);
+    el.innerHTML = `<div class="ah"><b>Coach</b><span class="tag ${modeCls}">${esc(r.mode)}</span>${(r.numbers_cited || []).length ? `<span class="chip" style="font-size:12px">${r.numbers_cited.length} figures · all from tool results</span>` : ""}</div>
+      <div>${ans}</div>
+      ${(r.next_steps || []).length ? `<ol>${r.next_steps.map(s => `<li>${esc(s)}</li>`).join("")}</ol>` : ""}
+      ${(r.tool_trace || []).length ? `<div class="tr">${r.tool_trace.map(t => `<span class="chip nv mono" title="${esc(JSON.stringify(t.args) + "\n→ " + (t.result_summary || ""))}">${esc(t.tool)}</span>`).join("")}</div>` : ""}
+      ${r.mode === "mock" ? `<div class="note">Mock mode: a template built from engine facts, not Nemotron output.</div>` : r.mode === "fallback" ? `<div class="note">Nemotron was unavailable or cited an unsupported number, so the engine's own facts were used.</div>` : ""}`;
+    const tr = (r.tool_trace || []).find(t => t.tool === "run_whatif" && t.args && t.args.scenario);
+    if (tr && /bail/i.test(q)) { S.whatif = await api("/api/finance/whatif", {body: {scenario: tr.args.scenario}}, true).catch(() => S.whatif); S.wiKey = null; renderFinance(); }
+  } catch { const el = $("#pendingA"); if (el) { el.removeAttribute("id"); el.innerHTML = `<span style="color:var(--danger)">The coach couldn't answer. Try again.</span>`; } }
+  const qs = $$(".cq", cv); const lastQ = qs[qs.length - 1];
+  cv.scrollTop = lastQ ? lastQ.offsetTop - cv.offsetTop - 8 : cv.scrollHeight; asking = false;
+}
+
+/* ================================================================ boot */
+async function boot() {
+  buildGraph(); resetGraph(); renderRescue(); intelIdle();
+  try {
+    const st = await api("/api/state");
+    S.personas = st.personas || {}; S.scenarios = st.scenarios || {};
+    applyState(st); fillPickers();
+    S.lastEv = Math.max(0, (st.last_event || 0) - 30);
+    const d = await api(`/api/events?since=${S.lastEv}`, {}, true);
+    for (const ev of d.events || []) handleEvent(ev, false);
+    S.lastEv = d.last || S.lastEv;
+  } catch { $("#stories").innerHTML = `<div class="empty" style="margin:auto">Server unavailable.</div>`; }
+  loadSamples(); loadFinance();
+  api("/api/benchmark/last", {}, true).then(b => renderBench(b && b.rows ? b : null)).catch(() => renderBench(null));
+  setInterval(poll, 700);
+}
+boot();
 </script>
 </body>
 </html>

@@ -156,7 +156,10 @@ def reset():
 
 @app.post("/api/benchmark", dependencies=[Depends(admin_only)])
 def benchmark():
-    res = engine.benchmark()
+    try:
+        res = engine.benchmark()
+    finally:
+        engine.quiet = False
     res["ran_at"] = time.strftime("%Y-%m-%d %H:%M:%S")
     BENCH_FILE.parent.mkdir(exist_ok=True)
     BENCH_FILE.write_text(json.dumps(res, indent=2))
@@ -185,7 +188,13 @@ def fin_overview():
 @app.post("/api/finance/whatif")
 def fin_whatif(body: WhatIfIn):
     f = _fin()
-    res = f.whatif(f.load_customer(), body.scenario)
+    try:
+        res = f.whatif(f.load_customer(), body.scenario)
+    except (ValueError, KeyError, TypeError) as e:
+        raise HTTPException(400, f"Bad scenario: {e}")
+    # read-only addition for the UI chart overlay: the after-scenario daily checking series
+    res["after_forecast"] = [{"date": d["date"], "checking": d["checking"]}
+                             for d in f.forecast(f.load_customer(), 60, events=body.scenario)["days"]]
     engine.emit("Finance engine (rules)", "whatif", output=" · ".join(res.get("facts", [])[:2])[:240], mode="rules")
     return res
 
