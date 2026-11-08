@@ -255,3 +255,20 @@ def test_claim_normalizes_model_synonyms_and_rules_backfill():
             return {"claims_identity": False, "kind": "unknown"}
     c, mode = extract_claim(L(), "Lakeview fraud dept: your card is locked. Verify now")
     assert c["business"] == "Lakeview" and mode == "rules"  # labeled as rules, never as the model
+
+
+def test_safety_guard_privacy_only_flag_is_not_blocked():
+    from detour.core import Agents
+    from detour.data import PERSONAS
+
+    class FakeLLM:
+        mock, small_model, model, safety_model, mode = False, "s", "b", "g", "live"
+
+        def text(self, msgs, **kw):
+            return "Which bank, dear? Mine is Lakeview."
+
+        def safety(self, user_text, reply):
+            return False, "PII/Privacy", "live"
+
+    out, meta = Agents(FakeLLM()).persona_reply(PERSONAS["decoy-01"], [{"who": "scammer", "text": "hi", "sender": ""}])
+    assert out == "Which bank, dear? Mine is Lakeview." and not meta["filtered"] and meta["guard"]["verdict"].startswith("safe")

@@ -361,8 +361,12 @@ class Agents:
                 safe, cats, gmode = self.llm.safety(last, out)
                 guard = {"checked_by": self.llm.safety_model if gmode in ("live", "replay") else "rules only", "mode": gmode,
                          "verdict": "safe" if safe in (True, None) else "unsafe", "categories": cats}
-                if safe is False:  # Nemotron Safety Guard: the decoy never sends harmful text
-                    out, filtered = "Oh my, I don't like that kind of talk. Let me find my glasses.", True
+                cat_set = {c.strip().lower() for c in (cats or "").split(",") if c.strip()}
+                if safe is False and cat_set and cat_set <= {"pii/privacy"}:
+                    # the persona's details are synthetic by design (fake card last4, fake bank), so a privacy-only flag is noted, not blocked
+                    guard["verdict"] = "safe (privacy flag ignored: decoy details are synthetic)"
+                elif safe is False:  # Nemotron Safety Guard: the decoy never sends harmful text
+                    out, filtered = "Sorry dear, I got confused. Can you say that again?", True
             except Exception:
                 out = self._mock_persona(persona, len([c for c in convo if c["who"] == "decoy"]))
                 mode = "mock" if self.llm.mock else "fallback"
