@@ -32,6 +32,15 @@ Each item says who does it, what to do, and what "done" means. **Mog-run** means
 | M2 | **Scam-in-progress risk token (carrier → bank).** Minted on a phone warn for a payment-type play, or by a simulated "on a call with an unknown number" toggle. Content-free, consented, expires in 2h. `GET /api/carrier/signal`, `POST /api/carrier/consent`. The token JSON is shown in the UI. | The token appears after the grandparent warn; it contains no text or numbers; expiry tested |
 | M3 | **PNC payment intercept.** A "Send money" panel (Zelle/wire). `POST /api/pnc/pay` runs a rules decision: a tripwire match, or a risk token AND a new payee AND a risky rail, means HOLD (cooling-off, not a block). On a hold: auto what-if on the pending payment (Low Cash Mode callout), the Nemotron coach explains the play with tools, a Trusted Contact call button, and release after cooling-off. Legit payees are released. | The demo storyline in 12 works end to end; legit bill payment released; tests for hold vs release |
 
+## P1-A2: THE SIX INFINITY STONES (see 13_SIX_INFINITY_STONES.md). Build right after M1–M3, in this order
+
+| # | Stone | Done when |
+|---|---|---|
+| S1 | **Reality: canary tokens.** The decoy hands the scammer a minted fake card, account or Zelle email (synthetic BIN, `.example`). `POST /api/pnc/card_auth` fires the canary, links it to the session and story, and turns the payout account into a tripwire. | The UI button "Simulate scammer cashes out the decoy's card" fires an alarm with full attribution; tests cover Luhn and registry lookup |
+| S2 | **Soul: trust without seeing.** k-anonymity hash-prefix tripwire lookups (`GET /api/intel/range/{prefix5}`) used by the PNC pay path, the content-free risk token shown in the UI, and a STIX 2.1 TLP:AMBER export (`GET /api/intel/stix`). | The UI shows "PNC sent: 5 hex chars"; the STIX bundle validates required fields; no customer data in any output |
+| S3 | **Time: tarpit + time lock.** Persona stall tactics, a scammer-minutes-burned counter, and a payment-hold countdown with release. | The counter rises during decoy sessions; the hold shows a countdown |
+| S4 | **Space: campaign graph.** Union-find over shared indicators (numbers, domains, rails, canary payouts), plus optional embedding "similar script" edges. `GET /api/intel/graph` and a campaign view in the UI. | The seeded data shows at least 2 clustered rings; clicking a node shows where it came from |
+
 ## P1-B: product depth that wins each sponsor (see 11 for why)
 
 | # | Feature | Sponsor | Done when |

@@ -67,6 +67,7 @@ Full backend, all three lenses, the browser-side phone matcher with Python parit
 | File | What it gives you |
 |---|---|
 | 12_REINVENTION_THE_WINNING_IDEA.md | **Read second. This is the strategy.** A carrier–bank scam fusion center fed by AI decoys: stop the scam at the message, the moment and the money |
+| 13_SIX_INFINITY_STONES.md | **Read with 12.** Six real security techniques (deception, distillation, canary tokens, pivoting, tarpits, privacy-preserving sharing), with the build, demo moment and sponsor for each |
 | 11_RESEARCH_AND_PRODUCT_STRATEGY.md | **Read third.** What T-Mobile and PNC actually ship, the Nemotron model family, and the product moves that win each track |
 | 01_PRODUCT_AND_SPONSORS.md | The idea, the three sponsor briefs and what each judge scores |
 | 02_ARCHITECTURE_AND_CODE_MAP.md | Every module, function, data shape and threshold |
