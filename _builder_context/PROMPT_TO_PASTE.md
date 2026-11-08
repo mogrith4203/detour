@@ -8,7 +8,12 @@ My project folder on my Mac: `~/Documents/Archives/AI Work/Claude/hackutd-resear
 
 The full handoff is in `_builder_context/`. Read it in this order:
 1. `00_START_HERE.md`
-2. **`12_REINVENTION_THE_WINNING_IDEA.md`: the strategy.** Detour is a carrier–bank scam fusion center fed by AI decoys. It stops a scam at the message (on-device skill), the moment (a content-free scam-in-progress risk token from T-Mobile to PNC, modeled on Australia's Telstra–CBA indicator and Telefónica's Scam Signal API) and the money (cash-out tripwires from decoy chats, plus a PNC payment hold with the Nemotron coach and a Trusted Contact). AI scam-baiting itself already exists (Apate.ai), so our edge is closing the loop across carrier and bank.
+2. **`14_THE_NEW_TECHNOLOGY_IDENTITY_ECHO.md`: THE CORE INVENTION. Read this first after 00.** "Every scam pretends to be someone. We ask that someone."
+   - Nemotron extracts the claimed identity ("it's Jake, your grandson" / "Lakeview fraud dept") and resolves it against the on-device contacts or a business registry.
+   - The carrier pings the *real* person's line ("is this you?") or the business's provenance endpoint (hash only). That line is trusted only if there's no SIM swap or call forwarding.
+   - A "Not me" is a ground-truth scam label: the conversation diverts to a decoy, a skill is forged from the verified label, the cash-out rails become PNC tripwires, and the pending payment is cancelled.
+   - Honeypots, diversion and carrier→bank signals already exist elsewhere (Apate.ai, Telstra–CBA). Echo is the new part, and everything else binds to it.
+2b. **`12_REINVENTION_THE_WINNING_IDEA.md`: carrier–bank fusion.** Detour is a carrier–bank scam fusion center fed by AI decoys. It stops a scam at the message (on-device skill), the moment (a content-free scam-in-progress risk token from T-Mobile to PNC, modeled on Australia's Telstra–CBA indicator and Telefónica's Scam Signal API) and the money (cash-out tripwires from decoy chats, plus a PNC payment hold with the Nemotron coach and a Trusted Contact). AI scam-baiting itself already exists (Apate.ai), so our edge is closing the loop across carrier and bank.
 3. **`13_SIX_INFINITY_STONES.md`: six unrelated defenses, each owning one part of a scam, each with a failsafe, fused so no scammer gets around them.**
    - **Soul** (who is really talking): signed business messages verified on-device plus a family safe word.
    - **Mind** (what they say): on-device story skills. Built.
@@ -45,7 +50,7 @@ The full handoff is in `_builder_context/`. Read it in this order:
 
 1. Start with a 5-line summary: what you understood, and the top risks.
 2. **P0 first** (live model verification, tool-calling fallback, live prompt quality, live data and bench, replays). These need me, so give me commands early, and build in parallel while I run them.
-3. Then **P1-A2: the stones in order: S1 Time → S2 Reality → S3 Space → S4 Soul → S5 Gauntlet** (this includes M1–M3). This is what no other team will have. Then **P1-B** in the order you judge to win the most: semantic story memory with Nemotron embeddings and reranker, model routing, the Nemotron content-safety guard, screenshot checks with Nemotron OCR, T-Mobile Callback Protection / Safe Web Browsing / 7726 integration, PNC Money Bar / Low Cash Mode / lock actions, the cross-sponsor alert, SQLite persistence, audit log and skill rollback, observability.
+3. Then **P1-A0 first: Identity Echo E1 → E4** (the new technology; the demo in file 14 must work end to end). Then **P1-A2: the stones in order: S1 Time → S2 Reality → S3 Space → S4 Soul → S5 Gauntlet** (this includes M1–M3). This is what no other team will have. Then **P1-B** in the order you judge to win the most: semantic story memory with Nemotron embeddings and reranker, model routing, the Nemotron content-safety guard, screenshot checks with Nemotron OCR, T-Mobile Callback Protection / Safe Web Browsing / 7726 integration, PNC Money Bar / Low Cash Mode / lock actions, the cross-sponsor alert, SQLite persistence, audit log and skill rollback, observability.
 4. Use sub-agents to work in parallel where the tasks don't overlap (git worktrees are fine). Run an independent reviewer (`santa-method`) that attacks every finished feature as a judge and as a hacker, and fix what it finds before moving on.
 5. After every feature:
    - `pytest` passes, including the JS↔Python parity test

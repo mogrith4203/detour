@@ -32,6 +32,15 @@ Each item says who does it, what to do, and what "done" means. **Mog-run** means
 | M2 | **Scam-in-progress risk token (carrier → bank).** Minted on a phone warn for a payment-type play, or by a simulated "on a call with an unknown number" toggle. Content-free, consented, expires in 2h. `GET /api/carrier/signal`, `POST /api/carrier/consent`. The token JSON is shown in the UI. | The token appears after the grandparent warn; it contains no text or numbers; expiry tested |
 | M3 | **PNC payment intercept.** A "Send money" panel (Zelle/wire). `POST /api/pnc/pay` runs a rules decision: a tripwire match, or a risk token AND a new payee AND a risky rail, means HOLD (cooling-off, not a block). On a hold: auto what-if on the pending payment (Low Cash Mode callout), the Nemotron coach explains the play with tools, a Trusted Contact call button, and release after cooling-off. Legit payees are released. | The demo storyline in 12 works end to end; legit bill payment released; tests for hold vs release |
 
+## P1-A0: IDENTITY ECHO, THE NEW TECHNOLOGY. BUILD FIRST AFTER P0 (see 14_THE_NEW_TECHNOLOGY_IDENTITY_ECHO.md)
+
+| # | Feature | Done when |
+|---|---|---|
+| E1 | **Claim extraction:** Nemotron JSON plus a lexicon mock, and a phone-side resolver against the on-device contact book (new JS function plus its own parity test). | "grandma it's jake…" resolves to the Jake contact; "Lakeview fraud dept" resolves to the Lakeview registry |
+| E2 | **Echo service:** start, inbox, answer, status, business provenance (hash only), SIM-swap/forwarding trust check, rate limits, no-answer fallback. | All the tests listed in 14 pass; the Echo payload never contains message content |
+| E3 | **On denial:** ground-truth label to the forge, divert the thread to the decoy (in-context continuation), cash-out rails to tripwires, cancel the linked PNC pending payment. | The demo in 14 works end to end in mock mode |
+| E4 | **UI:** Jake's mini phone, Echo chips, agent-graph nodes, the "✓ Confirmed by Jake" path. | A judge can play Jake and tap "Not me" |
+
 ## P1-A2: THE SIX INFINITY STONES v2 (see 13_SIX_INFINITY_STONES.md). Build right after P0, in this order (it includes M1–M3)
 
 | # | Stone | Done when |
