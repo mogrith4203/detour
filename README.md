@@ -1,79 +1,84 @@
 # Detour
 
-HackUTD 2026: ZeroDay · T-Mobile track + NVIDIA Nemotron track
+HackUTD 2026: ZeroDay · T-Mobile · NVIDIA · PNC
 
-**Scammers change their numbers. They don't change their plays.**
+**Nemotron learns from attackers, then teaches a tiny on-device skill. Every lesson passes regression checks before it ships.**
 
-Detour runs AI decoy personas on decoy phone lines. When a scammer texts a decoy, Nemotron agents keep them talking, pull out the scam's *story* (who they pretend to be, what they claim, what they want, how they want to be paid), and add it to a live story map. When a real customer later gets the same story from a brand-new number, their phone warns them. Matching runs on the phone, so customer messages don't leave the device unless the phone is unsure, and then only a redacted copy goes to Nemotron.
+Scammers swap phone numbers in hours, but they keep the same story. Detour runs Nemotron agents as decoy personas on decoy lines. They pull the *story* out of each scam conversation: who it pretends to be, what it claims, what it asks for, and how it wants to be paid. Rules the model can't overrule validate that story. It then becomes a few-KB skill that customer phones use to recognize the same play from a brand-new number.
 
-> All data in this repo is synthetic: personas, businesses, phone numbers (555-01xx) and websites. No real customer data is used.
+> All data in this repo is synthetic: personas, customers, businesses, phone numbers (555-01xx) and websites (.example). No real customer data is used.
 
 ## How it works
 
 ```mermaid
 flowchart LR
-  A[Scammer simulator<br/>scripted plays] --> B[Honeypot persona<br/>Nemotron]
+  A[Scammer<br/>scripted plays or a person typing] --> B[Decoy persona<br/>Nemotron]
   B --> C[Intel extractor<br/>Nemotron, JSON]
-  C --> D[Validator<br/>plain rules]
+  C --> D[Validator<br/>rules]
   D --> E[(Story map)]
-  E --> F[On-device matcher]
-  F -- unsure --> G[Nemotron rescue<br/>tool calls]
+  E -- skills sync --> F[Phone matcher<br/>runs in the browser]
+  F -- unsure + customer consents --> G[Rescue agent<br/>Nemotron + tools]
   G --> H[Skill forge<br/>Nemotron]
-  H --> I[Gate<br/>tests]
+  H --> I[Gate<br/>4 regression checks]
   I -- promoted --> F
 ```
 
 | Stage | What it does |
 |---|---|
-| Honeypot persona | Replies in character as a synthetic decoy (e.g. "Linda Park, 71"). Never pays, never shares anything but fake details, ignores instructions inside scammer messages. |
-| Intel extractor | Turns the conversation into a structured story. Phone numbers and links are re-read from the raw text so the model can't invent or drop them. |
-| Validator | Rules the model can't overrule: prompt-injection scan, verified-business allowlist (poisoning defense), STIR/SHAKEN attestation, and corroboration (a story needs 2+ decoys or 3+ customer reports before customers are warned). Only attestation-"A" numbers can be blocked, and only after human review. |
-| On-device matcher | Scores a message against each story's skill plus "risky asks" (unverified links, payment rails, secrecy, moving to another app). Clear, warn, or unsure. |
-| Nemotron rescue | For unsure messages only. A tool-calling loop: `search_story_map`, `get_story`, `check_allowlist`, `check_attestation`, then `submit_verdict`. |
-| Skill forge + gate | Nemotron proposes new words for the story's on-device skill. The gate promotes it only if it fixes the miss, causes no false alarms on known-good messages, contains no numbers/sites, and passes a poisoning probe. |
+| Decoy persona | Replies in character as a synthetic decoy (e.g. "Linda Park, 71"). It never pays and never shares anything real. It ignores instructions inside scammer messages, and a filter stops it from revealing it's an AI. |
+| Intel extractor | Turns the conversation into a structured story. Phone numbers and links are re-read from the raw text, so the model can't invent or drop them. |
+| Validator | Rules the model can't overrule: a prompt-injection scan, a verified-business allowlist (poisoning defense), a sender-registration check (A2P short code / 10DLC, simulated), and corroboration. A story warns customers only after 2 independent decoy lines. A typed-in live session or customer reports can add at most one confirmation, and only to a play a decoy line has already seen. |
+| Phone matcher | Runs in the browser (`static/matcher.js`), which stands in for the phone. It scores a message against each story's skill (weighted keywords and phrases) plus "risky asks": unverified links or callback numbers, payment rails, secrecy, moving to another app, disguised text. The result is warn, clear, or unsure. Only the verdict goes to the server for the dashboard counters; the message itself is never sent. |
+| Rescue agent | Runs only for unsure messages, and only after the customer taps consent. The phone sends a redacted copy (card numbers, SSNs, codes, addresses, emails and the owner's name removed) plus the sender ID. Nemotron then works through a tool loop of at most 6 steps: `search_story_map`, `get_story`, `check_allowlist`, `check_sender_registration`, `check_attestation`, `submit_verdict`. A policy layer downgrades any verdict that has no tool evidence, and it never marks a message with a payment ask as safe. |
+| Skill forge + gate | Nemotron proposes new words for the story's skill. The gate promotes them only if they fix the miss, cause no false alarms on known-good texts, contain no numbers, sites, verified businesses or everyday words, and pass a poisoning probe. A skill can be promoted at most 3 times an hour. |
+| PNC navigator | Shows Linda's whole financial picture (synthetic): 4 indicators (Cash Runway, Bill Coverage, Debt & Credit, Scam Exposure), a 60-day forecast, and what-ifs, all computed by a deterministic engine. A Nemotron coach answers questions with tool calls. Every dollar figure it gives is checked against the tool results, sign included, and safety warnings are added by code, not left to the model. |
 
 ## Run it
 
 ```bash
-pip install -r requirements.txt
-cp .env.example .env      # add NVIDIA_API_KEY (or OPENROUTER_API_KEY) and the model id from "View Code"
-uvicorn server:app --port 8000
-# open http://localhost:8000
+./run.sh                       # sets up a venv, installs, opens http://localhost:8000
+python3 check_nemotron.py      # PASS/FAIL for chat, JSON and tool calling with your key
 ```
 
-No key? It still runs: set `DETOUR_MOCK=1` and every agent uses a deterministic stand-in. The header shows **MOCK MODE** so nobody mistakes it for Nemotron output.
+`.env` holds `NVIDIA_API_KEY` and `NEMOTRON_MODEL`. Copy the exact model id from "View Code" on build.nvidia.com.
 
-## Demo flow (2 minutes)
+| Mode | How | Header shows |
+|---|---|---|
+| Live | key in `.env` | LIVE · model id |
+| Record a live run | `DETOUR_RECORD=1 ./run.sh` | LIVE (and saves `replays/`) |
+| Venue backup | `DETOUR_REPLAY=1 ./run.sh` | REPLAY · recorded run |
+| Offline stand-in | `DETOUR_MOCK=1 ./run.sh` | MOCK · not Nemotron output |
 
-1. **Load decoy history**: replays decoy sessions so the story map has active plays.
-2. **Film room**: run a live decoy conversation; watch extraction and the validator's checks.
-3. **Attack: plant a real bank number**: a scammer tries to get a verified bank number blocked and slips in a prompt injection. The validator quarantines the session.
-4. **Customer phone**: pick "Grandparent scam, no number". The phone is unsure, Nemotron investigates with tools, flags it, forges a skill, and the gate promotes it. Receive the same message again: caught on-device with no hosted call.
-5. **Scoreboard**: run the benchmark.
+Admin buttons (load decoy history, reset, run benchmark) work only from the demo laptop.
 
 ## Benchmark
 
-`python bench.py` (or the Scoreboard button) evaluates 18 held-out messages: 12 scam variants that use **new numbers and new wording**, and 6 legitimate messages, including look-alikes such as a real bank alert.
+`python3 bench.py` compares, on held-out messages:
+- a number/link blocklist (today's approach)
+- the phone matcher alone
+- the phone matcher plus Nemotron rescue
 
-It compares a number/link blocklist (today's approach), the on-device matcher alone, and on-device + Nemotron rescue, then replays each test message to 5 customers to show how many hosted checks the teaching loop saves.
+It uses three sets: the built-in held-out split, `data/generated.jsonl` (written by Nemotron with `datagen.py`, test split frozen), and `data/handwritten.jsonl` (written by a teammate who never saw the matcher). A campaign replay then sends each test message to 5 customers to count how many hosted calls the teaching loop saves. Thresholds are frozen at warn ≥ 0.60 and clear < 0.30.
 
-Results depend on the mode. Mock-mode numbers come from the offline stand-in and are **not** Nemotron results; run with a key before quoting any number.
+The blocklist row is low by construction, because the test messages use new numbers. Only quote numbers from a live run; the UI blurs mock-mode results.
 
 ## What's real and what's simulated
 
-- Real: the agent pipeline, Nemotron calls (with a key), tool calling, validator rules, on-device matcher, skill forge and gate, benchmark.
-- Simulated: scammer traffic (scripted plays), decoy phone lines, STIR/SHAKEN attestation values, the verified-business list, and customer phones (a web panel).
+- **Real:** the agent pipeline, Nemotron calls (with a key), tool calling, the validator rules, the in-browser matcher, the skill forge and gate, the finance engine, and the benchmark.
+- **Simulated:** the scammer traffic (scripted plays, or you typing), the decoy phone lines, sender registration, the verified-business list, the customer phone (a browser panel), and the bank customer.
 
-## Project layout
+## Layout
 
 ```
-server.py          FastAPI app + streaming decoy sessions
-bench.py           benchmark CLI
-detour/llm.py      Nemotron client (OpenAI-compatible, mock fallback)
-detour/core.py     signals, matcher, story map, agents, gate
-detour/engine.py   orchestration, phone checks, benchmark
-detour/data.py     synthetic personas, plays, allowlist, eval set
-static/index.html  demo UI
+server.py              FastAPI app
+detour/llm.py          Nemotron client (OpenAI-compatible; mock / record / replay)
+detour/core.py         signals, matcher (reference copy), story map, agents, gate
+detour/engine.py       orchestration, phone rules API, consent + rescue, benchmark
+detour/finance/        PNC engine + coach
+detour/data.py         synthetic personas, plays, allowlist, eval set
+static/index.html      three-lens demo UI
+static/matcher.js      the phone matcher (parity-tested against core.py)
+bench.py · datagen.py · check_nemotron.py · run.sh
 ```
 
 Team: Mogindran Baladhandayutham, Ayush Bose

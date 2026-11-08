@@ -42,7 +42,10 @@ def _day(d):
 
 
 def _acct(c, acct_id):
-    return next(a for a in c["accounts"] if a["id"] == acct_id)
+    a = next((a for a in c["accounts"] if a["id"] == acct_id), None)
+    if a is None:
+        raise ValueError(f"unknown account '{acct_id}'")
+    return a
 
 
 def _as_of(c):
@@ -406,10 +409,15 @@ def whatif(c, scenario):
         else:
             better = (a["value"] > b["value"]) == HIGHER_IS_BETTER[b["id"]]
             direction = "better" if better else "worse"
+            if b["id"] == "scam_exposure" and better and any(e.get("type") == "payment" for e in resolved):
+                direction = "same"  # exposure only fell because the money already left; that is not an improvement
         deltas.append({"id": b["id"], "name": b["name"], "before": b["value"], "after": a["value"],
                        "before_display": b["display"], "after_display": a["display"],
                        "before_status": b["status"], "after_status": a["status"], "direction": direction})
-        if direction != "same":
+        if b["id"] == "scam_exposure" and a["value"] != b["value"] and direction == "same":
+            delta_facts.append(f"Scam Exposure is lower only because {_fmt_value(b, b['value'] - a['value'])} has already left. "
+                               "That is not an improvement.")
+        elif direction != "same":
             delta_facts.append(f"{b['name']} goes from {_fmt_value(b, b['value'])} ({b['status']}) to "
                                f"{_fmt_value(a, a['value'])} ({a['status']}).")
     return {

@@ -387,12 +387,21 @@ class Agents:
             except Exception:
                 ext = self._mock_extract(scam_text)
                 mode = "mock" if self.llm.mock else "fallback"
+        if not isinstance(ext, dict):
+            ext = {}
         # indicators are always re-derived from the raw text so the model can't invent or drop them
         ext["callback_numbers"] = phones(scam_text)
         ext["domains"] = domains(scam_text)
-        ext.setdefault("category", "other")
-        if ext["category"] not in CATEGORY_STEPS:
-            ext["category"] = "other"
+        if not isinstance(ext, dict):
+            ext = {}
+        cat = ext.get("category")
+        ext["category"] = cat if isinstance(cat, str) and cat in CATEGORY_STEPS else "other"
+        for k in ("story_title", "impersonates", "claim", "ask", "payment_method"):  # model output must be short strings
+            v = ext.get(k, "")
+            ext[k] = (v if isinstance(v, str) else json.dumps(v))[:200]
+        for k in ("tactics", "signature_keywords"):
+            v = ext.get(k, [])
+            ext[k] = [str(x)[:40] for x in v][:12] if isinstance(v, list) else []
         return ext, {"mode": mode, "ms": t.ms}
 
     def _mock_extract(self, text):
@@ -581,11 +590,16 @@ class Agents:
                             args = json.loads(c.function.arguments or "{}")
                         except Exception:
                             args = {}
+                        if not isinstance(args, dict):
+                            args = {}
                         if c.function.name == "submit_verdict":
                             verdict = args
                             result = {"ok": True}
                         else:
-                            result = self._run_tool(c.function.name, args, smap)
+                            try:
+                                result = self._run_tool(c.function.name, args, smap)
+                            except Exception as e:  # a bad tool call is fed back to the model, not a crash
+                                result = {"error": str(e)[:120]}
                         trace.append({"tool": c.function.name, "args": args, "result": result})
                         msgs.append({"role": "tool", "tool_call_id": c.id, "content": json.dumps(result)})
                     if verdict:
@@ -596,8 +610,14 @@ class Agents:
             except Exception:
                 verdict, trace = self._mock_rescue(text, sender, local, smap)
                 mode = "mock" if self.llm.mock else "fallback"
-        verdict.setdefault("story_id", "")
-        verdict["story_id"] = verdict.get("story_id") or ""
+        if not isinstance(verdict, dict):
+            verdict = {}
+        if verdict.get("verdict") not in ("scam", "legit", "unsure"):
+            verdict["verdict"] = "unsure"
+        sid = verdict.get("story_id")
+        verdict["story_id"] = sid if isinstance(sid, str) else ""
+        for k in ("reason", "customer_message"):
+            verdict[k] = str(verdict.get(k) or "")[:300]
         if verdict["story_id"] not in smap.stories:
             verdict["story_id"] = ""
         return verdict, trace, {"mode": mode, "ms": t.ms, "redacted": red}

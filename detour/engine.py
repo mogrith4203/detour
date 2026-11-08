@@ -22,6 +22,14 @@ PROMOTIONS_PER_HOUR = 3  # a story's skill can't be rewritten faster than this
 THREAD_WINDOW = 3    # messages from the same unknown sender scored together
 
 
+def _num(x, default=0.0):
+    try:
+        v = float(x)
+        return v if v == v else default
+    except (TypeError, ValueError):
+        return default
+
+
 def strip_indicators(text):
     """Never show a scammer's number or link on a customer's warning card."""
     t = PHONE_RE.sub("[number]", str(text or ""))
@@ -81,6 +89,12 @@ class Engine:
         self.emit("system", "reset", note="Demo state reset")
 
     # ------------------------------------------------------------ event stream (NVIDIA view)
+    @staticmethod
+    def _cap(d, n=200):
+        """Bounded memory: drop the oldest sessions/threads/pending checks."""
+        while len(d) > n:
+            d.pop(next(iter(d)))
+
     def emit(self, agent, stage, **data):
         if getattr(self, "quiet", False):  # benchmark runs don't flood the live agent feed
             return
@@ -136,6 +150,7 @@ class Engine:
     def live_start(self, decoy_id):
         sid = uuid.uuid4().hex[:8]
         self.live[sid] = {"decoy": decoy_id, "convo": [], "sender": "(214) 555-0177"}
+        self._cap(self.live, 50)
         self.emit("Honeypot persona", "live-start", note=f"Live session with {PERSONAS[decoy_id]['name']}")
         return {"session": sid, "persona": PERSONAS[decoy_id]}
 
@@ -182,6 +197,7 @@ class Engine:
                     "card": {"level": "clear", "title": "From a saved contact", "why": [], "next_step": ""}, "state": self.state()}
         key = sender or "unknown"
         thread = self.threads.setdefault(key, [])
+        self._cap(self.threads)
         thread.append(text)
         del thread[:-THREAD_WINDOW]
         ctx = " ".join(thread)
@@ -227,6 +243,7 @@ class Engine:
             self.stats["handled_on_device"] += 1
             return {"check_id": check_id, "steps": steps, "cloud_bytes": 0, "state": self.state(),
                     "card": {"level": "clear", "title": "No known scam pattern", "why": ["No risky request and no match to an active play."], "next_step": ""}}
+        self._cap(self.pending)
         self.pending[check_id] = {"text": ctx, "raw": text, "sender": sender, "local": local, "steps": steps}
         if auto_consent:
             return self.consent(check_id)
@@ -277,6 +294,7 @@ class Engine:
         steps = [{"stage": "local", "agent": "On-device matcher", "data": local}]
         text = redact(redacted_text or "")[:1500]
         self.stats["asked_consent"] += 1
+        self._cap(self.pending)
         self.pending[check_id] = {"text": text, "raw": text, "sender": (sender or "")[:40], "local": local, "steps": steps}
         return self.consent(check_id)
 
@@ -314,7 +332,7 @@ class Engine:
                     "why": [strip_indicators(verdict.get("customer_message") or verdict.get("reason", ""))] + [a[0].upper() + a[1:] for a in p["local"]["asks"][:2]],
                     "next_step": CATEGORY_STEPS.get(story["category"] if story else "other"), "story_id": story["id"] if story else ""}
         elif verdict["verdict"] == "legit":
-            if float(verdict.get("confidence") or 0) >= 0.7:
+            if _num(verdict.get("confidence")) >= 0.7:
                 self.good.add(fingerprint(p["raw"]))
             card = {"level": "clear", "title": "Looks legitimate", "why": [strip_indicators(verdict.get("customer_message") or verdict.get("reason", ""))], "next_step": ""}
         else:
@@ -395,7 +413,7 @@ class Engine:
                 f2.append("scam" if loc["decision"] == "warn" else "clear")
                 continue
             calls += 1
-            v, trace, _ = self.agents.rescue(m["text"], m["sender"], loc, self.smap)
+            v, trace, _ = self.agents.rescue(redact(m["text"]), m["sender"], loc, self.smap)
             v = self.decide(v, trace, loc["asks"])
             f2.append({"scam": "scam", "legit": "clear"}.get(v["verdict"], "unsure"))
         return [score(f0, "Number/link blocklist (today's approach)"), score(f1, "On-device matcher only"),
@@ -449,10 +467,10 @@ class Engine:
                 fb.append("scam" if loc["decision"] == "warn" else "clear")
                 continue
             calls += 1
-            v, trace, _ = self.agents.rescue(m["text"], m["sender"], loc, self.smap)
+            v, trace, _ = self.agents.rescue(redact(m["text"]), m["sender"], loc, self.smap)
             v = self.decide(v, trace, loc["asks"])
             fb.append({"scam": "scam", "legit": "clear"}.get(v["verdict"], "unsure"))
-            if v["verdict"] == "legit" and not loc["asks"] and float(v.get("confidence") or 0) >= 0.7:
+            if v["verdict"] == "legit" and not loc["asks"] and _num(v.get("confidence")) >= 0.7:
                 self.good.add(fingerprint(m["text"]))
             s = self.smap.stories.get(v.get("story_id") or "")
             if v["verdict"] == "scam" and s:

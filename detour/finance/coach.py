@@ -12,9 +12,11 @@ from ..llm import parse_json, strip_think
 from .engine import forecast, indicators, load_customer, money, snapshot, whatif
 
 MAX_STEPS = 6
-MONEY_RE = re.compile(r"\$\s?(\d[\d,]*(?:\.\d+)?)")
+MONEY_RE = re.compile(r"(-|−|minus )?\$\s?(-)?(\d[\d,]*(?:\.\d+)?)")
+SCAMMY_Q = re.compile(r"\b(bail|grandson|granddaughter|grandkid|jail|lawyer|wire|gift ?cards?|zelle|bitcoin|western union)\b", re.I)
+MAX_AMOUNT = 1_000_000.0
 PCT_RE = re.compile(r"(\d+(?:\.\d+)?)\s?%")
-NUM_RE = re.compile(r"\d[\d,]*(?:\.\d+)?")
+NUM_RE = re.compile(r"-?\d[\d,]*(?:\.\d+)?")
 SCAM_WARNING = ("An urgent call asking for bail money is one of the most common scams aimed at older adults, "
                 "so hang up and call the person or a family member on a number you already know before sending anything.")
 
@@ -83,22 +85,23 @@ def _run_tool(c, name, args):
 
 def _figures(text):
     """Dollar amounts and percentages mentioned in text, as (kind, value, raw)."""
-    out = [("$", float(m.group(1).replace(",", "")), m.group(0)) for m in MONEY_RE.finditer(text)]
+    out = [("$", (-1 if (m.group(1) or m.group(2)) else 1) * float(m.group(3).replace(",", "")), m.group(0).strip())
+           for m in MONEY_RE.finditer(text)]
     out += [("%", float(m.group(1)), m.group(0)) for m in PCT_RE.finditer(text)]
     return out
 
 
 def _number_pool(results):
-    """Every number (absolute value) appearing anywhere in the tool results."""
+    """Every number appearing anywhere in the tool results, WITH its sign: a -$2,623 balance can't be quoted as $2,623 left."""
     pool = set()
 
     def walk(x):
         if isinstance(x, bool):
             return
         if isinstance(x, (int, float)):
-            pool.add(abs(float(x)))
+            pool.add(float(x))
         elif isinstance(x, str):
-            pool.update(float(n.replace(",", "")) for n in NUM_RE.findall(x))
+            pool.update(float(n.replace(",", "")) for n in NUM_RE.findall(x.replace("$", "")))
         elif isinstance(x, dict):
             for v in x.values():
                 walk(v)
@@ -116,7 +119,7 @@ def unsupported_figures(answer, results):
     bad = []
     for kind, value, raw in _figures(answer):
         tol = 1.0 if kind == "$" else 0.1
-        candidates = pool if kind == "$" else pool | {p * 100 for p in pool}
+        candidates = pool if kind == "$" else pool | {p * 100 for p in pool} | {abs(p) for p in pool}
         if not any(abs(value - p) <= tol + 1e-9 for p in candidates):
             bad.append(raw)
     return bad
@@ -145,8 +148,21 @@ def _template_answer(results):
 
 
 def _amount_in(question, default):
-    m = MONEY_RE.search(question) or re.search(r"\b(\d[\d,]{2,}(?:\.\d+)?)\b", question)
-    return float(m.group(1).replace(",", "")) if m else default
+    m = MONEY_RE.search(question)
+    raw = m.group(3) if m else None
+    if raw is None:
+        m2 = re.search(r"\b(\d[\d,]{2,}(?:\.\d+)?)\b", question)
+        raw = m2.group(1) if m2 else None
+    if raw is None:
+        return default
+    try:
+        return min(MAX_AMOUNT, max(0.0, float(raw.replace(",", ""))))
+    except ValueError:
+        return default
+
+
+def _has(q, *words):
+    return any(re.search(r"\b" + w + r"\b", q) for w in words)
 
 
 def _mock(c, question, trace, results):
@@ -160,8 +176,19 @@ def _mock(c, question, trace, results):
         results.append(res)
         return res
 
-    if any(k in q for k in ("bail", "afford", "send", "wire")):
-        amount = _amount_in(question, 3000.0)
+    if _has(q, "card balance", "credit card", "balance", "how much (do i|money)", "net worth"):
+        snap = call("get_snapshot")
+        t = snap["totals"]
+        card = next((a for a in c["accounts"] if a["id"] in ("credit_card", "card")), None)
+        answer = (f"You have {money(t['liquid_cash'])} in checking and savings and a net worth of {money(t['net_worth'])}."
+                  + (f" Your credit card balance is {money(card['balance'])}." if card else "") + " Not financial advice.")
+        return answer, ["Ask me a what-if to see how a choice changes these numbers."]
+
+    if _has(q, "bail", "afford", "send", "wire", "pay (someone|him|her|them)", "grandson", "granddaughter"):
+        amount = _amount_in(question, 3000.0 if _has(q, "bail", "grandson", "granddaughter") else 0.0)
+        if amount <= 0:
+            return ("How much is the payment, and is it from checking or savings? Tell me the amount and I'll show you "
+                    "exactly what it does to your balances.", ["Ask again with the amount, like 'Can I afford $500?'"])
         label = "Bail payment" if "bail" in q else "Payment"
         w = call("run_whatif", {"scenario": [{"type": "payment", "amount": amount, "from": "checking",
                                               "date": next_day, "label": label}]})
@@ -185,7 +212,7 @@ def _mock(c, question, trace, results):
                  "Ask us to lock your savings while you check."]
         return answer, steps
 
-    if any(k in q for k in ("pay off", "payoff", "car", "loan")):
+    if _has(q, "pay off", "payoff", "car", "auto", "loan"):
         loan = "personal" if "personal" in q else "auto"
         bal = next(a for a in c["accounts"] if a["id"] == loan)["balance"]
         w = call("run_whatif", {"scenario": [{"type": "extra_loan_payment", "loan": loan, "amount": bal,
@@ -196,7 +223,7 @@ def _mock(c, question, trace, results):
                  "Run the numbers again with a smaller extra payment before deciding."]
         return answer, steps
 
-    if any(k in q for k in ("scam", "lock", "protect", "fraud")):
+    if _has(q, "scams?", "lock", "protect", "fraud"):
         sav = next(a for a in c["accounts"] if a["id"] == "savings")["balance"]
         ind = call("get_indicators")["indicators"][3]
         w = call("run_whatif", {"scenario": [{"type": "lock_savings", "amount": sav}]})
@@ -205,7 +232,7 @@ def _mock(c, question, trace, results):
                  "Lower your Zelle limit or turn off card cash advances if you never use them."]
         return answer, steps
 
-    if any(k in q for k in ("overdraft", "bill", "forecast", "next month")):
+    if _has(q, "overdraft", "overdraw", "bills?", "forecast", "next month"):
         ind = call("get_indicators")["indicators"]
         fc = call("run_forecast", {"days": 60})
         cover = ind[1]["explanation"]
@@ -245,11 +272,15 @@ def _live(llm, c, question, history, trace, results):
         messages.append(_assistant_dict(msg))
         if msg.tool_calls:
             for tc in msg.tool_calls:
-                args = json.loads(tc.function.arguments or "{}")
+                args = {}
                 try:
+                    args = json.loads(tc.function.arguments or "{}")
+                    if not isinstance(args, dict):
+                        raise TypeError("arguments must be a JSON object")
                     res, summary = _run_tool(c, tc.function.name, args)
-                except (ValueError, KeyError, TypeError) as e:
-                    res, summary = {"error": str(e)}, f"error: {e}"
+                except (ValueError, KeyError, TypeError, StopIteration, AttributeError) as e:
+                    args = args if isinstance(args, dict) else {}
+                    res, summary = {"error": str(e) or "bad arguments"}, f"error: {e}"
                 trace.append({"tool": tc.function.name, "args": args, "result_summary": summary})
                 results.append(res)
                 messages.append({"role": "tool", "tool_call_id": tc.id, "content": json.dumps(res)})
@@ -281,7 +312,15 @@ def coach(llm, question, history=None):
         try:
             live = _live(llm, c, question, history, trace, results)
             if live:
-                return _result(live[0], live[1], trace, live[2])
+                answer, steps, mode = live
+                if SCAMMY_Q.search(question):  # the safety part never depends on the model remembering it
+                    wi = [r for r in results if "facts" in r]
+                    if wi and wi[-1]["after"]["forecast_summary"]["overdraft_days"] > wi[-1]["before"]["forecast_summary"]["overdraft_days"] \
+                            and not re.search(r"overdr|below \$0|negative|-\$", answer, re.I):
+                        answer += " " + next((f for f in wi[-1]["facts"] if "below $0" in f), "")
+                    if SCAM_WARNING not in answer:
+                        answer += " " + SCAM_WARNING
+                return _result(answer.strip(), steps, trace, mode)
         except Exception as e:  # network/model failure: fall through to the deterministic path
             trace.append({"tool": "nemotron", "args": {}, "result_summary": f"live call failed: {str(e)[:120]}"})
         answer, steps = _mock(c, question, trace, results)

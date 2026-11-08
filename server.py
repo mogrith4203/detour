@@ -1,6 +1,7 @@
 """Detour demo server.  Start with ./run.sh (or: uvicorn server:app --port 8000), then open http://localhost:8000"""
 import json
 import os
+import re
 import time
 from pathlib import Path
 
@@ -21,6 +22,7 @@ app = FastAPI(title="Detour")
 engine = Engine()
 BENCH_FILE = ROOT / "results" / "benchmark.json"
 DEMO_TOKEN = os.getenv("DEMO_TOKEN", "")
+BENCH_LOCK = __import__("threading").Lock()
 app.mount("/static", StaticFiles(directory=ROOT / "static"), name="static")
 
 try:  # the PNC finance module is optional until it lands
@@ -30,11 +32,17 @@ except Exception:  # pragma: no cover
 
 
 def admin_only(request: Request):
-    """Admin actions only from this laptop (or with the demo token), so nobody on venue Wi-Fi can reset or approve."""
+    """Admin actions (reset/seed/approve/benchmark) need a custom header, which a browser can't send cross-site without a
+    CORS preflight we never allow; that blocks CSRF. They also need this laptop, or DEMO_TOKEN when bound to the network."""
+    origin = request.headers.get("origin", "")
+    if origin and not re.match(r"^https?://(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$", origin):
+        raise HTTPException(403, "Admin actions are only allowed from the demo page.")
+    hdr = request.headers.get("x-detour-admin", "")
     host = request.client.host if request.client else ""
-    if host in ("127.0.0.1", "::1", "localhost", "testclient"):
-        return
-    if DEMO_TOKEN and request.headers.get("x-demo-token") == DEMO_TOKEN:
+    if DEMO_TOKEN:
+        if hdr == DEMO_TOKEN:
+            return
+    elif hdr and host in ("127.0.0.1", "::1", "localhost", "testclient"):
         return
     raise HTTPException(403, "Admin actions are only allowed from the demo laptop.")
 
@@ -156,9 +164,17 @@ def consent(body: IdIn):
     return engine.consent(body.id)
 
 
+REPORTS = {}
+
+
 @app.post("/api/report")
-def report(body: StoryIn):
-    return engine.report(body.story_id)
+def report(body: StoryIn, request: Request):
+    """One report per story per device per 10 minutes, so one person can't vote a play into 'warn'."""
+    key = ((request.client.host if request.client else ""), body.story_id[:8])
+    if time.time() - REPORTS.get(key, 0) < 600:
+        raise HTTPException(429, "You already reported this one. Thanks!")
+    REPORTS[key] = time.time()
+    return engine.report(body.story_id[:8])
 
 
 # ---- admin
@@ -180,10 +196,13 @@ def reset():
 
 @app.post("/api/benchmark", dependencies=[Depends(admin_only)])
 def benchmark():
+    if not BENCH_LOCK.acquire(blocking=False):
+        raise HTTPException(409, "A benchmark is already running.")
     try:
-        res = engine.benchmark()
+        res = Engine().benchmark()  # separate engine: never touches the live demo's story map, stats or feed
     finally:
-        engine.quiet = False
+        BENCH_LOCK.release()
+    engine.emit("Scoreboard", "benchmark", output=f"Benchmark done: {res.get('api_calls', 0)} hosted calls ({res.get('mode')})", mode=res.get("mode"))
     res["ran_at"] = time.strftime("%Y-%m-%d %H:%M:%S")
     BENCH_FILE.parent.mkdir(exist_ok=True)
     BENCH_FILE.write_text(json.dumps(res, indent=2))
@@ -212,13 +231,26 @@ def fin_overview():
 @app.post("/api/finance/whatif")
 def fin_whatif(body: WhatIfIn):
     f = _fin()
+    import math
+    ev = body.scenario[:10]
+    for e in ev:
+        if not isinstance(e, dict):
+            raise HTTPException(400, "Each scenario event must be an object.")
+        amt = e.get("amount", 0)
+        try:
+            amt = float(amt)
+        except (TypeError, ValueError):
+            raise HTTPException(400, "amount must be a number")
+        if not math.isfinite(amt) or not 0 <= amt <= 1e7:
+            raise HTTPException(400, "amount must be between 0 and 10,000,000")
+        e["amount"] = amt
     try:
-        res = f.whatif(f.load_customer(), body.scenario)
-    except (ValueError, KeyError, TypeError) as e:
-        raise HTTPException(400, f"Bad scenario: {e}")
+        res = f.whatif(f.load_customer(), ev)
+    except Exception as e:  # never a bare 500 in front of judges
+        raise HTTPException(400, f"Bad scenario: {str(e)[:120]}")
     # read-only addition for the UI chart overlay: the after-scenario daily checking series
     res["after_forecast"] = [{"date": d["date"], "checking": d["checking"]}
-                             for d in f.forecast(f.load_customer(), 60, events=body.scenario)["days"]]
+                             for d in f.forecast(f.load_customer(), 60, events=ev)["days"]]
     engine.emit("Finance engine (rules)", "whatif", output=" · ".join(res.get("facts", [])[:2])[:240], mode="rules")
     return res
 
