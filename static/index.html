@@ -1232,7 +1232,7 @@ function renderBench(b) {
   const every = camp.find(r => /every/i.test(r.mode)), once = camp.find(r => /once|teach/i.test(r.mode));
   const saved = every && once ? every.hosted_calls - once.hosted_calls : null;
   const cards = `<div class="stats3 blurable">
-    <div class="scard"><div class="big">${best ? pct(best.caught, best.scams) + "%" : "–"}<small> vs ${block ? pct(block.caught, block.scams) + "%" : "–"}</small></div><div class="lbl">scams caught vs a number blocklist</div></div>
+    <div class="scard"><div class="big">${best ? pct(best.caught, best.scams) + "%" : "–"}<small> vs ${block ? pct(block.caught, block.scams) + "%" : "–"}</small></div><div class="lbl">scams caught vs a number blocklist · ${best ? best.scams : ""} held-out texts</div></div>
     <div class="scard"><div class="big">${saved != null ? saved : "–"}</div><div class="lbl">hosted calls saved by teaching${every && once ? ` (${esc(every.hosted_calls)} → ${esc(once.hosted_calls)})` : ""}</div></div>
     <div class="scard"><div class="big">${best ? esc(best.false_alarms) : "–"}</div><div class="lbl">false alarms on ${best ? esc(best.legit) : "?"} legit texts</div></div></div>`;
   const groups = []; for (const r of rows) { let g = groups.find(x => x.set === r.set); if (!g) groups.push(g = {set: r.set, rows: []}); g.rows.push(r); }

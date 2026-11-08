@@ -58,7 +58,7 @@ Admin buttons (load decoy history, reset, run benchmark) work only from the demo
 - the phone matcher alone
 - the phone matcher plus Nemotron rescue
 
-It uses three sets: the built-in held-out split, `data/generated.jsonl` (written by Nemotron with `datagen.py`, test split frozen), and `data/handwritten.jsonl` (written by a teammate who never saw the matcher). A campaign replay then sends each test message to 5 customers to count how many hosted calls the teaching loop saves. Thresholds are frozen at warn ≥ 0.60 and clear < 0.30.
+It uses two sets: the built-in held-out split (12 scams, 6 legit) and `data/generated.jsonl` (60 messages written live by Nemotron with `datagen.py`; the 30-row test split is frozen). `data/handwritten.jsonl` is scored too when it has rows (a teammate writes them without seeing the matcher); it was empty at submission. A campaign replay then sends each test message to 5 customers to count how many hosted calls the teaching loop saves. Thresholds are frozen at warn ≥ 0.60 and clear < 0.30.
 
 The blocklist row is low by construction, because the test messages use new numbers. Only quote numbers from a live run; the UI blurs mock-mode results.
 
