@@ -1,0 +1,5 @@
+# Ayush: write 10 scam + 10 legit texts here BEFORE you look at the matcher code. One JSON object per line.
+# label is "scam" or "legit". category is one of: bank delivery toll carrier family_emergency job other
+# Numbers must look like (214) 555-01NN. Websites must end in .example. Lines starting with # are ignored.
+# {"text": "Grandma its Jake, I wrecked the car and the cops took my phone. Can you send $900 on Zelle? Please don't tell Dad", "sender": "(469) 555-0177", "label": "scam", "category": "family_emergency"}
+# {"text": "Your package was delivered to the front door. Photo in the ParcelPost app.", "sender": "(800) 555-0155", "label": "legit", "category": "delivery"}

@@ -199,6 +199,14 @@ class Engine:
                         "why": [f"Same play our decoys caught: {story['claim'][:110]}"] + [a[0].upper() + a[1:] for a in local["asks"][:2]],
                         "next_step": CATEGORY_STEPS.get(story["category"], CATEGORY_STEPS["other"]), "story_id": story["id"]}
             return {"check_id": check_id, "steps": steps, "card": card, "cloud_bytes": 0, "state": self.state()}
+        if local["decision"] == "unsure" and not local["asks"] and local["sender"]["registered"]:
+            # A registered A2P sender (vetted short code / business number) with no risky ask: clear on the phone.
+            self.stats["handled_on_device"] += 1
+            self.emit("On-device matcher", "local", output=f"clear · {local['sender']['status']}, no risky ask", mode="on-device")
+            return {"check_id": check_id, "steps": steps, "cloud_bytes": 0, "state": self.state(),
+                    "card": {"level": "clear", "title": "Looks legitimate",
+                             "why": [f"Sent from a {local['sender']['status']}.", "It doesn't ask you to pay, click, or call a new number."],
+                             "next_step": ""}}
         if local["decision"] == "clear":
             self.stats["handled_on_device"] += 1
             return {"check_id": check_id, "steps": steps, "cloud_bytes": 0, "state": self.state(),
