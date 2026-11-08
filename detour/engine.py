@@ -357,6 +357,10 @@ class Engine:
         self.emit("Policy (rules)", "verdict", output=f"{raw_verdict.get('verdict')} → {verdict['verdict']}", mode="rules", policy=verdict.get("policy"))
         steps.append({"stage": "rescue", "agent": "Nemotron rescue (tool calls)", "meta": meta, "trace": trace, "data": verdict})
         story = self.smap.stories.get(verdict.get("story_id") or "")
+        if verdict["verdict"] == "scam" and not story:  # model said scam but named no known story: use the phone's top match
+            top = (p["local"].get("ranked") or [{}])[0].get("story_id") or (p["local"].get("best") or {}).get("story_id") \
+                if isinstance(p["local"].get("best"), dict) else (p["local"].get("ranked") or [{}])[0].get("story_id")
+            story = self.smap.stories.get(top or "")
         if verdict["verdict"] == "scam":
             card = {"level": "warn", "title": "This looks like a scam", "story": strip_indicators(story["title"]) if story else "New pattern",
                     "why": [strip_indicators(verdict.get("customer_message") or verdict.get("reason", ""))] + [a[0].upper() + a[1:] for a in p["local"]["asks"][:2]],
@@ -376,6 +380,24 @@ class Engine:
             self.emit("Skill forge", "propose", output=short(proposal["add_keywords"] + proposal["add_phrases"]), **fmeta)
             with self.lock:
                 ok, results, cand = gate(story, proposal, p["raw"], self.gate_legit(), self.smap.stories)
+                if not ok:
+                    # Repair, then a rules-built candidate. Every candidate still has to pass the same 4 checks.
+                    from .core import benign_words, tokens as _tok
+                    leaks = set(next((r.get("detail") or [] for r in results if r["test"].startswith("No numbers")), []))
+                    repaired = {"add_keywords": [w for w in proposal["add_keywords"] if w not in leaks],
+                                "add_phrases": [x for x in proposal["add_phrases"] if x not in leaks], "rationale": "model words minus failed ones"}
+                    known = story["skill"]["keywords"]
+                    words = [w for w in dict.fromkeys(_tok(p["raw"])) if w not in known and len(w) > 3 and w not in benign_words()][:6]
+                    rules_built = {"add_keywords": words, "add_phrases": [], "rationale": "words from the missed message"}
+                    for label, alt in (("repaired", repaired), ("rules-built", rules_built)):
+                        if not (alt["add_keywords"] or alt["add_phrases"]):
+                            continue
+                        ok2, results2, cand2 = gate(story, alt, p["raw"], self.gate_legit(), self.smap.stories)
+                        self.emit("Gate (tests)", "gate", output=f"{label} candidate · " + ("promoted" if ok2 else "rejected"), mode="rules")
+                        if ok2:
+                            ok, results, cand, proposal = ok2, results2, cand2, alt
+                            fmeta = dict(fmeta, mode=f"{fmeta.get('mode')} + {label}")
+                            break
                 if ok:
                     story["skill"] = cand["skill"]
                     story["skill"]["version"] += 1
