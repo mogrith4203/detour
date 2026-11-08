@@ -430,6 +430,7 @@ class Engine:
     def benchmark(self):
         saved = (self.smap, self.stats, self.good, self.threads, self.pending)
         calls0 = self.llm.calls
+        errors0 = self.llm.errors
         self.quiet = True
         self.smap = StoryMap()
         self.seed()
@@ -496,4 +497,5 @@ class Engine:
         self.quiet = False
         self.emit("Scoreboard", "benchmark", output=f"Benchmark done: {total_calls} hosted calls", mode=self.llm.mode)
         return {"mode": self.llm.mode, "model": self.llm.describe()["model"], "rows": rows, "campaign": campaign,
+                "api_errors": self.llm.errors - errors0,
                 "api_calls": total_calls, "thresholds": {"warn": 0.60, "clear": 0.30, "frozen": True}}

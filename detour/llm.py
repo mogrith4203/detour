@@ -43,7 +43,7 @@ class Nemotron:
         if not self.mock and not self.replay:
             from openai import OpenAI
 
-            self.client = OpenAI(api_key=self.key, base_url=self.base_url, timeout=90)
+            self.client = OpenAI(api_key=self.key, base_url=self.base_url, timeout=90, max_retries=6)  # backs off on 429s
 
     @property
     def mode(self):
