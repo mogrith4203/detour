@@ -153,6 +153,12 @@ def main():
             page.wait_for_timeout(1200)
             expect(page.locator("#lens-nv")).to_contain_text("Claim extractor", timeout=T)
             shot("nvidia_lens")
+            page.click("#covOpen")
+            expect(page.locator("#covDlg")).to_be_visible()
+            expect(page.locator("#covDlg")).to_contain_text("not measured")
+            shot("coverage_matrix")
+            page.click("#covClose")
+            expect(page.locator("#covDlg")).to_be_hidden()
             b.close()
     finally:
         srv.terminate()

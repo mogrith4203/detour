@@ -581,6 +581,15 @@ body[data-cmode="echo"] .story{gap:2px;padding:7px 11px}
   body[data-cmode="echo"] .story .st3:last-child{display:none}
   .zstrip{padding:6px 10px}
 }
+#covDlg{background:var(--panel);color:var(--text);border:1px solid var(--border2);border-radius:var(--r);padding:18px 20px;max-width:min(1060px,calc(100vw - 32px));width:100%}
+#covDlg::backdrop{background:rgba(5,8,12,.72)}
+.cov-h{display:flex;align-items:center;gap:10px}.cov-h h2{margin:0;font-size:18px}.cov-h .grow{flex:1}
+.cov-sub{color:var(--muted);font-size:13px;margin:8px 0 12px}
+table.cov{width:100%;border-collapse:collapse;font-size:13px}
+table.cov th,table.cov td{border-bottom:1px solid var(--border);padding:7px 8px;text-align:left;vertical-align:top}
+table.cov thead th{color:var(--muted);font-size:12px;font-weight:700}table.cov thead small{display:block;font-weight:400;color:var(--dim)}
+table.cov td.y{color:var(--ok)}table.cov td.n{color:var(--dim);text-align:center}
+table.cov thead th:nth-child(2),table.cov td:nth-child(2){background:color-mix(in srgb,var(--tmo) 8%,transparent)}
 </style>
 </head>
 <body data-lens="tmo">
@@ -793,7 +802,14 @@ body[data-cmode="echo"] .story{gap:2px;padding:7px 11px}
 </section>
 </main>
 
-<footer><span>All personas, numbers (555-01xx), businesses and customers are synthetic.</span><span>Keys <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> switch lenses</span></footer>
+<footer><span>All personas, numbers (555-01xx), businesses and customers are synthetic.</span><button class="btn sm ghost" id="covOpen">Why there's no way around it</button><span>Keys <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> switch lenses</span></footer>
+<dialog id="covDlg" aria-labelledby="covTitle">
+  <div class="cov-h"><h2 id="covTitle">Coverage matrix</h2><span class="tag sim">design property, not measured</span><span class="grow"></span><button class="btn sm ghost" id="covClose" aria-label="Close coverage matrix">Close</button></div>
+  <p class="cov-sub">Each row is a way a scammer could dodge one defense. A ✓ means that defense still catches the scam. Money is held only when two independent defenses agree.</p>
+  <table class="cov"><thead><tr><th>Scammer's move</th><th>Identity Echo</th><th>Mind<small>on-device skills</small></th><th>Space<small>carrier signals</small></th><th>Reality<small>tripwires</small></th><th>Time<small>cooling-off hold</small></th><th>Power<small>decoys</small></th></tr></thead><tbody><tr><th>New phone number every time</th><td class="y">✓ asks the real person anyway</td><td class="y">✓</td><td class="n">·</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td></tr><tr><th>Brand-new script never seen</th><td class="y">✓ claim, not wording</td><td class="n">·</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td><td class="n">·</td></tr><tr><th>Voice call, no text at all</th><td class="n">·</td><td class="n">·</td><td class="y">✓ call in progress</td><td class="y">✓</td><td class="y">✓</td><td class="n">·</td></tr><tr><th>WhatsApp / iMessage (carrier blind)</th><td class="n">·</td><td class="y">✓ on device</td><td class="n">·</td><td class="y">✓</td><td class="y">✓</td><td class="n">·</td></tr><tr><th>Fresh mule account</th><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td><td class="n">·</td><td class="y">✓</td><td class="y">✓ canary exposes it</td></tr><tr><th>Pretends to be a real business</th><td class="y">✓ hash provenance</td><td class="y">✓</td><td class="n">·</td><td class="y">✓</td><td class="y">✓</td><td class="n">·</td></tr><tr><th>AI voice clone of the grandson</th><td class="n">·</td><td class="n">·</td><td class="y">✓ call in progress</td><td class="y">✓</td><td class="y">✓</td><td class="n">·</td></tr><tr><th>Avoids decoys entirely</th><td class="y">✓</td><td class="y">✓ reports</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td><td class="n">·</td></tr></tbody></table>
+  <p class="cov-sub">The benchmark measures Mind (the matcher and Nemotron rescue). The other columns are how the system is built, shown here as a design argument.</p>
+</dialog>
+
 <div id="toasts" role="status" aria-live="polite"></div>
 
 <script src="/static/matcher.js"></script>
@@ -1993,6 +2009,12 @@ async function boot() {
   echoBoot(); setCMode("echo");
 }
 boot();
+
+/* ---------- coverage matrix (static design property) */
+(() => { const d = document.getElementById("covDlg"); if (!d || !d.showModal) return;
+  document.getElementById("covOpen").addEventListener("click", () => { if (!d.open) d.showModal(); });
+  document.getElementById("covClose").addEventListener("click", () => d.close());
+  d.addEventListener("click", e => { if (e.target === d) d.close(); }); })();
 </script>
 </body>
 </html>
