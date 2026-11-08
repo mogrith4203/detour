@@ -50,14 +50,15 @@ NEXT: run ./run.sh with DETOUR_RECORD=1 and click the demo once:
 
     DETOUR_RECORD=1 ./run.sh
 
-Click list (in the browser that opens):
+Click list (in the browser that opens), exactly in this order:
   1. Reset, then Load decoy history
-  2. Send the sample "grandma it's jake..." text to Linda
-  3. On Jake's phone, tap "Not me"; send one more scammer message; ask the decoy for payment
-  4. Click "Simulate scammer cashes out the decoy's card"
-  5. Toggle "Jake's line: SIM swapped" and repeat step 2
-  6. Send the "Yes, it's me" path from Jake's real number
-  7. Send the "Lakeview fraud dept" text, then the real Lakeview alert
-  8. Open the NVIDIA lens; click Run benchmark
-Then press Ctrl+C in Terminal. (Claude will send an updated click list once the new buttons ship.)
+  2. Sample "grandma it's jake..." -> click "Linda sends $3,000 Zelle"
+  3. Jake's phone: tap "Not me"
+  4. Scammer box: send "ok send it now pls", then "whats ur card number grandma"
+  5. PNC tab: "Simulate scammer cashes out the decoy's card"
+  6. T-Mobile tab: toggle "SIM swapped", send the 2nd Jake sample, Jake taps "Yes", toggle SIM swap off
+  7. Send the 3rd Jake sample, "Linda sends $3,000", Jake taps "Yes"
+  8. Send "Lakeview fraud dept" sample, then the real Lakeview alert
+  9. NVIDIA tab
+Then press Ctrl+C in Terminal. The video must follow these same clicks for REPLAY to match.
 EOF
