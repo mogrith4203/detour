@@ -1,5 +1,7 @@
 # START HERE: Builder handoff for "Detour" (HackUTD 2026)
 
+> **LOCKED 6:40 AM: `15_FINAL_BUILD_SPEC.md` is the single source of truth for scope and order. Core technology: Identity Echo (file 14).** Older sections below still describe the existing code accurately.
+
 You are taking over a hackathon project that is about 85% built. Read this file fully, then the numbered files in order. Everything you need is in this folder or in the repo one level up.
 
 ## The situation in 60 seconds
@@ -66,6 +68,7 @@ Full backend, all three lenses, the browser-side phone matcher with Python parit
 
 | File | What it gives you |
 |---|---|
+| 15_FINAL_BUILD_SPEC.md | **READ FIRST.** Locked scope, order, time boxes, cut lines, the demo flow, Mog's one command, definition of done |
 | 14_THE_NEW_TECHNOLOGY_IDENTITY_ECHO.md | **Read second. THE CORE INVENTION.** Identity Echo: every scam pretends to be someone, so we ask that someone, over a channel only the carrier controls. Ground-truth labels, zero-false-positive diversion, identity-confirmed payments |
 | 12_REINVENTION_THE_WINNING_IDEA.md | **Read third.** Carrier–bank fusion: message, moment, money A carrier–bank scam fusion center fed by AI decoys: stop the scam at the message, the moment and the money |
 | 13_SIX_INFINITY_STONES.md | **Read with 12.** Six real security techniques (deception, distillation, canary tokens, pivoting, tarpits, privacy-preserving sharing), with the build, demo moment and sponsor for each |
