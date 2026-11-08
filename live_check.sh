@@ -52,13 +52,11 @@ NEXT: run ./run.sh with DETOUR_RECORD=1 and click the demo once:
 
 Click list (in the browser that opens), exactly in this order:
   1. Reset, then Load decoy history
-  2. Sample "grandma it's jake..." -> click "Linda sends $3,000 Zelle"
-  3. Jake's phone: tap "Not me"
-  4. Scammer box: send "ok send it now pls", then "whats ur card number grandma"
-  5. PNC tab: "Simulate scammer cashes out the decoy's card"
-  6. T-Mobile tab: toggle "SIM swapped", send the 2nd Jake sample, Jake taps "Yes", toggle SIM swap off
-  7. Send the 3rd Jake sample, "Linda sends $3,000", Jake taps "Yes"
-  8. Send "Lakeview fraud dept" sample, then the real Lakeview alert
-  9. NVIDIA tab
+  2. Decoy console: scenario "bank_alert", decoy "decoy-01", click Run decoy session (wait until it finishes)
+  3. Phone: click each sample text once, top to bottom (wait for each card)
+  4. On "Grandparent scam, no number": tap "Send redacted copy" (wait for the result)
+  5. Click "Grandparent scam, no number" again (now caught on the phone)
+  6. PNC tab: what-if "Grandson's $3,000 bail", then coach question "Can I afford to pay $3,000 bail for my grandson tomorrow?"
+  7. NVIDIA tab: Run benchmark (optional, takes a few minutes)
 Then press Ctrl+C in Terminal. The video must follow these same clicks for REPLAY to match.
 EOF
