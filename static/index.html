@@ -264,7 +264,7 @@ select.field{appearance:none;padding-right:28px;background-image:linear-gradient
 .nv-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,370px);gap:16px;height:100%}
 .nv-main{display:grid;grid-template-rows:auto minmax(0,1fr);gap:16px;min-height:0;min-width:0}
 .graph-panel{position:relative;overflow:hidden}
-.graph-panel svg{width:100%;height:auto;aspect-ratio:1060/318;max-height:31vh;display:block;margin:2px 0 4px}
+.graph-panel svg{width:100%;height:auto;aspect-ratio:1060/418;max-height:37vh;display:block;margin:2px 0 4px}
 .legend{display:flex;gap:12px;font-size:12.5px;color:var(--muted)}
 .legend span{display:flex;align-items:center;gap:5px}
 .legend i{width:9px;height:9px;border-radius:3px;display:inline-block}
@@ -413,6 +413,113 @@ svg .lbl{font:700 12px var(--mono)}
 .ca .note{font-size:12px;color:var(--dim);margin-top:6px}
 .askrow{display:flex;gap:8px;padding:10px 14px 12px;border-top:1px solid var(--border)}
 
+/* =========================================================== IDENTITY ECHO */
+.tag.sim,.tag.simulated{color:var(--info);border-color:rgba(90,169,255,.45);background:rgba(90,169,255,.08);letter-spacing:.06em}
+.samples .sgrp{font-size:11px;letter-spacing:.11em;text-transform:uppercase;color:var(--dim);font-weight:700;margin-top:4px;display:flex;gap:6px;align-items:center}
+.sample.echo-s{border-color:rgba(226,0,116,.28)}
+/* Echo block on Linda's card */
+.echo{margin-top:10px;border-top:1px solid #2A2E36;padding-top:9px;animation:pop .25s ease}
+.echo .eh{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font:700 10.5px var(--mono);text-transform:uppercase;letter-spacing:.08em;color:#8E99A8;margin-bottom:5px}
+.echo .eh .gr{flex:1}
+.echo .eclaim{font-size:13.5px;color:#D5DCE6;line-height:1.35}
+.echo .eclaim .dots::after{content:"…";animation:blink 1.2s infinite}
+.echo .eres{margin-top:7px;padding:8px 10px;border-radius:10px;font-size:13.5px;font-weight:650;line-height:1.35;animation:pop .25s ease}
+.echo .eres.bad{background:rgba(255,77,94,.1);color:#FF8A95;border:1px solid rgba(255,77,94,.38)}
+.echo .eres.ok{background:rgba(61,220,151,.09);color:var(--ok);border:1px solid rgba(61,220,151,.35)}
+.echo .eres.amb{background:rgba(245,184,65,.09);color:var(--amber);border:1px solid rgba(245,184,65,.35)}
+.echo .eres small{display:block;font-weight:500;font-size:12.5px;color:#B6C1CF;margin-top:3px}
+.echo .eres ul{margin:4px 0 0;padding-left:17px;font-weight:500;font-size:12.5px;color:#C9D1DC}
+.echo .echips{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.echo .echips .chip{font-size:11.5px;padding:1px 7px}
+.echo details{margin-top:7px}
+.echo summary{cursor:pointer;font-size:12px;color:#8E99A8;list-style:none;display:flex;gap:6px;align-items:center}
+.echo summary::-webkit-details-marker{display:none}
+.echo summary::before{content:"▸";font-size:10px;transition:transform .15s}
+.echo details[open] summary::before{transform:rotate(90deg)}
+.jpre{margin:5px 0 0;font:11px/1.45 var(--mono);max-height:150px;overflow:auto;background:#0D0F12;border:1px solid #1E232B;border-radius:8px;padding:6px 8px;color:#9AA5B4;white-space:pre-wrap;word-break:break-all}
+.thread .divert{align-self:stretch;margin:2px 4px;padding:7px 10px;border-radius:12px;border:1px dashed rgba(226,0,116,.5);background:rgba(226,0,116,.07);font-size:12.5px;color:#FF9ECF;text-align:center}
+/* Echo view in the console */
+.echo-view{flex:1;min-height:0;display:grid;grid-template-columns:220px minmax(0,1fr);gap:14px;padding:12px 14px}
+.echo-view>*{min-width:0;min-height:0}
+.jake{display:flex;flex-direction:column;gap:8px;min-height:0}
+.jake .jl{font-size:12px;color:var(--muted);display:flex;gap:6px;align-items:center;flex-wrap:wrap;line-height:1.2}
+.jake .jl b{color:var(--text);font-size:13px}
+.mini{flex:1;min-height:0;max-height:440px;border-radius:30px;padding:7px;background:linear-gradient(145deg,#2A2F38,#0E1015 40%,#1B1F26);box-shadow:0 0 0 1px #3A404B,0 16px 34px rgba(0,0,0,.5)}
+.mini .scr{height:100%;border-radius:24px;background:#000;display:flex;flex-direction:column;overflow:hidden}
+.mini .msb{display:flex;justify-content:space-between;padding:9px 16px 4px;font-size:11.5px;font-weight:600;color:#ddd}
+.mini .mhd{text-align:center;font-size:11px;color:#8E8E93;padding:2px 10px 8px;border-bottom:1px solid #1C1C1E}
+.mini .mbody{flex:1;min-height:0;overflow:auto;padding:12px 11px;display:flex;flex-direction:column;gap:9px}
+.mini .jidle{margin:auto;text-align:center;color:#636366;font-size:12.5px;line-height:1.45}
+.mini .jprompt{border-radius:14px;background:#15171C;border:1px solid #2A2E36;padding:10px 11px;animation:pop .3s ease}
+.mini .jprompt .jt{display:flex;gap:6px;align-items:center;font:700 10px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:#FF4FA8;margin-bottom:5px}
+.mini .jprompt p{margin:0;font-size:13.5px;line-height:1.35;color:#E5E5EA}
+.jbtn{display:block;width:100%;border:0;border-radius:12px;padding:11px 8px;font-weight:750;font-size:15px;transition:filter .15s,transform .1s}
+.jbtn:hover{filter:brightness(1.12)} .jbtn:active{transform:scale(.98)}
+.jbtn.no{background:var(--danger);color:#fff}
+.jbtn.yes{background:#183527;color:var(--ok);box-shadow:inset 0 0 0 1px rgba(61,220,151,.4)}
+.jlink{background:none;border:0;padding:2px;color:#8E8E93;font-size:12px;text-decoration:underline;align-self:center}
+.jlink:hover{color:#C7C7CC}
+.jdone{font-size:12.5px;color:#9AA5B4;text-align:center;line-height:1.4}
+.ecol{display:flex;flex-direction:column;gap:10px;min-height:0}
+.zstrip{display:flex;align-items:center;gap:9px;flex-wrap:wrap;border:1px solid var(--border);border-radius:12px;background:linear-gradient(160deg,rgba(239,118,34,.1),transparent 60%),var(--bg2);padding:8px 11px;font-size:13.5px}
+.zstrip .zt{flex:1;min-width:150px;line-height:1.3}
+.zstrip .zt b{font-family:var(--mono)}
+.zstrip .zt span{display:block;font-size:12px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.spill{font:700 11px var(--sans);letter-spacing:.08em;text-transform:uppercase;padding:2px 9px;border-radius:999px;white-space:nowrap;border:1px solid}
+.spill.held{color:var(--amber);border-color:rgba(245,184,65,.5);background:rgba(245,184,65,.1)}
+.spill.cancelled{color:var(--danger);border-color:rgba(255,77,94,.5);background:rgba(255,77,94,.1)}
+.spill.released,.spill.sent{color:var(--ok);border-color:rgba(61,220,151,.45);background:rgba(61,220,151,.08)}
+.cdown{font:700 12.5px var(--mono);color:var(--amber)}
+.dthread{flex:1;min-height:0;display:flex;flex-direction:column;border:1px solid var(--border);border-radius:12px;background:var(--bg2);overflow:hidden}
+.dthread .dh{display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding:7px 11px;border-bottom:1px solid var(--border);font-size:13px}
+.dthread .dh b{font-size:13.5px}
+.dthread .dh .gr{flex:1}
+.dthread .chat{padding:10px 12px}
+.dthread .burn{font:600 12px var(--mono);color:var(--amber)}
+.scomp{display:flex;flex-direction:column;gap:6px;padding:8px 10px;border-top:1px solid var(--border)}
+.scomp .row{display:flex;gap:6px}
+.scomp .row .field{padding:7px 10px}
+.scomp .qs{display:flex;gap:6px;flex-wrap:wrap}
+.scomp .qs .btn{font-size:12.5px;padding:3px 9px}
+.carrier{border:1px solid var(--border);border-radius:12px;background:var(--bg2);padding:8px 11px}
+.carrier .bh{display:flex;align-items:center;gap:7px;margin-bottom:6px}
+.carrier .bh .eyebrow{flex:1}
+.togs{display:flex;flex-wrap:wrap;gap:6px}
+.tog{display:flex;align-items:center;gap:7px;border:1px solid var(--border2);border-radius:999px;padding:3px 11px 3px 6px;font-size:12.5px;color:var(--muted);cursor:pointer;transition:all .15s;user-select:none}
+.tog input{appearance:none;width:26px;height:15px;border-radius:9px;background:var(--panel3);position:relative;margin:0;cursor:pointer;transition:background .15s;flex:none}
+.tog input::after{content:"";position:absolute;left:2px;top:2px;width:11px;height:11px;border-radius:50%;background:#7C8899;transition:all .15s}
+.tog input:checked{background:rgba(255,77,94,.55)}
+.tog input:checked::after{left:13px;background:#fff}
+.tog:has(input:checked){color:#FFB3BA;border-color:rgba(255,77,94,.5)}
+.carrier details summary{cursor:pointer;font-size:12px;color:var(--dim);margin-top:6px}
+/* PNC: pending payments */
+.pnc-mid{grid-template-rows:auto minmax(0,1.5fr) minmax(120px,.8fr)}
+.pays .ph .btn{flex:none}
+.pays .pb{flex:1;overflow:auto;display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:12px;padding-top:10px}
+.pays .pb>*{min-width:0}
+.paylist{display:flex;flex-direction:column;gap:8px}
+.pay{border:1px solid var(--border);border-left:3px solid var(--sc,#3A4556);border-radius:11px;background:var(--bg2);padding:8px 11px;animation:pop .25s ease}
+.pay.held{--sc:var(--amber)} .pay.cancelled{--sc:var(--danger)} .pay.released,.pay.sent{--sc:var(--ok)}
+.pay .p1{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pay .p1 .amt{font:800 17px var(--mono)}
+.pay .p1 .to{font:12.5px var(--mono);color:var(--muted);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pay .sub2{font-size:12px;color:var(--dim);margin-top:2px}
+.pay h4{margin:8px 0 3px;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--dim)}
+.pay ul{margin:0;padding-left:16px;font-size:12.5px;color:#C3CCD8;line-height:1.4}
+.sig{display:flex;gap:7px;align-items:baseline;font-size:12.5px;color:#C3CCD8;line-height:1.35;margin:2px 0}
+.sig b{font:700 11px var(--mono);flex:none;padding:0 5px;border-radius:4px;background:rgba(255,77,94,.14);color:#FF8A95}
+.sig.neg b{background:rgba(61,220,151,.14);color:var(--ok)}
+.sig .fam{font:11px var(--mono);color:var(--dim);flex:none}
+.pay .pacts{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.reality{display:flex;flex-direction:column;gap:10px}
+.reality .box{animation:none}
+.trips{display:flex;flex-direction:column;gap:4px;max-height:150px;overflow:auto}
+.trip{display:flex;flex-direction:column;font-size:12.5px;border-bottom:1px solid rgba(35,44,58,.7);padding:3px 0}
+.trip b{font:600 12.5px var(--mono);color:#FF9AA3;word-break:break-all}
+.trip span{font-size:11.5px;color:var(--dim)}
+.kout{font-size:13px;color:#C3CCD8;line-height:1.45;margin-top:6px}
+.kout b{font-family:var(--mono);color:var(--pnc)}
+
 @media (max-width:1360px){
   .lens-tab kbd{display:none}
   .lens-tab{padding:6px 12px}
@@ -510,7 +617,7 @@ svg .lbl{font:700 12px var(--mono)}
 
   <section class="panel console">
     <div class="ph"><h2>Decoy console</h2><span class="sub">AI personas on decoy lines</span><span class="grow"></span>
-      <div class="seg" id="cmodeSeg"><button data-m="scripted" class="on">Scripted run</button><button data-m="live" class="hot">You be the scammer</button></div>
+      <div class="seg" id="cmodeSeg"><button data-m="scripted" class="on">Scripted run</button><button data-m="live" class="hot">You be the scammer</button><button data-m="echo" id="segEcho">Identity Echo</button></div>
     </div>
     <div class="ctl" id="ctlScripted">
       <select class="field" id="selScenario"></select>
@@ -534,6 +641,37 @@ svg .lbl{font:700 12px var(--mono)}
       </div>
       <div class="intel" id="intel"></div>
     </div>
+    <div class="echo-view hidden" id="echoView">
+      <div class="jake" id="jakePanel">
+        <div class="jl"><b>Jake's phone</b><span>·</span><span class="tag sim">SIMULATED</span><span>Echo delivery</span></div>
+        <div class="mini"><div class="scr">
+          <div class="msb"><span>9:41</span><span>Jake · (214) 555-0130</span></div>
+          <div class="mhd">T-Mobile Identity Echo</div>
+          <div class="mbody" id="jakeBody"><div class="jidle">No Echo prompts.<br>When someone claims to be Jake,<br>T-Mobile asks him here.</div></div>
+        </div></div>
+      </div>
+      <div class="ecol">
+        <div class="zstrip" id="zelleStrip"><span class="tag sim">SIMULATED</span><span class="zt">Linda's pending Zelle<span>No payment yet. Try the PNC button below.</span></span><button class="btn sm" id="payBailTmo">Linda sends $3,000 Zelle</button></div>
+        <div class="dthread">
+          <div class="dh"><b>Diverted thread</b><span class="tag sim">SIMULATED</span><span class="gr"></span><span class="burn" id="timeBurned"></span><span id="decoyMode"></span></div>
+          <div class="chat" id="echoChat"><div class="empty" style="margin:auto">After the real Jake taps <b>Not me</b>,<br>the scammer's thread goes to a decoy Linda.</div></div>
+          <form class="scomp" id="scamComposer" autocomplete="off">
+            <div class="eyebrow">Scammer's next message</div>
+            <div class="row"><input class="field" id="scamText" maxlength="500" placeholder="Text 'grandma' like the scammer would…" disabled><button class="btn pri sm" type="submit" id="scamSend" disabled>Send</button></div>
+            <div class="qs"><button type="button" class="btn sm" id="scamQ1" data-t="ok send it now pls" disabled>ok send it now pls</button><button type="button" class="btn sm" id="scamQ2" data-t="whats ur card number grandma" disabled>whats ur card number grandma</button></div>
+          </form>
+        </div>
+        <div class="carrier">
+          <div class="bh"><span class="eyebrow">Carrier signals · CAMARA-style</span><span class="tag sim">SIMULATED</span></div>
+          <div class="togs">
+            <label class="tog"><input type="checkbox" id="togSimSwap">Jake's line: SIM swapped 1h ago</label>
+            <label class="tog"><input type="checkbox" id="togForward">Jake's line: call forwarding on</label>
+            <label class="tog"><input type="checkbox" id="togUnknownCall">Linda: on a call with an unknown number</label>
+          </div>
+          <details id="tokenBox"><summary>Content-free risk token T-Mobile can share (Linda)</summary><pre class="jpre" id="riskToken">{}</pre></details>
+        </div>
+      </div>
+    </div>
     <div class="smap">
       <div class="ph"><h2>Story map</h2><span class="sub" id="smapSub">plays learned from decoys</span><span class="grow"></span>
         <button class="btn sm" id="btnSeed">Load decoy history</button><button class="btn sm ghost" id="btnReset">Reset</button></div>
@@ -550,7 +688,7 @@ svg .lbl{font:700 12px var(--mono)}
     <div class="panel graph-panel">
       <div class="ph"><h2>Agent graph</h2><span class="sub">lights up as each agent runs</span><span class="grow"></span>
         <div class="legend"><span><i style="background:var(--nv)"></i>Nemotron</span><span><i style="background:var(--info)"></i>Rules</span><span><i style="background:var(--tmo)"></i>On device</span><span><i style="background:var(--danger)"></i>Untrusted</span></div></div>
-      <svg id="graph" viewBox="0 0 1060 318" preserveAspectRatio="xMidYMid meet"></svg>
+      <svg id="graph" viewBox="0 0 1060 418" preserveAspectRatio="xMidYMid meet"></svg>
     </div>
     <div class="nv-bottom">
       <div class="panel rescue">
@@ -581,6 +719,19 @@ svg .lbl{font:700 12px var(--mono)}
   </aside>
   <div class="pnc-mid">
     <div class="inds" id="inds"></div>
+    <div class="panel pays" id="paysPanel">
+      <div class="ph"><h2>Pending payments</h2><span class="tag sim">SIMULATED rails</span><span class="sub">2-signal gauntlet</span><span class="grow"></span>
+        <button class="btn pri sm" id="payBail">Linda sends $3,000 Zelle for Jake's bail</button></div>
+      <div class="pb">
+        <div class="paylist" id="payList"><div class="empty">No payments yet. Deliver the bail text on the T-Mobile lens, then send the Zelle.</div></div>
+        <div class="reality">
+          <div class="box"><div class="bh"><span class="eyebrow">Tripwired cash-out accounts</span><span class="tag sim">SIMULATED</span></div><div class="trips" id="tripList"><span style="color:var(--dim);font-size:13px">None yet</span></div></div>
+          <div class="box"><div class="bh"><span class="eyebrow">Canary card</span><span class="tag sim">SIMULATED</span></div>
+            <button class="btn sm" id="cashOutCanary" disabled>Simulate scammer cashes out the decoy's card</button>
+            <div class="kout" id="canaryOut">The decoy hands the scammer a canary card when he asks for payment details.</div></div>
+        </div>
+      </div>
+    </div>
     <div class="panel chart-panel">
       <div class="ph"><h2>Checking balance, next 60 days</h2><span class="grow"></span>
         <div class="clegend"><span><i></i>Today's path</span><span id="lgAfter" class="hidden"><i class="d"></i>After what-if</span><span><i class="z"></i>Overdraft</span></div></div>
@@ -610,6 +761,7 @@ svg .lbl{font:700 12px var(--mono)}
 <div id="toasts"></div>
 
 <script src="/static/matcher.js"></script>
+<script src="/static/resolver.js"></script>
 <script>
 "use strict";
 /* ------------------------------------------------------------ utils */
@@ -727,9 +879,13 @@ function applyState(st) {
 
 async function loadSamples() {
   try {
-    const list = await api("/api/samples");
-    $("#samples").innerHTML = list.map((s, i) => `<button class="sample" data-i="${i}"><b>${esc(s.label)}</b><span>${esc(s.sender)}</span></button>`).join("");
-    $("#samples").onclick = e => { const b = e.target.closest(".sample"); if (b) deliver(list[+b.dataset.i].text, list[+b.dataset.i].sender, false); };
+    let list = [];
+    try { list = await api("/api/samples", {}, true); } catch {}
+    const all = [...ECHO_SAMPLES, ...(Array.isArray(list) ? list : [])];
+    $("#samples").innerHTML = `<div class="sgrp">Identity Echo demo</div>` +
+      ECHO_SAMPLES.map((s, i) => `<button class="sample echo-s" id="${s.id}" data-i="${i}"><b>${esc(s.label)}</b><span>${esc(s.sender)}</span></button>`).join("") +
+      (list.length ? `<div class="sgrp">More samples</div>` + list.map((s, i) => `<button class="sample" data-i="${i + ECHO_SAMPLES.length}"><b>${esc(s.label)}</b><span>${esc(s.sender)}</span></button>`).join("") : "");
+    $("#samples").onclick = e => { const b = e.target.closest(".sample"); if (!b) return; const x = all[+b.dataset.i]; deliver(x.text, x.sender, !!x.known); };
   } catch { $("#samples").innerHTML = `<div class="empty">Couldn't load samples.</div>`; }
 }
 $("#customForm").addEventListener("submit", e => {
@@ -774,8 +930,9 @@ async function deliver(text, sender, known) {
   if (res.card.consent) {
     S.pendingCheck = {context: res.context, sender, local: res.local, fingerprint: res.fingerprint};
   } else { S.pm.dev++; renderPrivacy(); }
-  showCard(res.card, text, res.card.consent ? "local" : null);
+  const cardEl = showCard(res.card, text, res.card.consent ? "local" : null);
   phoneBusy = false;
+  echoFlow(text, sender, cardEl).catch(e => console.warn("echo flow", e));
 }
 function rulesVersion() { return S.rules ? S.rules.stories.map(s => s.skill.version).reduce((a, b) => a + b, 0) : 0; }
 
@@ -843,6 +1000,7 @@ function showCard(card, text, checkId) {
   requestAnimationFrame(() => { $("#thread").scrollTop = $("#thread").scrollHeight; });
   setTimeout(() => { $("#thread").scrollTop = $("#thread").scrollHeight; }, 320);
   if (card.consent) openSheet(checkId);
+  return el;
 }
 
 function openSheet() {
@@ -905,11 +1063,14 @@ function setCMode(m) {
   $$("#cmodeSeg button").forEach(b => b.classList.toggle("on", b.dataset.m === m));
   $("#ctlScripted").classList.toggle("hidden", m !== "scripted");
   $("#ctlLive").classList.toggle("hidden", m !== "live");
+  $(".cbody").classList.toggle("hidden", m === "echo"); $("#echoView").classList.toggle("hidden", m !== "echo");
+  $(".smap").classList.toggle("hidden", m === "echo"); S.cmode = m;
+  if (m === "echo") return;
   $("#liveForm").classList.toggle("hidden", !(m === "live" && S.live));
   personaCard(S.personas[m === "live" ? $("#selDecoyLive").value : $("#selDecoy").value]);
   if (m === "live" && !S.live) { $("#chat").innerHTML = `<div class="empty" style="margin:auto"><b>You are the scammer.</b><br>Start a session and text the decoy. Try a known play,<br>a new one, or a prompt-injection. The rules decide what counts.</div>`; intelIdle(); }
 }
-$("#cmodeSeg").onclick = e => { const b = e.target.closest("button"); if (b && !S.running) setCMode(b.dataset.m); };
+$("#cmodeSeg").onclick = e => { const b = e.target.closest("button"); if (b && (!S.running || b.dataset.m === "echo")) setCMode(b.dataset.m); };
 
 function chatMsg(who, text, meta, extra = "") {
   const tags = meta ? `<span class="tag ${esc(meta.mode)}">${esc(meta.mode)}${meta.ms ? " · " + esc(meta.ms) + "ms" : ""}</span>${meta.filtered ? `<span class="tag fallback" title="Reply would have unmasked the decoy, so it was replaced">filtered</span>` : ""}` : "";
@@ -1036,13 +1197,13 @@ $("#btnReset").onclick = async () => {
     S.pm = {dev: 0, cons: 0, bytes: 0}; refreshRules(); renderPrivacy();
     $("#thread").innerHTML = `<div class="empty" style="margin:auto;color:#636366">Deliver a text from the left.</div>`; phoneHeader("", false); $("#phSender").textContent = "No messages yet";
     if (!S.live) { $("#chat").innerHTML = `<div class="empty" style="margin:auto">State reset. Run a decoy session or load decoy history.</div>`; intelIdle(); }
-    resetGraph(); S.rescue = null; renderRescue();
+    resetGraph(); S.rescue = null; renderRescue(); echoReset();
     toast("Demo state reset.", "ok");
   } catch {}
 };
 
 /* ================================================================ NVIDIA: graph */
-const NW = 166, NH = 66, COLS = [14, 230, 446, 662, 878], ROWS = [34, 188];
+const NW = 166, NH = 66, COLS = [14, 230, 446, 662, 878], ROWS = [34, 188, 338];
 const NODES = [
   {id: "scammer", c: 0, r: 0, l: "Scammer", s: "scripted or you", k: "ext"},
   {id: "decoy", c: 1, r: 0, l: "Decoy persona", s: "Nemotron", k: "nv"},
@@ -1054,6 +1215,9 @@ const NODES = [
   {id: "forge", c: 2, r: 1, l: "Skill forge", s: "Nemotron", k: "nv"},
   {id: "gate", c: 1, r: 1, l: "Gate", s: "4 tests · rules", k: "rules"},
   {id: "coach", c: 0, r: 1, l: "Money coach", s: "Nemotron · PNC tools", k: "coach"},
+  {id: "claim", c: 0, r: 2, l: "Claim extractor", s: "Nemotron · who it claims", k: "nv"},
+  {id: "echo", c: 1, r: 2, l: "Identity Echo", s: "asks the real person", k: "dev"},
+  {id: "label", c: 2, r: 2, l: "Ground-truth label", s: "“not me” = scam", k: "rules"},
 ];
 const N = Object.fromEntries(NODES.map(n => [n.id, {...n, x: COLS[n.c], y: ROWS[n.r]}]));
 const KCOL = {nv: "#76B900", rules: "#5AA9FF", dev: "#E20074", ext: "#FF4D5E", coach: "#EF7622"};
@@ -1061,20 +1225,23 @@ function edgePath(a, b) {
   a = N[a]; b = N[b];
   if (a.r === b.r && a.c < b.c) return `M${a.x + NW} ${a.y + NH / 2} L${b.x - 6} ${b.y + NH / 2}`;
   if (a.r === b.r && a.c > b.c) return `M${a.x} ${a.y + NH / 2} L${b.x + NW + 6} ${b.y + NH / 2}`;
+  if (a.r > b.r) return `M${a.x + NW / 2} ${a.y} L${b.x + NW / 2} ${b.y + NH + 6}`;
   return `M${a.x + NW / 2} ${a.y + NH} L${b.x + NW / 2} ${b.y - 6}`;
 }
 const EDGES = [
   ["scammer", "decoy", "texts"], ["decoy", "extract", "chat"], ["extract", "validator", "claims"], ["validator", "story", "play"],
   ["story", "matcher", "skills sync"], ["matcher", "rescue", "consent"], ["rescue", "forge", "verdict"], ["forge", "gate", "skill"],
+  ["claim", "echo", "claim"], ["echo", "label", "“not me”"], ["label", "forge", "label"],
 ];
 function buildGraph() {
   let s = `<defs><marker id="arr" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#3A4658"/></marker>
     <filter id="glow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`;
-  s += `<text class="rowlab" x="14" y="22">LEARN · DECOY LINES</text><text class="rowlab" x="14" y="${ROWS[1] - 12}">PROTECT · CUSTOMER PHONES</text>`;
+  s += `<text class="rowlab" x="14" y="22">LEARN · DECOY LINES</text><text class="rowlab" x="14" y="${ROWS[1] - 12}">PROTECT · CUSTOMER PHONES</text><text class="rowlab" x="14" y="${ROWS[2] - 12}">IDENTITY ECHO · ASK THE REAL PERSON</text>`;
   for (const [a, b, lab] of EDGES) {
     s += `<path id="e-${a}-${b}" class="edge" d="${edgePath(a, b)}" marker-end="url(#arr)"/>`;
     const A = N[a], B = N[b];
     if (A.r === B.r) { const x = (Math.min(A.x, B.x) + NW + Math.max(A.x, B.x)) / 2; s += `<text class="elab" x="${x}" y="${A.y + NH / 2 - 8}" text-anchor="middle">${lab}</text>`; }
+    else if (A.r > B.r) s += `<text class="elab" x="${A.x + NW / 2 + 9}" y="${A.y - 14}">${lab}</text>`;
     else s += `<text class="elab" x="${A.x + NW / 2 + 9}" y="${(A.y + NH + B.y) / 2 + 4}">${lab}</text>`;
   }
   const g = N.gate, m = N.matcher, yb = ROWS[1] + NH;
@@ -1116,7 +1283,12 @@ function route(ev) {
     case "Consent": return [["rescue", "e-matcher-rescue"], "k-cons"];
     case "Nemotron rescue": return [["rescue"], "k-nv"];
     case "Policy (rules)": return [["rescue"], "k-rules"];
-    case "Skill forge": return [["forge", "e-rescue-forge"], "k-nv"];
+    case "Skill forge": return [["forge", ev._echo ? "e-label-forge" : "e-rescue-forge"], "k-nv"];
+    case "Claim extractor": return [["claim"], "k-nv"];
+    case "Identity Echo": return [["echo", ev.stage === "deliver" || ev.stage === "provenance" ? "e-claim-echo" : null], "k-dev"];
+    case "Ground-truth label": return [["label", "e-echo-label"], "k-rules"];
+    case "Carrier signals (simulated)": return [["echo"], "k-rules"];
+    case "PNC rails (simulated)": case "PNC tripwire (simulated)": case "Canary (simulated)": return [null, "k-coach"];
     case "Gate (tests)": return [["gate", "e-forge-gate"], "k-rules", /^promoted/.test(ev.output || "") ? ["matcher", "e-gate-matcher"] : null];
     case "Nemotron coach": return [["coach"], "k-coach"];
     case "Finance engine (rules)": return [["coach"], "k-coach"];
@@ -1147,7 +1319,11 @@ async function runQueue() {
   }
   qRunning = false;
 }
+let echoForgeNext = false;
 function handleEvent(ev, animate) {
+  if (ev.agent === "Ground-truth label") echoForgeNext = true;
+  else if (ev.agent === "Skill forge" && echoForgeNext) { ev._echo = true; echoForgeNext = false; }
+  else if (ev.agent === "Consent") echoForgeNext = false;
   feedItem(ev, animate);
   if (ev.agent === "system" && ev.stage === "reset") { resetGraph(); }
   const [p, , then] = route(ev);
@@ -1423,6 +1599,7 @@ async function boot() {
   setInterval(() => { if (Date.now() - S.rulesAt > 2900) refreshRules(); }, 3000);
   api("/api/benchmark/last", {}, true).then(b => renderBench(b && b.rows ? b : null)).catch(() => renderBench(null));
   setInterval(poll, 700);
+  echoBoot();
 }
 boot();
 </script>
