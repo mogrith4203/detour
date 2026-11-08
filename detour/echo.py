@@ -284,7 +284,7 @@ class Defense:
         if rec["answer"] == "yes":
             biz_id = rec["payload"].get("target", {}).get("business_id")
             if biz_id:  # a business "yes" labels the message only; it never vouches for the sender or releases money
-                rec["outcome"] = {"label": "confirmed", "message": f"{who} confirms they sent this message.", "payments": []}
+                rec["outcome"] = {"label": "confirmed", "message": f"{who.split()[0]} confirms they sent this message.", "payments": []}
                 return self._public(rec)
             if rec["sender"] in self.denied_senders:
                 rec["outcome"] = {"label": "confirmed", "message": f"{who} says yes, but this number was already reported as not them. "
@@ -329,7 +329,7 @@ class Defense:
         for p in self._linked(sender):
             self._evaluate(p)
             cancelled.append(self._pub_pay(p))
-        msg = (f"{who} says they didn't send this." if is_business else f"The real {who} says this isn't him.")
+        msg = (f"{who.split()[0]} says they didn't send this." if is_business else f"The real {who} says this isn't him.")
         return {"label": "scam", "diverted": True, "tripwires": trips, "payments": cancelled, "skill": skill, "message": msg}
 
     def _learn(self, raw, category):
