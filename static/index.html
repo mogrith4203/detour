@@ -438,28 +438,47 @@ svg .lbl{font:700 12px var(--mono)}
   .pm-big b{font-size:28px}
 }
 
-/* ---- PNC Script Mirror ---- */
-.mir-bg{position:fixed;inset:0;background:rgba(5,7,10,.72);backdrop-filter:blur(3px);z-index:60;display:none;align-items:center;justify-content:center;padding:16px}
+/* ---- PNC Script Mirror: shown inside Linda's PNC mobile app ---- */
+.mir-bg{position:fixed;inset:0;background:rgba(4,6,9,.78);backdrop-filter:blur(4px);z-index:60;display:none;align-items:center;justify-content:center;gap:40px;padding:16px}
 .mir-bg.on{display:flex}
-.mir{width:min(760px,100%);max-height:calc(100vh - 32px);overflow:auto;background:var(--panel);border:1px solid var(--border2);border-top:3px solid var(--pnc);border-radius:var(--r);padding:20px 22px;box-shadow:0 30px 80px rgba(0,0,0,.55)}
-.mir .mh{display:flex;align-items:center;gap:10px}
-.mir .mh h3{margin:0;font-size:20px;letter-spacing:-.01em}
-.mir .mh .grow{flex:1}
-.mir .lead{color:var(--text);font-size:15px;line-height:1.5;margin:8px 0 14px}
-.mir .lead b{color:var(--pnc)}
-.mir .eyebrow2{font:600 11px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:14px 0 8px}
-.mir ol{margin:0;padding:0;list-style:none;display:grid;gap:8px}
-.mir li{background:var(--panel2);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 12px}
-.mir li q{display:block;font-size:15px;line-height:1.45;color:var(--text);quotes:"\201C" "\201D"}
-.mir li .tc{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px;align-items:center}
-.mir li .tc span.t{font:600 11px/1 var(--mono);padding:4px 7px;border-radius:6px;background:rgba(239,118,34,.14);color:#FFB27A;border:1px solid rgba(239,118,34,.35)}
-.mir li .tc em{font-style:normal;color:var(--muted);font-size:13px}
-.mir .ledger{display:grid;gap:6px;margin:0;padding:0;list-style:none}
-.mir .ledger li{background:rgba(255,77,94,.07);border-color:rgba(255,77,94,.3);font-size:14.5px;line-height:1.45;padding:9px 12px}
-.mir .acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
-.mir .acts .btn{font-size:14px}
-.mir .note{color:var(--dim);font-size:12px;margin-top:12px;line-height:1.5}
-.mir .simtag{font:600 10px/1 var(--mono);letter-spacing:.08em;padding:4px 6px;border-radius:5px;border:1px solid rgba(90,169,255,.45);color:var(--info)}
+.mir-side{width:300px;color:var(--text)}
+.mir-side h3{font-size:22px;margin:0 0 6px;letter-spacing:-.01em}
+.mir-side p{color:var(--muted);font-size:14px;line-height:1.5;margin:0 0 16px}
+.mir-src{display:grid;gap:10px}
+.mir-src div{background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--c);border-radius:10px;padding:10px 12px}
+.mir-src b{display:block;font:700 11px/1.2 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--c);margin-bottom:4px}
+.mir-src span{font-size:13.5px;color:var(--text);line-height:1.4}
+.mir-side .quote{margin-top:18px;font-size:15px;line-height:1.45;color:var(--text);border-top:1px solid var(--border);padding-top:14px}
+.mir-side .x{margin-top:14px}
+.pncphone{width:372px;height:min(780px,calc(100vh - 32px));background:#000;border-radius:48px;padding:12px;box-shadow:0 0 0 2px #2b2f36,0 30px 90px rgba(0,0,0,.6);flex:none}
+.pncscreen{height:100%;border-radius:38px;overflow:hidden;background:#F4F5F7;color:#14171C;display:flex;flex-direction:column;font-family:var(--sans)}
+.pnc-sb{display:flex;justify-content:space-between;padding:12px 26px 4px;font:600 14px var(--sans);background:#fff}
+.pnc-top{background:#fff;padding:6px 16px 12px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #E6E8EC}
+.pnc-logo{width:30px;height:30px;border-radius:8px;background:#EF7622;color:#fff;font:800 11px/30px var(--sans);text-align:center;letter-spacing:.02em}
+.pnc-top .t{font-weight:700;font-size:16px}.pnc-top .s{font-size:12px;color:#6B7280}
+.pnc-body{flex:1;overflow:auto;padding:12px 14px 14px;display:flex;flex-direction:column;gap:10px}
+.pnc-pay{background:#fff;border-radius:14px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 1px 0 #E6E8EC}
+.pnc-pay .l{font-size:12px;color:#6B7280}.pnc-pay .v{font-size:15px;font-weight:600}
+.pnc-pay .amt{font-size:22px;font-weight:800;letter-spacing:-.02em}
+.pnc-alert{background:#FFF4EC;border:1px solid #F8C9A6;border-radius:14px;padding:12px 14px}
+.pnc-alert .h{display:flex;gap:8px;align-items:flex-start;font-weight:800;font-size:16px;line-height:1.3;color:#B4470D}
+.pnc-alert .h i{font-style:normal;flex:none;width:22px;height:22px;border-radius:50%;background:#EF7622;color:#fff;font-size:14px;line-height:22px;text-align:center}
+.pnc-alert p{margin:6px 0 0;font-size:13.5px;line-height:1.45;color:#3B2A1E}
+.pnc-sec{font:700 11px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:#6B7280;margin:4px 2px 0}
+.pnc-line{background:#fff;border-radius:12px;padding:10px 12px;box-shadow:0 1px 0 #E6E8EC}
+.pnc-line q{display:block;font-size:14px;line-height:1.4;color:#14171C;quotes:"\201C" "\201D"}
+.pnc-line .chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.pnc-line .chips span{font:700 10.5px/1 var(--sans);padding:4px 7px;border-radius:999px;background:#FDE7D6;color:#9A3D0A}
+.pnc-fact{background:#FFF0F1;border:1px solid #F5C2C7;border-radius:12px;padding:9px 12px;font-size:13.5px;line-height:1.4;color:#5B1A21}
+.pnc-fact b{color:#B42318}
+.pnc-actions{background:#fff;border-top:1px solid #E6E8EC;padding:10px 14px 16px;display:grid;gap:8px}
+.pnc-actions button{border:0;border-radius:12px;padding:12px;font:700 15px var(--sans);cursor:pointer}
+.pnc-actions .p{background:#EF7622;color:#fff}
+.pnc-actions .s{background:#F1F2F4;color:#14171C}
+.pnc-actions .g{background:none;color:#6B7280;font-weight:600;font-size:13.5px;padding:4px}
+.pnc-actions button:focus-visible{outline:3px solid #5AA9FF;outline-offset:2px}
+.pnc-sim{font:600 10px/1.3 var(--mono);color:#6B7280;text-align:center}
+@media (max-width:860px){.mir-side{display:none}}
 </style>
 </head>
 <body data-lens="tmo">
@@ -631,9 +650,7 @@ svg .lbl{font:700 12px var(--mono)}
 
 <footer><span>All personas, numbers (555-01xx), businesses and customers are synthetic.</span><span>Keys <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> switch lenses</span></footer>
 
-<div class="mir-bg" id="mirBg" role="dialog" aria-modal="true" aria-labelledby="mirTitle">
-  <div class="mir" id="mir"></div>
-</div>
+<div class="mir-bg" id="mirBg"></div>
 <div id="toasts"></div>
 
 <script src="/static/matcher.js"></script>
@@ -1305,30 +1322,50 @@ async function loadFinance() {
 async function openMirror(amount, W) {
   let m;
   try { m = await api("/api/finance/script_mirror?category=family_emergency", {}, true); } catch { return; }
-  const el = $("#mir");
-  if (!m || !m.active) {
-    el.innerHTML = `<div class="mh"><h3 id="mirTitle">Script Mirror</h3><span class="grow"></span><button class="btn sm ghost" id="mirX">Close</button></div>
-      <p class="lead">${esc(m && m.message || "No active scam script yet.")}</p>`;
-  } else {
-    const facts = (W && W.facts || []).filter(f => /below \$0|autopay|overdr/i.test(f)).slice(0, 3);
-    el.innerHTML = `<div class="mh"><h3 id="mirTitle">Before you send ${fmt$(amount)}</h3><span class="grow"></span><span class="tag rules">Script Mirror · rules</span><button class="btn sm ghost" id="mirX" aria-label="Close">✕</button></div>
-      <p class="lead">This payment matches a <b>${esc(m.label.toLowerCase())}</b> scam that our decoys are talking to right now (${m.decoys} decoy lines). Here is the script those scammers use. <b>Does any of it sound familiar?</b></p>
-      <div class="eyebrow2">Their script, from our decoy chats</div>
-      <ol>${m.lines.map(l => `<li><q>${esc(l.text)}</q><div class="tc">${l.tactics.map(t => `<span class="t">${esc(t)}</span>`).join("")}<em>${esc(l.why)}</em></div></li>`).join("")}</ol>
-      ${facts.length ? `<div class="eyebrow2">What your own accounts say</div><ul class="ledger">${facts.map(f => `<li>${esc(f)}</li>`).join("")}</ul>` : ""}
-      <div class="eyebrow2">What to do</div><p class="lead" style="margin:0">${esc(m.next_step)}</p>
-      <div class="acts"><button class="btn pri" data-a="call">Call Maria (your daughter)</button><button class="btn" data-a="wait">Hold it for 24 hours</button><button class="btn ghost" data-a="send">I'm sure, send it</button></div>
-      <p class="note"><span class="simtag">SIMULATED</span> payment and call. The script lines are from our decoys' scam chats (synthetic demo), with phone numbers and links removed. No message from Linda's phone is used here.</p>`;
-  }
+  const ok = m && m.active;
+  const facts = (W && W.facts || []).filter(f => /below \$0|autopay/i.test(f)).slice(0, 2)
+    .map(f => esc(f).replace(/(-\$[\d,.]+|\d+ of the next 60 days|below \$0)/g, "<b>$1</b>"));
+  const lines = ok ? [...m.lines].sort((a, b) => b.tactics.length - a.tactics.length).slice(0, 2).map(l => `<div class="pnc-line"><q>${esc(l.text)}</q><div class="chips">${l.tactics.map(t => `<span>${esc(t)}</span>`).join("")}</div></div>`).join("") : "";
+  $("#mirBg").innerHTML = `
+    <aside class="mir-side">
+      <h3>Linda's PNC app</h3>
+      <p>The moment she taps <b>Send with Zelle</b>, before any money moves.</p>
+      <div class="mir-src">
+        <div style="--c:var(--tmo)"><b>T-Mobile · decoy lines</b><span>The scammers' exact script, captured by our decoys. Numbers and links removed.</span></div>
+        <div style="--c:var(--nv)"><b>NVIDIA Nemotron</b><span>Learned this play from decoy chats; rules confirmed it on ${ok ? m.decoys : 0} independent decoy lines.</span></div>
+        <div style="--c:var(--pnc)"><b>PNC · 360° engine</b><span>Her own accounts: what this payment would do to her money.</span></div>
+      </div>
+      <div class="quote">Banks usually ask the victim, who has been coached. We show her the coaching itself.</div>
+      <button class="btn sm ghost x" id="mirX">Close (Esc)</button>
+    </aside>
+    <div class="pncphone" role="dialog" aria-modal="true" aria-label="PNC app: Script Mirror"><div class="pncscreen">
+      <div class="pnc-sb"><span>9:41</span><span>● ● ▮</span></div>
+      <div class="pnc-top"><div class="pnc-logo">PNC</div><div><div class="t">Send with Zelle</div><div class="s">From Everyday Checking ••2840</div></div></div>
+      <div class="pnc-body">
+        <div class="pnc-pay"><div><div class="l">To</div><div class="v">New recipient · "bail"</div></div><div class="amt">${fmt$(amount)}</div></div>
+        ${ok ? `<div class="pnc-alert"><div class="h"><i>!</i><span>Pause. This matches a scam happening right now.</span></div>
+          <p>Scammers are running a <b>${esc(m.label.toLowerCase())}</b> scam. This is what they tell people. Does it sound familiar?</p></div>
+        <div class="pnc-sec">Their script</div>${lines}
+        ${facts.length ? `<div class="pnc-sec">What your accounts say</div>${facts.map(f => `<div class="pnc-fact">${f}</div>`).join("")}` : ""}`
+        : `<div class="pnc-alert"><div class="h"><i>i</i><span>No live scam script yet</span></div><p>${esc((m && m.message) || "Load decoy history on the T-Mobile tab first.")}</p></div>`}
+      </div>
+      <div class="pnc-actions">
+        <button class="p" data-a="call">Call Maria (daughter) first</button>
+        <button class="s" data-a="wait">Hold this payment for 24 hours</button>
+        <button class="g" data-a="send">I'm sure, send ${fmt$(amount)}</button>
+        <div class="pnc-sim">SIMULATED PNC app · synthetic customer</div>
+      </div>
+    </div></div>`;
   $("#mirBg").classList.add("on");
   const close = () => $("#mirBg").classList.remove("on");
   $("#mirX").onclick = close;
   $("#mirBg").onclick = e => { if (e.target.id === "mirBg") close(); };
-  $$("#mir .acts .btn").forEach(b => b.onclick = () => {
+  $$("#mirBg .pnc-actions button").forEach(b => b.onclick = () => {
     const a = b.dataset.a;
-    toast(a === "call" ? "Calling Maria… (simulated)" : a === "wait" ? "Payment held for 24 hours. You can release it anytime. (simulated)" : "Sent. If anything feels off, call PNC right away. (simulated)", a === "send" ? "warn" : "ok");
+    toast(a === "call" ? "Calling Maria… (simulated)" : a === "wait" ? "Payment held for 24 hours. Linda can release it anytime. (simulated)" : "Sent. If anything feels off, call PNC right away. (simulated)", a === "send" ? "warn" : "ok");
     close();
   });
+  setTimeout(() => { const f = $("#mirBg .pnc-actions .p"); if (f) f.focus({preventScroll: true}); }, 50);
 }
 document.addEventListener("keydown", e => { if (e.key === "Escape") $("#mirBg").classList.remove("on"); });
 async function runWhatIf(k) {
