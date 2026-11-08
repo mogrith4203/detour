@@ -46,7 +46,16 @@ class CheckIn(BaseModel):
 
 
 class IdIn(BaseModel):
-    id: str
+    id: str = ""
+    text: str = ""
+    sender: str = ""
+    local: dict = {}
+
+
+class OnDeviceIn(BaseModel):
+    decision: str
+    story_id: str = ""
+    score: float = 0.0
 
 
 class StoryIn(BaseModel):
@@ -124,11 +133,26 @@ def live_end(body: LiveIn):
 # ---- phone
 @app.post("/api/check")
 def check(body: CheckIn):
+    """Server-side reference copy of the phone matcher. Used by tests and the benchmark; the demo phone runs static/matcher.js."""
     return engine.check_message(body.text[:2000], body.sender[:40], body.known)
+
+
+@app.get("/api/phone/rules")
+def phone_rules():
+    """Server -> phone: story skills and rules. The phone decides on its own with these."""
+    return engine.phone_rules()
+
+
+@app.post("/api/phone/verdict")
+def phone_verdict(body: OnDeviceIn):
+    """Phone -> server: only the decision (no text, no sender), for the live counters."""
+    return engine.ondevice(body.decision[:10], body.story_id[:8], body.score)
 
 
 @app.post("/api/consent")
 def consent(body: IdIn):
+    if body.text:  # real path: the phone sends the redacted copy the customer saw
+        return engine.consent_text(body.text[:1500], body.sender[:40], body.local or {})
     return engine.consent(body.id)
 
 

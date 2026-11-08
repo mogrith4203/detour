@@ -186,7 +186,7 @@ EVAL = [
     {"id": "grand-2", "split": "train", "story": "grandkid", "sender": "(214) 555-0158", "known": False,
      "text": "Hi Grandpa, it's your grandson. I got arrested after an accident. Bail is $3,000. My lawyer will explain, call (214) 555-0158. Please keep this between us."},
     {"id": "grand-3", "split": "test", "story": "grandkid", "sender": "(682) 555-0120", "known": False,
-     "text": "Nana I need help, I'm stuck and can't call anyone else. Can you send money through a Bitcoin ATM? I'll pay you back."},
+     "text": "Nana it's me, I'm in a bad spot and can't call anyone else. Can you send money through Western Union tonight? I'll pay you back."},
     {"id": "grand-4", "split": "test", "story": "grandkid", "sender": "(469) 555-0132", "known": False,
      "text": "This is Officer Grant. Your grandson is in custody. Bail must be paid in cash today; a courier will pick it up. Call (469) 555-0132."},
     # job
@@ -228,13 +228,36 @@ EVAL = [
 # Quick picks for the phone panel in the demo.
 PHONE_SAMPLES = [
     {"label": "New number, old play (bank)", "sender": "(972) 555-0177",
-     "text": "Your Lakeview card is temporarily locked after a suspicious transaction. Verify immediately by calling (972) 555-0177."},
-    {"label": "Toll scam, new domain", "sender": "(214) 555-0112",
-     "text": "Unpaid road toll detected on your vehicle. Late fees start tonight. Clear balance here: https://pay-toll-tx.top"},
+     "text": "LAKEVIEW FRAUD DEPT: we stopped a $980 charge attempt. To reverse it and secure your money, move it to a protected account today. Call (972) 555-0161."},
+    {"label": "Toll scam, new domain", "sender": "(214) 555-0158",
+     "text": "TX toll services: your unpaid toll balance gets a late fee at midnight. Settle it now: https://txtoll-pay.top"},
     {"label": "Grandparent scam, no number", "sender": "(682) 555-0120",
-     "text": "Nana I need help, I'm stuck and can't call anyone else. Can you send money through a Bitcoin ATM? I'll pay you back."},
+     "text": "Nana it's me, I'm in a bad spot and can't call anyone else. Can you send money through Western Union tonight? I'll pay you back."},
     {"label": "Real bank alert (look-alike)", "sender": "33622",
      "text": "Lakeview Credit Union: A $1,249.00 purchase at BestMart was approved. If this wasn't you, call the number on the back of your card."},
     {"label": "Friend with a new number", "sender": "(682) 555-0126",
      "text": "Hi! It's Sam, I got a new number. Save this one. Are we still on for lunch Saturday?"},
+]
+
+
+# Ordinary, everyday texts. Words common here never become part of a scam skill
+# (stops generic words and real brand names from turning into scam signals).
+BENIGN_SMS = [
+    "Hey are we still on for lunch Saturday?", "Running 10 min late, sorry!", "Can you pick up milk and bread on the way home?",
+    "Happy birthday Grandma! Love you, call you tonight.", "Mom the car is in the shop, I'm fine, will call you later.",
+    "Your prescription is ready for pickup at the pharmacy.", "Reminder: your dental cleaning is Tuesday at 3pm. Call us to reschedule.",
+    "Your package was delivered to the front door.", "Your order has shipped and will arrive Thursday.",
+    "Lakeview Credit Union: your monthly statement is ready in the app.", "Lakeview Credit Union: a $52.10 purchase at GroceryMart was approved.",
+    "Your Zelle payment of $40 to Sam was sent.", "Payment received, thank you. Your balance is now $0.",
+    "Your verification code is 482913. Don't share it with anyone.", "Your library holds are ready for pickup at Plano Public Library.",
+    "Practice moved to 6pm tomorrow, bring water.", "Did you see the game last night? Crazy ending.", "Call me when you get a chance, nothing urgent.",
+    "Your appointment with Dr. Lee is confirmed for Monday 9am.", "The school is closed tomorrow because of the weather.",
+    "Your phone bill is ready. View it in the app. Autopay is on.", "Thanks for the help today, I owe you one!",
+    "Can you send me the address for Sunday dinner?", "Your flight is on time. Gate B12, boarding at 4:10pm.",
+    "Your car is ready for pickup. Total due at the counter.", "Your toll account was charged $3.25 for a trip on 11/02.",
+    "Don't forget to take out the trash tonight.", "I just got home, it was a long day. Talk tomorrow.",
+    "We're at the park by the big tree, come find us.", "Your table for 4 is ready. Please come to the host stand.",
+    "Hi it's Sam, I got a new number. Save this one.", "The package is at the front desk, pick it up anytime.",
+    "Your credit card payment is due on the 15th. Pay in the app.", "Grandma says thank you for the cookies!",
+    "Work from home tomorrow, team meeting at 10.", "Your password was changed. If this wasn't you, contact us in the app.",
 ]

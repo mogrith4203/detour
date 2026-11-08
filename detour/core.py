@@ -12,7 +12,7 @@ import time
 import unicodedata
 from collections import Counter
 
-from .data import ALLOWLIST, ATTESTATION, PERSONAS, REGISTERED_SENDERS, SCENARIOS
+from .data import ALLOWLIST, ATTESTATION, BENIGN_SMS, EVAL, PERSONAS, REGISTERED_SENDERS, SCENARIOS
 from .llm import Timer
 
 MATCH = 0.60  # at or above: warn locally
@@ -28,7 +28,7 @@ GENERIC = set("""https http www com net org top info help xyz call calling text 
 account accounts today tonight hours hour within avoid number numbers card balance notice final day days time
 more learn new please thanks thank use using send sent get got need needs right away want like make sure
 can't isn't won't doesn't didn't don't i'm it's i'll you'll we'll way used team applies goes keep enter process
-link site online clear update click details again only fastest else anyone through stuck money someone something back""".split())
+link site online clear update click details again only fastest else anyone through stuck money someone something back done gives must just will would could should also""".split())
 STOP |= GENERIC
 
 CATEGORY_STEPS = {
@@ -51,13 +51,20 @@ PHONE_RE = re.compile(r"\(?\b(\d{3})\)?[\s.-]?(\d{3})[\s.-]?(\d{4})\b")
 URL_RE = re.compile(r"https?://([^\s/]+)", re.I)
 BARE_DOMAIN_RE = re.compile(r"\b([a-z0-9-]+(?:\.[a-z0-9-]+)*\.(?:com|net|org|info|top|help|xyz|example|co|io|biz|ly|gl|gd|gy|cc|at|me|us|link|site|online|app|shop|live|club|vip|cn|ru))\b", re.I)
 URGENCY_RE = re.compile(r"\b(now|immediately|today|tonight|asap|final (notice|warning)|within \d+ hours|suspended|disconnect\w*|shutoff|late fee\w*|overdue|past due|returned to sender)\b", re.I)
-PAYMENT_RE = re.compile(r"\b(gift ?cards?|zelle|bitcoin|btc|usdt|crypto|wire transfer|cash pick ?up|courier|prepay|card number|expiration|move (your|the) (funds|balance|money)|protected account|holding account|send money|storage fee|redelivery fee|fee is required|bail)\b", re.I)
+RAILS = r"(zelle|venmo|cash ?app|paypal|apple pay|western union|moneygram|wire|bitcoin|btc|usdt|crypto|gift ?cards?)"
+# Payment asks: a strong payment phrase, or a payment rail used as a request ("send it via Zelle", "Zelle me").
+PAYMENT_RE = re.compile(r"\b(gift ?cards?|bitcoin(?: atm)?|btc|usdt|crypto|wire transfer|western union|moneygram|cash pick ?up|courier|prepay\w*|card number|expiration date"
+                        r"|(?:move|transfer) (?:your |the |all )?(?:funds|money|savings|balance)\w*|protected account|safe account|send (?:cash|money)"
+                        r"|(?:pay|send|cover|settle)\w* (?:a |the |an |this |your )?(?:\w+ )?(?:fee|fine|deposit|bail)|bail"
+                        r"|(?:send|pay|transfer)\w*\b.{0,30}?\b(?:via|with|through|by|on|over|using) " + RAILS + r"|" + RAILS + r" (?:me|us|it|him|her|them)\b|enviar dinero|fianza)\b", re.I)
+AUTHORITY_RE = re.compile(r"\b(irs|police|sheriff|jail|arrest\w*|warrant|court|lawyer|attorney|bail|customs|deport\w*|fbi|social security|medicare|abuela|abuelo)\b", re.I)
+MONEY_RE = re.compile(r"(\$\s?\d|\b(money|cash|owe|owed|pay|payment|taxes|fine|dinero|dollars?)\b)", re.I)
 OFFPLATFORM_RE = re.compile(r"\b(whatsapp|telegram|signal app)\b", re.I)
-SECRECY_RE = re.compile(r"(don'?t tell|keep this between us|don'?t let anyone know)", re.I)
+SECRECY_RE = re.compile(r"(don'?t tell|keep (this|it) (quiet|secret|between us)|between (you and me|us)|don'?t let anyone know|no le digas|no le digas a nadie)", re.I)
 CREDENTIAL_RE = re.compile(r"(read (it|the code) back|send (us|me) the codes?|codes? (to|with) us|your card number)", re.I)
 CALL_VERB_RE = re.compile(r"\b(call\w*|text\w*|contact\w*|dial\w*|reach\w*|message\w*)\b", re.I)
 UNMASK_RE = re.compile(r"\b(as an ai|language model|i am an? (ai|bot|assistant)|system prompt|my instructions|decoy|honeypot|nemotron|nvidia|fraud team)\b", re.I)
-INJECTION_RE = re.compile(r"(ignore (all |your |the )?(previous |prior )?instructions|^\s*system\s*:|you are (an|a) (ai|bot|language model)|add .{0,60} to (the )?(scam|block) ?list)", re.I | re.M)
+INJECTION_RE = re.compile(r"((ignore|disregard|forget|override) (all |any |your |the |everything )?(previous |prior |above |earlier )?(instructions|rules|above|prompts?)|^\s*(system|assistant|developer)\s*:|new (rule|instruction)s?\b|you are (an|a|now) (ai|bot|language model|assistant)|(mark|label|classify|treat) (this|that|the|these) (number|message|site|sender)s? (as )?(safe|legit|verified)|add .{0,60} to (the )?(scam|block|allow) ?list)", re.I | re.M)
 
 
 SHORTENERS = {"bit.ly", "tinyurl.com", "t.co", "goo.gl", "is.gd", "rb.gy", "cutt.ly", "tiny.cc", "ow.ly", "shorturl.at"}
@@ -157,7 +164,7 @@ def risky_asks(text):
         reasons.append(f"link to an unverified site ({bad_links[0]})")
     reasons += disguises(raw)
     bad_nums = [p for p in phones(text) if not is_allowlisted(p)]
-    if bad_nums and CALL_VERB_RE.search(text):
+    if bad_nums and (CALL_VERB_RE.search(text) or URGENCY_RE.search(text) or re.search(r"\b(verify|confirm|unlock|reactivate)\b", text, re.I)):
         reasons.append(f"asks you to contact an unverified number ({bad_nums[0]})")
     if PAYMENT_RE.search(text):
         reasons.append(f"payment request ({PAYMENT_RE.search(text).group(0)})")
@@ -170,10 +177,20 @@ def risky_asks(text):
     return reasons
 
 
-def redact(text):
-    """Strip personal data before anything leaves the phone."""
-    t = re.sub(r"[\w.+-]+@[\w-]+\.[\w.]+", "[email]", text)
+def redact(text, owner_names=()):
+    """Strip the customer's personal data before anything leaves the phone. Scam phone numbers and links stay:
+    they are the evidence the second look needs, and they belong to the sender, not the customer."""
+    t = normalize(text)
+    t = re.sub(r"[\w.+-]+@[\w-]+\.[\w.]+", "[email]", t)
+    t = re.sub(r"\b\d{3}-\d{2}-\d{4}\b", "[ssn]", t)
+    t = re.sub(r"\b(?:\d[ -]?){12,18}\d\b", "[card]", t)
+    t = re.sub(r"\b(ending|ends) (in )?\d{4}\b", r"\1 [last4]", t, flags=re.I)
+    t = re.sub(r"\b\d{1,5} [A-Z][a-z]+(?: [A-Z][a-z]+)? (?:St|Street|Ave|Avenue|Rd|Road|Dr|Drive|Ln|Lane|Blvd|Ct|Court|Way|Pkwy)\b\.?", "[address]", t)
+    t = re.sub(r"\b(code|otp|pin|passcode)( is|:)? ?\d{4,8}\b", r"\1 [code]", t, flags=re.I)
     t = re.sub(r"\b\d{6,}\b", "[number]", t)
+    for n in owner_names:
+        if n:
+            t = re.sub(re.escape(n), "[name]", t, flags=re.I)
     return t
 
 
@@ -214,6 +231,9 @@ def match(text, stories):
     top = best["score"] if best else (0.35 if asks else 0.0)
     if not best and asks:
         top = 0.35
+    nt = normalize(text)
+    if top < CLEAR and MONEY_RE.search(nt) and (AUTHORITY_RE.search(nt) or URGENCY_RE.search(nt)):
+        top = CLEAR  # money + pressure but no known play: don't call it safe, ask for a second look
     if top >= MATCH:
         decision = "warn"
     elif top < CLEAR:
@@ -221,6 +241,20 @@ def match(text, stories):
     else:
         decision = "unsure"
     return {"decision": decision, "score": top, "best": best, "ranked": ranked[:3], "asks": asks}
+
+
+_BENIGN = None
+
+
+def benign_words():
+    """Words from ordinary texts (plus the training-split legit messages). These never become scam signals."""
+    global _BENIGN
+    if _BENIGN is None:
+        words = set()
+        for t in BENIGN_SMS + [m["text"] for m in EVAL if m["split"] == "train" and not m["story"]]:
+            words |= set(tokens(t))
+        _BENIGN = words
+    return _BENIGN
 
 
 # ---------------------------------------------------------------- story map
@@ -242,7 +276,8 @@ class StoryMap:
         for k in ext.get("signature_keywords", []):
             for t in tokens(k):
                 kw[t] += 2
-        keywords = {w: 1.0 for w, _ in kw.most_common(14)}
+        keywords = {w: 1.0 for w, _ in kw.most_common(30) if w not in benign_words()}
+        keywords = dict(list(keywords.items())[:14])
         story = {
             "id": sid,
             "title": ext.get("story_title") or CATEGORY_LABEL.get(cat, "Scam"),
@@ -256,6 +291,7 @@ class StoryMap:
             "domains": {},
             "decoys": [],
             "reports": 0,
+            "live": 0,
             "status": "watch",
             "skill": {"keywords": keywords, "phrases": [], "version": 1, "history": ["v1: learned from honeypot transcript"]},
             "first_seen": time.strftime("%H:%M:%S"),
@@ -265,7 +301,12 @@ class StoryMap:
         return story
 
     def refresh_status(self, story):
-        corroboration = len(set(story["decoys"])) + story["reports"] // 3
+        # Independent sources only: each decoy line counts once; judge-typed (live) sessions count at most once and
+        # never on their own; customer reports add at most one, and only to a play a decoy line has already seen.
+        lines = len(set(story["decoys"]))
+        live = 1 if story.get("live", 0) and lines >= 1 else 0
+        reports = min(1, story["reports"] // 3) if lines >= 1 else 0
+        corroboration = lines + live + reports
         story["status"] = "warn" if corroboration >= 2 else "watch"
         for num, info in story["numbers"].items():
             if info["status"] in ("blocked", "rejected"):
@@ -387,7 +428,7 @@ class Agents:
         }
 
     # 4. validator: plain rules on purpose, the model cannot overrule them
-    def validate(self, ext, transcript, decoy_id, smap):
+    def validate(self, ext, transcript, decoy_id, smap, live=False):
         checks = []
         scam_text = "\n".join(t["text"] for t in transcript if t["who"] == "scammer")
         injected = bool(INJECTION_RE.search(scam_text))
@@ -434,7 +475,9 @@ class Agents:
             smap.log("attack", f"Poisoning/injection blocked from {PERSONAS[decoy_id]['name']}'s decoy line")
             return {"checks": checks, "story": None, "quarantined": True}
         story = merged_into or smap.new_story(ext, decoy_id, scam_text)
-        if decoy_id not in story["decoys"]:
+        if live:
+            story["live"] = story.get("live", 0) + 1
+        elif decoy_id not in story["decoys"]:
             story["decoys"].append(decoy_id)
         for n in kept_nums:
             story["numbers"].setdefault(n, {"attestation": att[n], "status": "watch", "seen_by": decoy_id})
@@ -452,8 +495,9 @@ class Agents:
         checks.append({
             "check": "Corroboration",
             "ok": story["status"] == "warn",
-            "note": f"Seen by {n_decoys} decoy(s) and {story['reports']} customer report(s). Status: {story['status'].upper()}."
-            + ("" if story["status"] == "warn" else " Needs a second independent decoy or reports before customers are warned."),
+            "note": f"Seen by {n_decoys} decoy line(s), {story.get('live', 0)} live session(s) and {story['reports']} customer report(s). "
+            f"Status: {story['status'].upper()}."
+            + ("" if story["status"] == "warn" else " Needs an independent decoy line before customers are warned (live sessions can't corroborate each other)."),
         })
         smap.log("story", f"{story['id']} {'updated' if merged_into else 'created'} from {PERSONAS[decoy_id]['name']}'s line ({story['status']})")
         return {"checks": checks, "story": story["id"], "merged": bool(merged_into), "quarantined": False}
@@ -615,7 +659,7 @@ class Agents:
                 mode = "nemotron"
             except Exception:
                 existing = story["skill"]["keywords"]
-                new = [w for w, _ in Counter(tokens(text)).most_common() if w not in existing and len(w) > 3][:6]
+                new = [w for w, _ in Counter(tokens(text)).most_common() if w not in existing and len(w) > 3 and w not in benign_words()][:6]
                 out = {"add_keywords": new, "add_phrases": [], "rationale": "Words from the missed message that the skill didn't know."}
                 mode = "mock" if self.llm.mock else "fallback"
         kws = [w.lower().strip() for w in out.get("add_keywords", []) if isinstance(w, str)]
@@ -638,8 +682,10 @@ def gate(story, proposal, missed_text, gate_legit, all_stories):
     results.append({"test": "Fixes the missed message on-device", "ok": fixed})
     fa = [m["id"] for m in gate_legit if skill_score(m["text"], cand)[0] >= MATCH]
     results.append({"test": f"No false alarms on {len(gate_legit)} known-good messages", "ok": not fa, "detail": fa})
-    leaks = [w for w in proposal["add_keywords"] + proposal["add_phrases"] if re.search(r"\d", w) or is_allowlisted(w)]
-    results.append({"test": "No numbers, sites, or verified businesses inside the skill", "ok": not leaks, "detail": leaks})
+    bw = benign_words()
+    leaks = [w for w in proposal["add_keywords"] + proposal["add_phrases"]
+             if re.search(r"\d", w) or is_allowlisted(w) or w in bw or (" " in w and all(t in bw or t in STOP for t in w.split()))]
+    results.append({"test": "No numbers, sites, verified businesses or everyday words in the skill", "ok": not leaks, "detail": leaks})
     probe = "Lakeview Credit Union: call (800) 555-0142, the number on the back of your card, about your statement."
     results.append({"test": "Poisoning probe (verified number) stays clean", "ok": skill_score(probe, cand)[0] < MATCH})
     passed = all(r["ok"] for r in results)

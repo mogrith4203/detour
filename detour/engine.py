@@ -10,15 +10,23 @@ import uuid
 from collections import deque
 from pathlib import Path
 
-from .core import (CATEGORY_STEPS, INJECTION_RE, Agents, StoryMap, domains, gate, match, phones, redact,
-                   sender_status)
-from .data import EVAL, PERSONAS, SCENARIOS
+from .core import (CATEGORY_LABEL, CATEGORY_STEPS, INJECTION_RE, PHONE_RE, Agents, StoryMap, domains, gate, match, phones,
+                   redact, sender_status)
+from .data import BENIGN_SMS, EVAL, PERSONAS, SCENARIOS
 from .llm import Nemotron
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 TURNS = 3            # scripted scammer turns per decoy session
 LIVE_TURN_CAP = 6    # max judge messages in a live session
+PROMOTIONS_PER_HOUR = 3  # a story's skill can't be rewritten faster than this
 THREAD_WINDOW = 3    # messages from the same unknown sender scored together
+
+
+def strip_indicators(text):
+    """Never show a scammer's number or link on a customer's warning card."""
+    t = PHONE_RE.sub("[number]", str(text or ""))
+    t = re.sub(r"https?://\S+|\b[\w-]+\.(?:com|net|org|info|top|xyz|example|ly|io|co|app|site|online|link)\b\S*", "[link]", t, flags=re.I)
+    return t[:200]
 
 
 def fingerprint(text):
@@ -89,7 +97,9 @@ class Engine:
                 "scenarios": {k: v["label"] for k, v in SCENARIOS.items()}}
 
     def gate_legit(self):
-        return [m for m in EVAL if m["story"] is None and m["split"] == "train"]
+        """Known-good messages every new skill must stay quiet on: training-split legit texts plus ordinary everyday texts."""
+        return [m for m in EVAL if m["story"] is None and m["split"] == "train"] + \
+               [{"id": f"benign-{i}", "text": t} for i, t in enumerate(BENIGN_SMS)]
 
     # ------------------------------------------------------------ scripted decoy session
     def honeypot_session(self, scenario_id, decoy_id):
@@ -111,12 +121,12 @@ class Engine:
             yield {"type": "msg", "who": "decoy", "text": reply, "agent": "Honeypot persona", "meta": meta}
         yield from self._finish_session(convo, decoy_id)
 
-    def _finish_session(self, convo, decoy_id):
+    def _finish_session(self, convo, decoy_id, live=False):
         ext, meta = self.agents.extract(convo)
         self.emit("Intel extractor", "extract", output=short(ext, 400), **meta)
         yield {"type": "stage", "stage": "extract", "agent": "Intel extractor", "meta": meta, "data": ext}
         with self.lock:
-            res = self.agents.validate(ext, convo, decoy_id, self.smap)
+            res = self.agents.validate(ext, convo, decoy_id, self.smap, live=live)
         self.emit("Validator (rules)", "validate", output=short([f"{'OK' if c['ok'] else 'X'} {c['check']}" for c in res["checks"]], 400),
                   mode="rules", story=res.get("story"), quarantined=res.get("quarantined"))
         yield {"type": "stage", "stage": "validate", "agent": "Validator (rules)", "data": res}
@@ -148,7 +158,7 @@ class Engine:
         if not s or not s["convo"]:
             return {"error": "Nothing to analyze yet."}
         out = {}
-        for ev in self._finish_session(s["convo"], s["decoy"]):
+        for ev in self._finish_session(s["convo"], s["decoy"], live=True):
             if ev["type"] == "stage":
                 out[ev["stage"]] = ev["data"]
             elif ev["type"] == "done":
@@ -189,16 +199,20 @@ class Engine:
         local["thread_len"] = len(thread)
         steps.append({"stage": "local", "agent": "On-device matcher", "data": local})
         self.emit("On-device matcher", "local", input="(stays on phone)", output=f"{local['decision']} · score {local['score']}", mode="on-device")
+        if local["decision"] == "warn" and local["sender"]["registered"] and not any(
+                a.startswith(("link to", "asks you to contact", "shortened", "disguised")) for a in local["asks"]):
+            local["decision"] = "unsure"  # a vetted business sender with no unverified link/number: don't shout, take a second look
         if local["decision"] == "warn":
             self.stats["handled_on_device"] += 1
             story = self.smap.stories[local["best"]["story_id"]]
             if story["status"] != "warn":
-                card = {"level": "unsure", "title": "Possible scam (still being confirmed)", "story": story["title"],
+                card = {"level": "unsure", "title": "Possible scam (still being confirmed)", "story": strip_indicators(story["title"]),
                         "why": ["Matches a play only one decoy has seen so far."] + local["asks"][:1],
                         "next_step": CATEGORY_STEPS.get(story["category"], CATEGORY_STEPS["other"])}
             else:
-                card = {"level": "warn", "title": "This matches an active scam", "story": story["title"],
-                        "why": [f"Same play our decoys caught: {story['claim'][:110]}"] + [a[0].upper() + a[1:] for a in local["asks"][:2]],
+                card = {"level": "warn", "title": "This matches an active scam", "story": strip_indicators(story["title"]),
+                        "why": [f"Same play our decoys caught: {CATEGORY_LABEL.get(story['category'], 'scam').lower()}, pretending to be {strip_indicators(story.get('impersonates') or 'someone you trust')}."]
+                        + [a[0].upper() + a[1:] for a in local["asks"][:2]],
                         "next_step": CATEGORY_STEPS.get(story["category"], CATEGORY_STEPS["other"]), "story_id": story["id"]}
             return {"check_id": check_id, "steps": steps, "card": card, "cloud_bytes": 0, "state": self.state()}
         if local["decision"] == "unsure" and not local["asks"] and local["sender"]["registered"]:
@@ -218,6 +232,53 @@ class Engine:
             return self.consent(check_id)
         self.stats["asked_consent"] += 1
         return {"check_id": check_id, "steps": steps, "card": self._card_unsure(local, check_id), "cloud_bytes": 0, "state": self.state()}
+
+    # ------------------------------------------------------------ the real phone path (matcher runs in the browser)
+    def phone_rules(self):
+        """Everything the phone needs to decide on its own: story skills, rule patterns, the allowlist, known-good hashes.
+        This is the only thing that flows server -> phone. Messages never flow phone -> server unless the customer consents."""
+        from . import core as C
+        pat = lambda r: r.pattern  # noqa: E731
+        with self.lock:
+            stories = [{"id": s["id"], "title": s["title"], "category": s["category"], "status": s["status"],
+                        "impersonates": s.get("impersonates", ""), "tainted_only": s.get("tainted_only", False),
+                        "numbers": {n: {"status": i["status"]} for n, i in s["numbers"].items()},
+                        "domains": {d: {"status": i["status"]} for d, i in s["domains"].items()},
+                        "skill": {"keywords": s["skill"]["keywords"], "phrases": s["skill"]["phrases"], "version": s["skill"]["version"]}}
+                       for s in self.smap.stories.values()]
+        return {
+            "stories": stories, "known_good": sorted(self.good), "allowlist": sorted(C.ALLOWLIST),
+            "registered_senders": C.REGISTERED_SENDERS, "stop": sorted(C.STOP), "shorteners": sorted(C.SHORTENERS),
+            "homoglyphs": {chr(k): v for k, v in C.HOMOGLYPHS.items()},
+            "thresholds": {"warn": C.MATCH, "clear": C.CLEAR}, "thread_window": THREAD_WINDOW,
+            "category_steps": C.CATEGORY_STEPS, "category_label": C.CATEGORY_LABEL,
+            "patterns": {k: pat(getattr(C, k)) for k in ("PHONE_RE", "URL_RE", "BARE_DOMAIN_RE", "URGENCY_RE", "PAYMENT_RE",
+                                                       "OFFPLATFORM_RE", "SECRECY_RE", "CREDENTIAL_RE", "CALL_VERB_RE",
+                                                       "AUTHORITY_RE", "MONEY_RE", "SPACED_DIGITS_RE")},
+            "skill_bytes": len(json.dumps(stories).encode()),
+        }
+
+    def ondevice(self, decision, story_id="", score=0.0):
+        """The phone reports only its verdict (no text, no sender) so the dashboard can count on-device decisions."""
+        self.stats["phone_checks"] += 1
+        if decision in ("warn", "clear"):
+            self.stats["handled_on_device"] += 1
+        self.emit("On-device matcher", "local", input="(message stayed on the phone)",
+                  output=f"{decision} · score {round(float(score or 0), 3)}" + (f" · {story_id}" if story_id else ""), mode="on-device")
+        return {"ok": True, "stats": self.stats}
+
+    def consent_text(self, redacted_text, sender, local):
+        """Customer tapped 'send a redacted copy'. The phone already redacted it; we redact again in case."""
+        check_id = uuid.uuid4().hex[:8]
+        local = {"score": float(local.get("score") or 0), "asks": [str(a)[:120] for a in (local.get("asks") or [])][:6],
+                 "best": local.get("best"), "decision": "unsure", "sender": sender_status(sender),
+                 "ranked": [{"story_id": str(r.get("story_id", ""))[:8], "title": str(r.get("title", ""))[:80],
+                             "score": float(r.get("score") or 0)} for r in (local.get("ranked") or [])[:3] if isinstance(r, dict)]}
+        steps = [{"stage": "local", "agent": "On-device matcher", "data": local}]
+        text = redact(redacted_text or "")[:1500]
+        self.stats["asked_consent"] += 1
+        self.pending[check_id] = {"text": text, "raw": text, "sender": (sender or "")[:40], "local": local, "steps": steps}
+        return self.consent(check_id)
 
     def decide(self, verdict, trace, asks):
         """Policy layer on top of the model. Rules win over the model."""
@@ -249,17 +310,20 @@ class Engine:
         steps.append({"stage": "rescue", "agent": "Nemotron rescue (tool calls)", "meta": meta, "trace": trace, "data": verdict})
         story = self.smap.stories.get(verdict.get("story_id") or "")
         if verdict["verdict"] == "scam":
-            card = {"level": "warn", "title": "This looks like a scam", "story": story["title"] if story else "New pattern",
-                    "why": [verdict.get("customer_message") or verdict.get("reason", "")] + [a[0].upper() + a[1:] for a in p["local"]["asks"][:2]],
+            card = {"level": "warn", "title": "This looks like a scam", "story": strip_indicators(story["title"]) if story else "New pattern",
+                    "why": [strip_indicators(verdict.get("customer_message") or verdict.get("reason", ""))] + [a[0].upper() + a[1:] for a in p["local"]["asks"][:2]],
                     "next_step": CATEGORY_STEPS.get(story["category"] if story else "other"), "story_id": story["id"] if story else ""}
         elif verdict["verdict"] == "legit":
             if float(verdict.get("confidence") or 0) >= 0.7:
                 self.good.add(fingerprint(p["raw"]))
-            card = {"level": "clear", "title": "Looks legitimate", "why": [verdict.get("customer_message") or verdict.get("reason", "")], "next_step": ""}
+            card = {"level": "clear", "title": "Looks legitimate", "why": [strip_indicators(verdict.get("customer_message") or verdict.get("reason", ""))], "next_step": ""}
         else:
             card = {"level": "unsure", "title": "Still not sure. Play it safe", "why": [verdict.get("policy") or verdict.get("reason", "")],
                     "next_step": CATEGORY_STEPS["other"]}
-        if verdict["verdict"] == "scam" and story:
+        recent = [t for t in story.get("promoted_at", []) if time.time() - t < 3600] if story else []
+        if verdict["verdict"] == "scam" and story and len(recent) >= PROMOTIONS_PER_HOUR:
+            self.emit("Gate (tests)", "gate", output=f"skipped · {story['id']} already learned {len(recent)} times this hour (rate limit)", mode="rules")
+        elif verdict["verdict"] == "scam" and story:
             proposal, fmeta = self.agents.forge(p["raw"], story)
             self.emit("Skill forge", "propose", output=short(proposal["add_keywords"] + proposal["add_phrases"]), **fmeta)
             with self.lock:
@@ -267,6 +331,7 @@ class Engine:
                 if ok:
                     story["skill"] = cand["skill"]
                     story["skill"]["version"] += 1
+                    story["promoted_at"] = recent + [time.time()]
                     story["skill"]["history"].append(f"v{story['skill']['version']}: +{', '.join(proposal['add_keywords'] + proposal['add_phrases'])}")
                     self.stats["skills_promoted"] += 1
                     self.smap.log("skill", f"{story['id']} skill v{story['skill']['version']} promoted to every phone")
