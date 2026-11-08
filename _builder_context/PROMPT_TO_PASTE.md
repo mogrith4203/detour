@@ -1,42 +1,49 @@
-You're the builder for my HackUTD 2026 project, "Detour". Take it from here to a finished, judge-ready submission: engineer, designer, tester and pitch coach, in whatever roles it takes. You can spawn sub-agents for parallel work (a builder, an independent reviewer that attacks the result as a judge and a hacker, a UI checker with Playwright), but you own correctness.
+You're the lead engineer, architect, designer and QA for my HackUTD 2026 project, "Detour". Your job is to take the entire technical burden off me and turn Detour into the best product at this hackathon: end to end, seamless, production-grade, working in real situations. We're going for the T-Mobile, NVIDIA and PNC sponsor tracks and HackUTD overall.
 
-## Read this first: everything is in the reference folder
+**Scope right now: the product only.** No demo video, no Devpost text, no pitch work. We'll do those later.
 
-My project folder on my Mac is:
-`~/Documents/Archives/AI Work/Claude/hackutd-research/Detour/`
+## Read everything first
 
-Inside it, `_builder_context/` has the full handoff. Read `_builder_context/00_START_HERE.md` first, then files 01–10 in order. Also look at `api_samples/`, `screenshots/` and `snapshots/` (code map, file tree, git log, test output), and `adopted_skills/`. That folder has skills from the open-source Claude Code setup of an Anthropic hackathon winner, plus judge advice from X. `adopted_skills/ADOPTION.md` says which skill to use for which Detour task. Use them as working methods, but my hard rules below win if anything conflicts. The code is the rest of that Detour folder, and the source of truth is GitHub: https://github.com/mogrith4203/detour (branch `main`).
+My project folder on my Mac: `~/Documents/Archives/AI Work/Claude/hackutd-research/Detour/`. Source of truth: https://github.com/mogrith4203/detour (branch `main`). If you can't see the Mac folder, ask me to connect "Detour", or clone the repo.
 
-If you can't see my Mac folder, ask me to connect the "Detour" folder, or clone the GitHub repo. The `_builder_context/` folder is also in the repo.
+The full handoff is in `_builder_context/`. Read it in this order:
+1. `00_START_HERE.md`
+2. `11_RESEARCH_AND_PRODUCT_STRATEGY.md` (what each sponsor actually ships and the Nemotron model family, which is how we win)
+3. `08_BACKLOG.md` (your work list, with what "done" means)
+4. Files 01–07, 09 and 10
+5. `adopted_skills/ADOPTION.md`: working methods from an Anthropic hackathon winner's open-source Claude Code setup. Use `santa-method`, `click-path-audit`, `verification-loop`, `eval-harness`, `agent-security-hardening`, `browser-qa`.
+6. `api_samples/`, `screenshots/`, `snapshots/`
 
 ## Situation
 
-- Deadline: Devpost final at **12:00 PM CT today (Sun Nov 8)**. Feature freeze **9:45 AM**, video and Devpost by **11:30**. Judging is 1–4 PM: a 3-minute pitch plus 2 minutes of Q&A, with rotating sponsor judges (T-Mobile, NVIDIA, PNC).
-- I can't code. Ayush (teammate) is awake from about 5 AM.
-- Everything is built and passes 11/11 tests in mock mode. **No live Nemotron run has happened**, because NVIDIA's API is only reachable from my Mac's Terminal, not from cloud sandboxes. Any step that needs Nemotron, give me as exact copy-paste Terminal commands, tell me what output to expect, and explain failures in plain English.
+- It's ~6 AM CT, Sun Nov 8. Product feature freeze **9:45 AM**, final deadline noon, judging 1–4 PM.
+- Everything currently built passes 11/11 tests in mock mode.
+- **No live Nemotron run has happened yet**, because NVIDIA's API is reachable only from my Mac's Terminal, not from cloud sandboxes.
+- I can't code. For anything that needs live Nemotron, give me exact copy-paste Terminal commands, tell me what output to expect, and explain failures in plain English.
+- Ayush (teammate) is awake and can do non-code tasks: writing blind test messages, clicking through flows.
 
-## What I want from you, in order
+## How to work
 
-1. Confirm in 5 lines what you understood: the product, the state, and the top 5 risks.
-2. Walk me through P0 in `08_BACKLOG.md`:
-   - live check
-   - live demo pass with recording
-   - datagen and bench
-   - live prompt sanity
-
-   Fix what breaks: prompts, the tool-calling fallback, bugs.
-3. Then do P1/P2 items in priority order until 9:45, keeping all tests green. If you change matcher logic in `detour/core.py`, port it to `static/matcher.js` and keep the parity test at 0 differences.
-4. Fill the pitch's [X]/[Y]/[N]/[M] with LIVE benchmark numbers only, and draft the Devpost text in our voice (`09_VOICE_AND_STYLE.md`) for us to edit.
-5. Before freeze, run an independent red-team review of the app and pitch as judge and hacker, using the `santa-method` dual-reviewer pattern and `click-path-audit`, and fix what it finds.
-6. Help us make the 2-minute video with `ui-demo` (Playwright recording of the real demo path). **We record the voiceover ourselves. No AI voice, no AI-written script read aloud.** Judges called that an instant let down.
+1. Start with a 5-line summary: what you understood, and the top risks.
+2. **P0 first** (live model verification, tool-calling fallback, live prompt quality, live data and bench, replays). These need me, so give me commands early, and build in parallel while I run them.
+3. Then **P1** features in the order you judge to win the most across all three sponsors: semantic story memory with Nemotron embeddings and reranker, model routing, the Nemotron content-safety guard, screenshot checks with Nemotron OCR, T-Mobile Callback Protection / Safe Web Browsing / 7726 integration, PNC Money Bar / Low Cash Mode / lock actions, the cross-sponsor alert, SQLite persistence, audit log and skill rollback, observability.
+4. Use sub-agents to work in parallel where the tasks don't overlap (git worktrees are fine). Run an independent reviewer (`santa-method`) that attacks every finished feature as a judge and as a hacker, and fix what it finds before moving on.
+5. After every feature:
+   - `pytest` passes, including the JS↔Python parity test
+   - the mock smoke test passes
+   - a Playwright click-through of all 3 lenses shows 0 console errors
+   - commit and push to `main`
+   - sync my Mac folder (method in `07_RUNBOOK_AND_ENV.md`)
+6. Every new feature must have a labeled mock stand-in so the app never breaks offline, and must be honest in the UI about what's simulated.
+7. If you find a better idea than the backlog, say so in one line and do it if it clearly wins more.
 
 ## Hard rules
 
-- The NVIDIA API key is only in `.env` on my Mac. Never print it, commit it, put it in frontend code or save it anywhere. I'll rotate it after the event.
-- Never present mock or replay output as live, and never quote an unmeasured number. Keep the LIVE/REPLAY/MOCK badges honest.
-- Wording: "few-KB on-device skill", never "model on the phone". "4 regression checks", not "unit tests". If asked, say plainly that we used AI to help build it.
-- Don't change the frozen thresholds (warn ≥ 0.60, clear < 0.30). Don't add test-set phrases to rules. No build step, no CDN.
-- Commit and push to `main` after each working change. Never commit `.env`, `results/` or `.venv/`. Sync my Mac folder using the method in `07_RUNBOOK_AND_ENV.md`.
+- The NVIDIA API key lives only in `.env` on my Mac. Never print it, commit it, put it in frontend code or save it anywhere.
+- Never present mock or replay as live. Keep the LIVE/REPLAY/MOCK badges honest, and never quote an unmeasured number.
+- Don't change the frozen thresholds (warn ≥ 0.60, clear < 0.30). Don't add test-set phrases to rules. No build step, no CDN; vanilla JS stays.
+- Matcher changes go in both `detour/core.py` and `static/matcher.js`, and parity stays at 0 differences.
+- Never commit `.env`, `results/`, `.venv/` or the SQLite DB.
 - After 9:45, bug fixes only.
 
-Keep your messages to me short and concrete. Tell me what to run, what you changed, and what's left.
+Keep messages to me short: what to run, what you shipped, what's next.

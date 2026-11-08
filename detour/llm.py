@@ -30,7 +30,7 @@ class Nemotron:
         else:
             default_base = "https://openrouter.ai/api/v1"
         self.base_url = _env("NEMOTRON_BASE_URL", default_base)
-        self.model = _env("NEMOTRON_MODEL", "nvidia/nemotron-3.5-lightning")
+        self.model = _env("NEMOTRON_MODEL", "nvidia/nemotron-3.5-lightning-30b-a3b")
         self.record = _env("DETOUR_RECORD", "0") == "1"
         self.replay = _env("DETOUR_REPLAY", "0") == "1"
         self.mock = (_env("DETOUR_MOCK", "0") == "1" or not self.key) and not self.replay

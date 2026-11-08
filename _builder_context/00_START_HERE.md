@@ -37,7 +37,7 @@ Full backend, all three lenses, the browser-side phone matcher with Python parit
 2. `data/generated.jsonl` doesn't exist yet. Mog runs `python3 datagen.py` on his Mac, live.
 3. `data/handwritten.jsonl` is still a template. Ayush writes 10 scam + 10 legit texts **before** looking at the matcher code.
 4. No recorded replays yet (`DETOUR_RECORD=1 ./run.sh`) to use as the venue Wi-Fi backup.
-5. Devpost text, the 2-minute video, and README "in their own words" (see 09_VOICE_AND_STYLE).
+5. (LATER, not now) Devpost text, the 2-minute video, and the README in the team's own words. Mog's direction at 6 AM: **product only for now.**
 6. Remaining polish and backlog: see 08_BACKLOG.md, which is prioritized and has acceptance criteria.
 
 ## Non-negotiable rules
@@ -66,6 +66,7 @@ Full backend, all three lenses, the browser-side phone matcher with Python parit
 
 | File | What it gives you |
 |---|---|
+| 11_RESEARCH_AND_PRODUCT_STRATEGY.md | **Read second.** What T-Mobile and PNC actually ship, the Nemotron model family, and the product moves that win each track |
 | 01_PRODUCT_AND_SPONSORS.md | The idea, the three sponsor briefs and what each judge scores |
 | 02_ARCHITECTURE_AND_CODE_MAP.md | Every module, function, data shape and threshold |
 | 03_API_REFERENCE.md | Every endpoint, with real sample responses in `api_samples/` |
