@@ -1,0 +1,438 @@
+{
+  "status": 200,
+  "body": {
+    "synthetic": true,
+    "scenario": [
+      {
+        "type": "payment",
+        "amount": 3000.0,
+        "from": "checking",
+        "date": "2026-11-09",
+        "label": "bail"
+      }
+    ],
+    "before": {
+      "indicators": [
+        {
+          "id": "liquidity_runway",
+          "name": "Cash Runway",
+          "value": 3.1,
+          "unit": "months",
+          "display": "3.1 months",
+          "status": "watch",
+          "explanation": "Your checking and savings ($12,440) would cover 3.1 months of your $4,017 monthly costs if income stopped.",
+          "formula": "(checking + savings) divided by monthly living costs, bills and required payments",
+          "monthly_spending": 4017.0
+        },
+        {
+          "id": "obligation_coverage",
+          "name": "Bill Coverage",
+          "value": 376.33,
+          "unit": "$",
+          "display": "$376.33 low point",
+          "status": "watch",
+          "explanation": "Checking stays above $0 for the next 30 days while $2,417 of bills and payments come out; the low point is $376.33 on Nov 30.",
+          "formula": "lowest projected checking balance over the next 30 days, after every scheduled bill",
+          "min_date": "2026-11-30",
+          "overdraft_days": 0,
+          "bills_due": 2417.0
+        },
+        {
+          "id": "debt_credit_health",
+          "name": "Debt & Credit",
+          "value": 47.1,
+          "unit": "%",
+          "display": "DTI 47.1% \u00b7 card use 20.6%",
+          "status": "watch",
+          "explanation": "$1,977 of your $4,200 monthly income goes to loan, card and mortgage payments (47.1%), and you are using 20.6% of your card limit.",
+          "formula": "monthly debt payments divided by monthly income; card balance divided by card limit",
+          "dti_pct": 47.1,
+          "utilization_pct": 20.6
+        },
+        {
+          "id": "scam_exposure",
+          "name": "Scam Exposure",
+          "value": 18790.0,
+          "unit": "$",
+          "display": "$18,790 could leave in 1 hour",
+          "status": "risk",
+          "explanation": "If someone talked you into it, $12,440 could leave by Zelle or wire and $6,350 by card cash advance within an hour. Locking your $9,600 of unlocked savings would cut this to $9,190.",
+          "formula": "unlocked checking + savings (capped by Zelle and wire daily limits) + card cash advance available (limit minus balance)",
+          "deposits_part": 12440.0,
+          "cash_advance_part": 6350.0,
+          "locked_part": 0.0
+        }
+      ],
+      "forecast_summary": {
+        "days": 60,
+        "min_checking": 376.33,
+        "min_date": "2026-11-30",
+        "first_overdraft": null,
+        "overdraft_days": 0,
+        "end_checking": 3269.66,
+        "end_savings": 9600.0,
+        "monthly_net": 183.0
+      }
+    },
+    "after": {
+      "indicators": [
+        {
+          "id": "liquidity_runway",
+          "name": "Cash Runway",
+          "value": 2.35,
+          "unit": "months",
+          "display": "2.4 months",
+          "status": "risk",
+          "explanation": "Your checking and savings ($9,440) would cover 2.4 months of your $4,017 monthly costs if income stopped.",
+          "formula": "(checking + savings) divided by monthly living costs, bills and required payments",
+          "monthly_spending": 4017.0
+        },
+        {
+          "id": "obligation_coverage",
+          "name": "Bill Coverage",
+          "value": -2623.67,
+          "unit": "$",
+          "display": "-$2,623.67 low point",
+          "status": "risk",
+          "explanation": "Checking would go below $0 on 24 of the next 30 days, starting Nov 9, and bottom out at -$2,623.67 on Nov 30.",
+          "formula": "lowest projected checking balance over the next 30 days, after every scheduled bill",
+          "min_date": "2026-11-30",
+          "overdraft_days": 24,
+          "bills_due": 2417.0
+        },
+        {
+          "id": "debt_credit_health",
+          "name": "Debt & Credit",
+          "value": 47.1,
+          "unit": "%",
+          "display": "DTI 47.1% \u00b7 card use 20.6%",
+          "status": "watch",
+          "explanation": "$1,977 of your $4,200 monthly income goes to loan, card and mortgage payments (47.1%), and you are using 20.6% of your card limit.",
+          "formula": "monthly debt payments divided by monthly income; card balance divided by card limit",
+          "dti_pct": 47.1,
+          "utilization_pct": 20.6
+        },
+        {
+          "id": "scam_exposure",
+          "name": "Scam Exposure",
+          "value": 15790.0,
+          "unit": "$",
+          "display": "$15,790 could leave in 1 hour",
+          "status": "risk",
+          "explanation": "If someone talked you into it, $9,440 could leave by Zelle or wire and $6,350 by card cash advance within an hour. Locking your $9,600 of unlocked savings would cut this to $6,350.",
+          "formula": "unlocked checking + savings (capped by Zelle and wire daily limits) + card cash advance available (limit minus balance)",
+          "deposits_part": 9440.0,
+          "cash_advance_part": 6350.0,
+          "locked_part": 0.0
+        }
+      ],
+      "forecast_summary": {
+        "days": 60,
+        "min_checking": -2623.67,
+        "min_date": "2026-11-30",
+        "first_overdraft": "2026-11-09",
+        "overdraft_days": 50,
+        "end_checking": 269.66,
+        "end_savings": 9600.0,
+        "monthly_net": 183.0
+      }
+    },
+    "deltas": [
+      {
+        "id": "liquidity_runway",
+        "name": "Cash Runway",
+        "before": 3.1,
+        "after": 2.35,
+        "before_display": "3.1 months",
+        "after_display": "2.4 months",
+        "before_status": "watch",
+        "after_status": "risk",
+        "direction": "worse"
+      },
+      {
+        "id": "obligation_coverage",
+        "name": "Bill Coverage",
+        "before": 376.33,
+        "after": -2623.67,
+        "before_display": "$376.33 low point",
+        "after_display": "-$2,623.67 low point",
+        "before_status": "watch",
+        "after_status": "risk",
+        "direction": "worse"
+      },
+      {
+        "id": "debt_credit_health",
+        "name": "Debt & Credit",
+        "before": 47.1,
+        "after": 47.1,
+        "before_display": "DTI 47.1% \u00b7 card use 20.6%",
+        "after_display": "DTI 47.1% \u00b7 card use 20.6%",
+        "before_status": "watch",
+        "after_status": "watch",
+        "direction": "same"
+      },
+      {
+        "id": "scam_exposure",
+        "name": "Scam Exposure",
+        "before": 18790.0,
+        "after": 15790.0,
+        "before_display": "$18,790 could leave in 1 hour",
+        "after_display": "$15,790 could leave in 1 hour",
+        "before_status": "risk",
+        "after_status": "risk",
+        "direction": "same"
+      }
+    ],
+    "facts": [
+      "Scenario: bail of $3,000 from checking on Nov 9.",
+      "Checking would first drop below $0 on Nov 9, to -$266.67.",
+      "On Dec 1 the $1,180 mortgage autopay would hit an account already at -$2,623.67, leaving checking at -$1,805.28 that day.",
+      "Checking would be below $0 on 50 of the next 60 days (versus 0 without this).",
+      "Cash Runway goes from 3.1 months (watch) to 2.4 months (risk).",
+      "Bill Coverage goes from $376.33 (watch) to -$2,623.67 (risk).",
+      "Scam Exposure is lower only because $3,000 has already left. That is not an improvement."
+    ],
+    "after_forecast": [
+      {
+        "date": "2026-11-08",
+        "checking": 2786.67
+      },
+      {
+        "date": "2026-11-09",
+        "checking": -266.67
+      },
+      {
+        "date": "2026-11-10",
+        "checking": -320.0
+      },
+      {
+        "date": "2026-11-11",
+        "checking": -373.33
+      },
+      {
+        "date": "2026-11-12",
+        "checking": -838.67
+      },
+      {
+        "date": "2026-11-13",
+        "checking": -892.0
+      },
+      {
+        "date": "2026-11-14",
+        "checking": -945.33
+      },
+      {
+        "date": "2026-11-15",
+        "checking": -1293.67
+      },
+      {
+        "date": "2026-11-16",
+        "checking": -1347.0
+      },
+      {
+        "date": "2026-11-17",
+        "checking": -1400.33
+      },
+      {
+        "date": "2026-11-18",
+        "checking": -1453.67
+      },
+      {
+        "date": "2026-11-19",
+        "checking": -1507.0
+      },
+      {
+        "date": "2026-11-20",
+        "checking": -1705.33
+      },
+      {
+        "date": "2026-11-21",
+        "checking": -1758.67
+      },
+      {
+        "date": "2026-11-22",
+        "checking": -1997.0
+      },
+      {
+        "date": "2026-11-23",
+        "checking": -2050.33
+      },
+      {
+        "date": "2026-11-24",
+        "checking": -2103.67
+      },
+      {
+        "date": "2026-11-25",
+        "checking": -2357.0
+      },
+      {
+        "date": "2026-11-26",
+        "checking": -2410.33
+      },
+      {
+        "date": "2026-11-27",
+        "checking": -2463.67
+      },
+      {
+        "date": "2026-11-28",
+        "checking": -2517.0
+      },
+      {
+        "date": "2026-11-29",
+        "checking": -2570.33
+      },
+      {
+        "date": "2026-11-30",
+        "checking": -2623.67
+      },
+      {
+        "date": "2026-12-01",
+        "checking": -1805.28
+      },
+      {
+        "date": "2026-12-02",
+        "checking": -1856.89
+      },
+      {
+        "date": "2026-12-03",
+        "checking": 241.49
+      },
+      {
+        "date": "2026-12-04",
+        "checking": 189.88
+      },
+      {
+        "date": "2026-12-05",
+        "checking": 138.27
+      },
+      {
+        "date": "2026-12-06",
+        "checking": 86.66
+      },
+      {
+        "date": "2026-12-07",
+        "checking": 35.04
+      },
+      {
+        "date": "2026-12-08",
+        "checking": -16.57
+      },
+      {
+        "date": "2026-12-09",
+        "checking": -68.18
+      },
+      {
+        "date": "2026-12-10",
+        "checking": -119.8
+      },
+      {
+        "date": "2026-12-11",
+        "checking": -171.41
+      },
+      {
+        "date": "2026-12-12",
+        "checking": -635.02
+      },
+      {
+        "date": "2026-12-13",
+        "checking": -686.63
+      },
+      {
+        "date": "2026-12-14",
+        "checking": -738.25
+      },
+      {
+        "date": "2026-12-15",
+        "checking": -1084.86
+      },
+      {
+        "date": "2026-12-16",
+        "checking": -1136.47
+      },
+      {
+        "date": "2026-12-17",
+        "checking": -1188.09
+      },
+      {
+        "date": "2026-12-18",
+        "checking": -1239.7
+      },
+      {
+        "date": "2026-12-19",
+        "checking": -1291.31
+      },
+      {
+        "date": "2026-12-20",
+        "checking": -1487.92
+      },
+      {
+        "date": "2026-12-21",
+        "checking": -1539.54
+      },
+      {
+        "date": "2026-12-22",
+        "checking": -1776.15
+      },
+      {
+        "date": "2026-12-23",
+        "checking": -1827.76
+      },
+      {
+        "date": "2026-12-24",
+        "checking": -1879.38
+      },
+      {
+        "date": "2026-12-25",
+        "checking": -2130.99
+      },
+      {
+        "date": "2026-12-26",
+        "checking": -2182.6
+      },
+      {
+        "date": "2026-12-27",
+        "checking": -2234.22
+      },
+      {
+        "date": "2026-12-28",
+        "checking": -2285.83
+      },
+      {
+        "date": "2026-12-29",
+        "checking": -2337.44
+      },
+      {
+        "date": "2026-12-30",
+        "checking": -2389.05
+      },
+      {
+        "date": "2026-12-31",
+        "checking": -2440.67
+      },
+      {
+        "date": "2027-01-01",
+        "checking": -1622.28
+      },
+      {
+        "date": "2027-01-02",
+        "checking": -1673.89
+      },
+      {
+        "date": "2027-01-03",
+        "checking": 424.49
+      },
+      {
+        "date": "2027-01-04",
+        "checking": 372.88
+      },
+      {
+        "date": "2027-01-05",
+        "checking": 321.27
+      },
+      {
+        "date": "2027-01-06",
+        "checking": 269.66
+      }
+    ]
+  }
+}

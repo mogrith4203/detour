@@ -1,0 +1,19 @@
+{
+  "status": 200,
+  "body": {
+    "session": "58eb086e",
+    "persona": {
+      "id": "decoy-01",
+      "name": "Linda Park",
+      "age": 71,
+      "city": "Plano, TX",
+      "number": "(214) 555-0101",
+      "seeded_on": "List A (simulated data broker)",
+      "style": "polite, a little unsure with phones, writes full sentences",
+      "fake_details": {
+        "bank": "Lakeview Credit Union",
+        "card_last4": "4417 (fake)"
+      }
+    }
+  }
+}

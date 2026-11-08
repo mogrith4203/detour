@@ -1,0 +1,16 @@
+{
+  "status": 200,
+  "body": {
+    "ok": true,
+    "stats": {
+      "phone_checks": 1,
+      "handled_on_device": 1,
+      "asked_consent": 0,
+      "rescues": 0,
+      "bytes_to_cloud": 0,
+      "skills_promoted": 0,
+      "skills_rejected": 0,
+      "policy_overrides": 0
+    }
+  }
+}

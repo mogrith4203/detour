@@ -1,0 +1,283 @@
+{
+  "status": 200,
+  "body": {
+    "events": [
+      {
+        "id": 1,
+        "t": "05:43:28",
+        "agent": "system",
+        "stage": "reset",
+        "note": "Demo state reset"
+      },
+      {
+        "id": 2,
+        "t": "05:43:28",
+        "agent": "Intel extractor",
+        "stage": "extract",
+        "output": "Fake bank fraud alert",
+        "mode": "mock",
+        "ms": 0
+      },
+      {
+        "id": 3,
+        "t": "05:43:28",
+        "agent": "Intel extractor",
+        "stage": "extract",
+        "output": "Unpaid toll notice",
+        "mode": "mock",
+        "ms": 0
+      },
+      {
+        "id": 4,
+        "t": "05:43:28",
+        "agent": "Intel extractor",
+        "stage": "extract",
+        "output": "Package on hold, fee required",
+        "mode": "mock",
+        "ms": 0
+      },
+      {
+        "id": 5,
+        "t": "05:43:28",
+        "agent": "Intel extractor",
+        "stage": "extract",
+        "output": "Phone bill past due",
+        "mode": "mock",
+        "ms": 0
+      },
+      {
+        "id": 6,
+        "t": "05:43:29",
+        "agent": "Intel extractor",
+        "stage": "extract",
+        "output": "Grandchild in trouble, needs bail",
+        "mode": "mock",
+        "ms": 0
+      },
+      {
+        "id": 7,
+        "t": "05:43:29",
+        "agent": "Intel extractor",
+        "stage": "extract",
+        "output": "Paid task job offer",
+        "mode": "mock",
+        "ms": 0
+      },
+      {
+        "id": 8,
+        "t": "05:43:29",
+        "agent": "On-device matcher",
+        "stage": "local",
+        "input": "(message stayed on the phone)",
+        "output": "warn \u00b7 score 0.99 \u00b7 S01",
+        "mode": "on-device"
+      },
+      {
+        "id": 9,
+        "t": "05:43:29",
+        "agent": "Consent",
+        "stage": "consent",
+        "output": "Customer tapped 'Ask Detour'. Sent 142 bytes, redacted.",
+        "mode": "customer"
+      },
+      {
+        "id": 10,
+        "t": "05:43:29",
+        "agent": "Nemotron rescue",
+        "stage": "tool",
+        "tool": "search_story_map",
+        "input": "{\"query\": \"nana bad spot western union\"}",
+        "output": "[{\"story_id\": \"S01\", \"title\": \"Fake bank fraud alert\", \"score\": 0.4}, {\"story_id\": \"S02\", \"title\": \"Unpaid toll notice\", \"score\": 0.4}, {\"story_id\": \"S03\", \"title\": \"Package on hold, fee required\", \"\u2026",
+        "mode": "mock"
+      },
+      {
+        "id": 11,
+        "t": "05:43:29",
+        "agent": "Nemotron rescue",
+        "stage": "tool",
+        "tool": "check_sender_registration",
+        "input": "{\"sender\": \"(682) 555-0120\"}",
+        "output": "{\"status\": \"unregistered 10-digit number\", \"registered\": false}",
+        "mode": "mock"
+      },
+      {
+        "id": 12,
+        "t": "05:43:29",
+        "agent": "Nemotron rescue",
+        "stage": "tool",
+        "tool": "submit_verdict",
+        "input": "{\"verdict\": \"scam\", \"story_id\": \"S05\", \"confidence\": 0.85, \"reason\": \"payment request (send money through western union). Same play as Grandchild in trouble, n\u2026",
+        "output": "{\"ok\": true}",
+        "mode": "mock"
+      },
+      {
+        "id": 13,
+        "t": "05:43:29",
+        "agent": "Policy (rules)",
+        "stage": "verdict",
+        "output": "scam \u2192 scam",
+        "mode": "rules",
+        "policy": null
+      },
+      {
+        "id": 14,
+        "t": "05:43:29",
+        "agent": "Skill forge",
+        "stage": "propose",
+        "output": "[\"nana\", \"spot\", \"western\"]",
+        "mode": "mock",
+        "ms": 0
+      },
+      {
+        "id": 15,
+        "t": "05:43:29",
+        "agent": "Gate (tests)",
+        "stage": "gate",
+        "output": "promoted \u00b7 PASS Fixes the missed message on-device, PASS No false alarms on 42 known-good messages, PASS No numbers, sites, verified businesses or everyday words in the skill, PASS Poisoning probe (verified number) stays clean",
+        "mode": "rules"
+      },
+      {
+        "id": 16,
+        "t": "05:43:29",
+        "agent": "On-device matcher",
+        "stage": "local",
+        "input": "(stays on phone)",
+        "output": "warn \u00b7 score 0.99",
+        "mode": "on-device"
+      },
+      {
+        "id": 17,
+        "t": "05:43:29",
+        "agent": "Honeypot persona",
+        "stage": "live-start",
+        "note": "Live session with Linda Park"
+      },
+      {
+        "id": 18,
+        "t": "05:43:29",
+        "agent": "Honeypot persona",
+        "stage": "reply",
+        "input": "Grandma its Jake, I got arrested, need $2000 bail in gift cards, dont tell mom",
+        "output": "Oh dear, who is this exactly? I don't think I know this number.",
+        "injection": false,
+        "mode": "mock",
+        "ms": 0,
+        "filtered": false
+      },
+      {
+        "id": 19,
+        "t": "05:43:29",
+        "agent": "Intel extractor",
+        "stage": "extract",
+        "output": "{\"story_title\": \"Grandchild in trouble, needs bail\", \"category\": \"family_emergency\", \"impersonates\": \"Grandchild / lawyer\", \"claim\": \"Grandma its Jake, I got arrested, need $2000 bail in gift cards, dont tell mom\", \"ask\": \"payment request (bail); asks you to keep it secret\", \"payment_method\": \"bail\", \"amount\": \"$2000\", \"tactics\": [\"secrecy\"], \"signature_keywords\": [\"grandma\", \"jake\", \"arrested\", \u2026",
+        "mode": "mock",
+        "ms": 0
+      },
+      {
+        "id": 20,
+        "t": "05:43:29",
+        "agent": "Validator (rules)",
+        "stage": "validate",
+        "output": "[\"OK Prompt-injection scan\", \"OK Verified-business allowlist\", \"OK Text sender registration (A2P)\", \"OK Callback numbers: caller-ID attestation (STIR/SHAKEN, calls only)\", \"OK Corroboration\"]",
+        "mode": "rules",
+        "story": "S05",
+        "quarantined": false
+      },
+      {
+        "id": 21,
+        "t": "05:43:29",
+        "agent": "Scammer simulator",
+        "stage": "message",
+        "output": "Final notice: you have an unpaid toll balance of $6.85. Pay today to avoid a $50 late fee: https://txtoll-pay.help",
+        "mode": "scripted"
+      },
+      {
+        "id": 22,
+        "t": "05:43:30",
+        "agent": "Honeypot persona",
+        "stage": "reply",
+        "input": "Final notice: you have an unpaid toll balance of $6.85. Pay today to avoid a $50 late fee: https://txtoll-pay.help",
+        "output": "Oh dear, who is this exactly? I don't think I know this number.",
+        "mode": "mock",
+        "ms": 0,
+        "filtered": false
+      },
+      {
+        "id": 23,
+        "t": "05:43:30",
+        "agent": "Scammer simulator",
+        "stage": "message",
+        "output": "TX Toll Services here. The late fee applies at midnight. Use the link and enter your card number to clear the balance.",
+        "mode": "scripted"
+      },
+      {
+        "id": 24,
+        "t": "05:43:31",
+        "agent": "Honeypot persona",
+        "stage": "reply",
+        "input": "TX Toll Services here. The late fee applies at midnight. Use the link and enter your card number to clear the balance.",
+        "output": "I'm not very good with these phones. What number should I use to reach you, and what do I need to do?",
+        "mode": "mock",
+        "ms": 0,
+        "filtered": false
+      },
+      {
+        "id": 25,
+        "t": "05:43:32",
+        "agent": "Scammer simulator",
+        "stage": "message",
+        "output": "If you can't use the link, reply with your card number and expiration and we will process it for you.",
+        "mode": "scripted"
+      },
+      {
+        "id": 26,
+        "t": "05:43:32",
+        "agent": "Honeypot persona",
+        "stage": "reply",
+        "input": "If you can't use the link, reply with your card number and expiration and we will process it for you.",
+        "output": "How would I pay that? My grandson usually helps me with the computer. Can you send the details again?",
+        "mode": "mock",
+        "ms": 0,
+        "filtered": false
+      },
+      {
+        "id": 27,
+        "t": "05:43:33",
+        "agent": "Intel extractor",
+        "stage": "extract",
+        "output": "{\"story_title\": \"Unpaid toll notice\", \"category\": \"toll\", \"impersonates\": \"TX Toll Services\", \"claim\": \"Final notice: you have an unpaid toll balance of $6.85. Pay today to avoid a $50 late fee: https://txtoll-pay.help\", \"ask\": \"link to an unverified site (txtoll-pay.help); payment request (card number); asks for codes or card details\", \"payment_method\": \"card number\", \"amount\": \"$6.85\", \"tactics\u2026",
+        "mode": "mock",
+        "ms": 0
+      },
+      {
+        "id": 28,
+        "t": "05:43:33",
+        "agent": "Validator (rules)",
+        "stage": "validate",
+        "output": "[\"OK Prompt-injection scan\", \"OK Verified-business allowlist\", \"OK Text sender registration (A2P)\", \"OK Callback numbers: caller-ID attestation (STIR/SHAKEN, calls only)\", \"OK Corroboration\"]",
+        "mode": "rules",
+        "story": "S02",
+        "quarantined": false
+      }
+    ],
+    "last": 28,
+    "llm": {
+      "mode": "mock",
+      "model": "mock (no API key)",
+      "base_url": null,
+      "hosted_calls": 0,
+      "errors": 0,
+      "last_error": null
+    },
+    "stats": {
+      "phone_checks": 2,
+      "handled_on_device": 2,
+      "asked_consent": 1,
+      "rescues": 1,
+      "bytes_to_cloud": 142,
+      "skills_promoted": 1,
+      "skills_rejected": 0,
+      "policy_overrides": 0
+    }
+  }
+}

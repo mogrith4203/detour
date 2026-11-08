@@ -1,0 +1,74 @@
+7add468 2026-11-08 03:38:58 -0600 Phone matcher runs in the browser (static/matcher.js) with Python parity tests; consent sends exactly the previewed redacted text
+
+ detour/engine.py     |   9 +-
+ static/index.html    | 132 ++++++++++----
+ static/matcher.js    | 491 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ tests/parity.js      |  32 ++++
+ tests/test_parity.py | 120 +++++++++++++
+ 5 files changed, 747 insertions(+), 37 deletions(-)
+1802bf6 2026-11-08 03:31:44 -0600 Red-team fixes: signed coach number check, word-boundary routing, exposure direction, whatif validation, robust model parsing, isolated benchmark, CSRF-proof admin, report rate limit, accurate README
+
+ README.md                | 83 +++++++++++++++++++++++++-----------------------
+ detour/core.py           | 32 +++++++++++++++----
+ detour/engine.py         | 26 ++++++++++++---
+ detour/finance/coach.py  | 75 ++++++++++++++++++++++++++++++++-----------
+ detour/finance/engine.py | 12 +++++--
+ server.py                | 56 +++++++++++++++++++++++++-------
+ 6 files changed, 203 insertions(+), 81 deletions(-)
+d52271e 2026-11-08 03:28:07 -0600 Red-team fixes: corroboration rules, gate everyday-word test, rate limit, broader rails/secrecy/injection, redaction, phone rules API
+
+ detour/core.py   | 82 ++++++++++++++++++++++++++++++++++++++-----------
+ detour/data.py   | 33 +++++++++++++++++---
+ detour/engine.py | 93 +++++++++++++++++++++++++++++++++++++++++++++++---------
+ server.py        | 26 +++++++++++++++-
+ 4 files changed, 196 insertions(+), 38 deletions(-)
+c3a6819 2026-11-08 03:15:48 -0600 Three-lens demo UI; send only redacted text to rescue; quiet benchmark feed; whatif 400s; stricter skill keywords
+
+ detour/core.py     |    4 +-
+ detour/engine.py   |    9 +-
+ server.py          |   13 +-
+ static/index.html  | 1616 ++++++++++++++++++++++++++++++++++++++++++----------
+ static/legacy.html |  326 +++++++++++
+ 5 files changed, 1674 insertions(+), 294 deletions(-)
+8eb5e9e 2026-11-08 02:52:06 -0600 Add run.sh, Nemotron check, datagen, handoff; registered-sender clear; healthier finance baseline
+
+ HANDOFF.md             | 32 +++++++++++++++++++++
+ bench.py               |  5 +++-
+ check_nemotron.py      | 77 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ data/handwritten.jsonl |  5 ++++
+ datagen.py             | 77 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ detour/engine.py       |  8 ++++++
+ run.sh                 | 23 +++++++++++++++
+ 7 files changed, 226 insertions(+), 1 deletion(-)
+5282ba2 2026-11-08 02:48:48 -0600 Backend v2: live decoy, consent, events, admin lock, PNC finance engine, record/replay
+
+ detour/core.py               | 102 +++++++++--
+ detour/data.py               |   8 +
+ detour/engine.py             | 376 ++++++++++++++++++++++++++------------
+ detour/finance/__init__.py   |   5 +
+ detour/finance/coach.py      | 290 +++++++++++++++++++++++++++++
+ detour/finance/customer.json |  42 +++++
+ detour/finance/engine.py     | 422 +++++++++++++++++++++++++++++++++++++++++++
+ detour/llm.py                |  31 +++-
+ server.py                    | 118 ++++++++++--
+ tests/test_finance.py        | 117 ++++++++++++
+ 10 files changed, 1364 insertions(+), 147 deletions(-)
+aa7b048 2026-11-08 01:47:17 -0600 Add Detour prototype
+
+ .env.example       |  19 ++
+ .gitignore         |   7 +
+ README.md          |  81 +++++++-
+ bench.py           |  30 +++
+ detour/__init__.py |   0
+ detour/core.py     | 570 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ detour/data.py     | 232 ++++++++++++++++++++++
+ detour/engine.py   | 253 ++++++++++++++++++++++++
+ detour/llm.py      | 113 +++++++++++
+ requirements.txt   |   4 +
+ server.py          | 112 +++++++++++
+ static/index.html  | 326 ++++++++++++++++++++++++++++++
+ 12 files changed, 1745 insertions(+), 2 deletions(-)
+ef81b2d 2026-11-07 22:39:12 -0600 Initial commit
+
+ README.md | 2 ++
+ 1 file changed, 2 insertions(+)

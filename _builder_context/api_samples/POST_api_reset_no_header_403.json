@@ -1,0 +1,6 @@
+{
+  "status": 403,
+  "body": {
+    "detail": "Admin actions are only allowed from the demo laptop."
+  }
+}

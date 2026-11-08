@@ -1,0 +1,73 @@
+{
+  "status": 200,
+  "body": {
+    "mode": "mock",
+    "model": "mock (no API key)",
+    "rows": [
+      {
+        "set": "Built-in held-out set",
+        "mode": "Number/link blocklist (today's approach)",
+        "caught": 1,
+        "scams": 12,
+        "false_alarms": 0,
+        "legit": 6,
+        "unsure": 0,
+        "hosted_calls": 0,
+        "precision": 1.0
+      },
+      {
+        "set": "Built-in held-out set",
+        "mode": "On-device matcher only",
+        "caught": 7,
+        "scams": 12,
+        "false_alarms": 0,
+        "legit": 6,
+        "unsure": 6,
+        "hosted_calls": 0,
+        "precision": 1.0
+      },
+      {
+        "set": "Built-in held-out set",
+        "mode": "On-device + Nemotron rescue",
+        "caught": 12,
+        "scams": 12,
+        "false_alarms": 0,
+        "legit": 6,
+        "unsure": 1,
+        "hosted_calls": 6,
+        "precision": 1.0
+      }
+    ],
+    "campaign": [
+      {
+        "set": "Campaign replay x5",
+        "mode": "Nemotron checks every copy (projected)",
+        "caught": 60,
+        "scams": 60,
+        "false_alarms": 0,
+        "legit": 30,
+        "unsure": 5,
+        "hosted_calls": 30,
+        "note": ""
+      },
+      {
+        "set": "Campaign replay x5",
+        "mode": "Nemotron checks once, then teaches the phone",
+        "caught": 60,
+        "scams": 60,
+        "false_alarms": 0,
+        "legit": 30,
+        "unsure": 5,
+        "hosted_calls": 10,
+        "note": "5 skills promoted, 0 rejected by the gate"
+      }
+    ],
+    "api_calls": 0,
+    "thresholds": {
+      "warn": 0.6,
+      "clear": 0.3,
+      "frozen": true
+    },
+    "ran_at": "2026-11-08 05:43:35"
+  }
+}

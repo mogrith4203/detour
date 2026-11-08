@@ -1,0 +1,615 @@
+{
+  "status": 200,
+  "body": {
+    "check_id": "5861df7e",
+    "steps": [
+      {
+        "stage": "local",
+        "agent": "On-device matcher",
+        "data": {
+          "score": 0.4,
+          "asks": [
+            "payment request (send money through western union)"
+          ],
+          "best": null,
+          "decision": "unsure",
+          "sender": {
+            "status": "unregistered 10-digit number",
+            "registered": false
+          },
+          "ranked": [
+            {
+              "story_id": "S05",
+              "title": "Grandchild in trouble",
+              "score": 0.4
+            }
+          ]
+        }
+      },
+      {
+        "stage": "rescue",
+        "agent": "Nemotron rescue (tool calls)",
+        "meta": {
+          "mode": "mock",
+          "ms": 0,
+          "redacted": "Nana it's me, I'm in a bad spot and can't call anyone else. Can you send money through Western Union tonight? I'll pay you back."
+        },
+        "trace": [
+          {
+            "tool": "search_story_map",
+            "args": {
+              "query": "nana bad spot western union"
+            },
+            "result": [
+              {
+                "story_id": "S01",
+                "title": "Fake bank fraud alert",
+                "score": 0.4
+              },
+              {
+                "story_id": "S02",
+                "title": "Unpaid toll notice",
+                "score": 0.4
+              },
+              {
+                "story_id": "S03",
+                "title": "Package on hold, fee required",
+                "score": 0.4
+              }
+            ]
+          },
+          {
+            "tool": "check_sender_registration",
+            "args": {
+              "sender": "(682) 555-0120"
+            },
+            "result": {
+              "status": "unregistered 10-digit number",
+              "registered": false
+            }
+          },
+          {
+            "tool": "submit_verdict",
+            "args": {
+              "verdict": "scam",
+              "story_id": "S05",
+              "confidence": 0.85,
+              "reason": "payment request (send money through western union). Same play as Grandchild in trouble, needs bail.",
+              "customer_message": "This message follows a scam pattern we've seen. Don't reply, click, or pay."
+            },
+            "result": {
+              "ok": true
+            }
+          }
+        ],
+        "data": {
+          "verdict": "scam",
+          "story_id": "S05",
+          "confidence": 0.85,
+          "reason": "payment request (send money through western union). Same play as Grandchild in trouble, needs bail.",
+          "customer_message": "This message follows a scam pattern we've seen. Don't reply, click, or pay."
+        }
+      },
+      {
+        "stage": "forge",
+        "agent": "Skill forge + gate",
+        "meta": {
+          "mode": "mock",
+          "ms": 0
+        },
+        "data": {
+          "proposal": {
+            "add_keywords": [
+              "nana",
+              "spot",
+              "western"
+            ],
+            "add_phrases": [],
+            "rationale": "Words from the missed message that the skill didn't know."
+          },
+          "promoted": true,
+          "gate": [
+            {
+              "test": "Fixes the missed message on-device",
+              "ok": true
+            },
+            {
+              "test": "No false alarms on 42 known-good messages",
+              "ok": true,
+              "detail": []
+            },
+            {
+              "test": "No numbers, sites, verified businesses or everyday words in the skill",
+              "ok": true,
+              "detail": []
+            },
+            {
+              "test": "Poisoning probe (verified number) stays clean",
+              "ok": true
+            }
+          ]
+        }
+      }
+    ],
+    "card": {
+      "level": "warn",
+      "title": "This looks like a scam",
+      "story": "Grandchild in trouble, needs bail",
+      "why": [
+        "This message follows a scam pattern we've seen. Don't reply, click, or pay.",
+        "Payment request (send money through western union)"
+      ],
+      "next_step": "Hang up and call your family member at the number you already have, or call another relative.",
+      "story_id": "S05"
+    },
+    "cloud_bytes": 142,
+    "sent_text": "Nana it's me, I'm in a bad spot and can't call anyone else. Can you send money through Western Union tonight? I'll pay you back.",
+    "state": {
+      "llm": {
+        "mode": "mock",
+        "model": "mock (no API key)",
+        "base_url": null,
+        "hosted_calls": 0,
+        "errors": 0,
+        "last_error": null
+      },
+      "stats": {
+        "phone_checks": 1,
+        "handled_on_device": 1,
+        "asked_consent": 1,
+        "rescues": 1,
+        "bytes_to_cloud": 142,
+        "skills_promoted": 1,
+        "skills_rejected": 0,
+        "policy_overrides": 0
+      },
+      "stories": {
+        "S01": {
+          "id": "S01",
+          "title": "Fake bank fraud alert",
+          "category": "bank",
+          "impersonates": "Lakeview Credit Union",
+          "claim": "Lakeview Credit Union Fraud Alert: Did you attempt a $1,249.00 purchase at BestMart? Reply YES or NO. If NO call (469) 555-0187",
+          "ask": "asks you to contact an unverified number ((469) 555-0187); payment request (move your balance)",
+          "payment": "move your balance",
+          "tactics": [
+            "urgency",
+            "authority"
+          ],
+          "numbers": {
+            "(469) 555-0187": {
+              "attestation": "A",
+              "status": "needs human review",
+              "seen_by": "decoy-01"
+            }
+          },
+          "domains": {},
+          "decoys": [
+            "decoy-01",
+            "decoy-02"
+          ],
+          "reports": 0,
+          "live": 0,
+          "status": "warn",
+          "skill": {
+            "keywords": {
+              "fraud": 1.0,
+              "bestmart": 1.0,
+              "alert": 1.0,
+              "attempt": 1.0,
+              "secure": 1.0,
+              "reverse": 1.0,
+              "charge": 1.0,
+              "move": 1.0,
+              "protected": 1.0,
+              "agent": 1.0
+            },
+            "phrases": [],
+            "version": 1,
+            "history": [
+              "v1: learned from honeypot transcript"
+            ]
+          },
+          "first_seen": "05:43:28"
+        },
+        "S02": {
+          "id": "S02",
+          "title": "Unpaid toll notice",
+          "category": "toll",
+          "impersonates": "TX Toll Services",
+          "claim": "Final notice: you have an unpaid toll balance of $6.85. Pay today to avoid a $50 late fee: https://txtoll-pay.help",
+          "ask": "link to an unverified site (txtoll-pay.help); payment request (card number); asks for codes or card details",
+          "payment": "card number",
+          "tactics": [
+            "urgency"
+          ],
+          "numbers": {},
+          "domains": {
+            "txtoll-pay.help": {
+              "status": "warn",
+              "seen_by": "decoy-01"
+            }
+          },
+          "decoys": [
+            "decoy-01",
+            "decoy-02"
+          ],
+          "reports": 0,
+          "live": 0,
+          "status": "warn",
+          "skill": {
+            "keywords": {
+              "fee": 1.0,
+              "unpaid": 1.0,
+              "services": 1.0,
+              "midnight": 1.0,
+              "expiration": 1.0
+            },
+            "phrases": [],
+            "version": 1,
+            "history": [
+              "v1: learned from honeypot transcript"
+            ]
+          },
+          "first_seen": "05:43:28"
+        },
+        "S03": {
+          "id": "S03",
+          "title": "Package on hold, fee required",
+          "category": "delivery",
+          "impersonates": "ParcelPost",
+          "claim": "ParcelPost: Your package #PP48213 is on hold due to an incomplete address. Update within 12 hours: https://parcelpost-redeliver.top",
+          "ask": "link to an unverified site (parcelpost-redeliver.top)",
+          "payment": "",
+          "tactics": [
+            "urgency"
+          ],
+          "numbers": {},
+          "domains": {
+            "parcelpost-redeliver.top": {
+              "status": "warn",
+              "seen_by": "decoy-01"
+            }
+          },
+          "decoys": [
+            "decoy-01",
+            "decoy-02"
+          ],
+          "reports": 0,
+          "live": 0,
+          "status": "warn",
+          "skill": {
+            "keywords": {
+              "fee": 1.0,
+              "hold": 1.0,
+              "incomplete": 1.0,
+              "redelivery": 1.0,
+              "released": 1.0,
+              "sender": 1.0
+            },
+            "phrases": [],
+            "version": 1,
+            "history": [
+              "v1: learned from honeypot transcript"
+            ]
+          },
+          "first_seen": "05:43:28"
+        },
+        "S04": {
+          "id": "S04",
+          "title": "Phone bill past due",
+          "category": "carrier",
+          "impersonates": "Mobile carrier",
+          "claim": "Your wireless account is past due. Service will be suspended today at 5 PM. Avoid disconnection: https://acct-restore-mobile.com",
+          "ask": "link to an unverified site (acct-restore-mobile.com); asks you to contact an unverified number ((817) 555-0148); payment request (gift card); asks for codes or card details",
+          "payment": "gift card",
+          "tactics": [
+            "urgency",
+            "authority"
+          ],
+          "numbers": {
+            "(817) 555-0148": {
+              "attestation": "A",
+              "status": "needs human review",
+              "seen_by": "decoy-01"
+            }
+          },
+          "domains": {
+            "acct-restore-mobile.com": {
+              "status": "warn",
+              "seen_by": "decoy-01"
+            }
+          },
+          "decoys": [
+            "decoy-01",
+            "decoy-02"
+          ],
+          "reports": 0,
+          "live": 0,
+          "status": "warn",
+          "skill": {
+            "keywords": {
+              "gift": 1.0,
+              "wireless": 1.0,
+              "past": 1.0,
+              "service": 1.0,
+              "suspended": 1.0,
+              "disconnection": 1.0,
+              "billing": 1.0,
+              "department": 1.0,
+              "line": 1.0,
+              "buy": 1.0,
+              "cards": 1.0,
+              "codes": 1.0
+            },
+            "phrases": [],
+            "version": 1,
+            "history": [
+              "v1: learned from honeypot transcript"
+            ]
+          },
+          "first_seen": "05:43:29"
+        },
+        "S05": {
+          "id": "S05",
+          "title": "Grandchild in trouble, needs bail",
+          "category": "family_emergency",
+          "impersonates": "Grandchild / lawyer",
+          "claim": "Grandma it's me, I'm in trouble and my phone broke. Please don't tell mom. Call my lawyer at (972) 555-0164.",
+          "ask": "asks you to contact an unverified number ((972) 555-0164); payment request (Bail); asks you to keep it secret",
+          "payment": "Bail",
+          "tactics": [
+            "urgency",
+            "secrecy",
+            "authority"
+          ],
+          "numbers": {
+            "(972) 555-0164": {
+              "attestation": "A",
+              "status": "needs human review",
+              "seen_by": "decoy-01"
+            }
+          },
+          "domains": {},
+          "decoys": [
+            "decoy-01",
+            "decoy-02"
+          ],
+          "reports": 0,
+          "live": 0,
+          "status": "warn",
+          "skill": {
+            "keywords": {
+              "lawyer": 1.0,
+              "trouble": 1.0,
+              "broke": 1.0,
+              "tell": 1.0,
+              "accident": 1.0,
+              "arrested": 1.0,
+              "bail": 1.0,
+              "explain": 1.0,
+              "everything": 1.0,
+              "courier": 1.0,
+              "cash": 1.0,
+              "bitcoin": 1.0,
+              "atm": 1.0,
+              "hurry": 1.0,
+              "nana": 1.0,
+              "spot": 1.0,
+              "western": 1.0
+            },
+            "phrases": [],
+            "version": 2,
+            "history": [
+              "v1: learned from honeypot transcript",
+              "v2: +nana, spot, western"
+            ]
+          },
+          "first_seen": "05:43:29",
+          "promoted_at": [
+            1794138209.0338595
+          ]
+        },
+        "S06": {
+          "id": "S06",
+          "title": "Paid task job offer",
+          "category": "job",
+          "impersonates": "Recruiter (Talent Bridge)",
+          "claim": "Hi, this is Amy from Talent Bridge. Your resume was recommended for a remote part-time role paying $300-$500/day. Reply 1 to learn more.",
+          "ask": "asks you to contact an unverified number ((682) 555-0171); payment request (prepay)",
+          "payment": "prepay",
+          "tactics": [
+            "authority"
+          ],
+          "numbers": {
+            "(682) 555-0171": {
+              "attestation": "B",
+              "status": "story only (could be spoofed)",
+              "seen_by": "decoy-01"
+            }
+          },
+          "domains": {},
+          "decoys": [
+            "decoy-01",
+            "decoy-02"
+          ],
+          "reports": 0,
+          "live": 0,
+          "status": "warn",
+          "skill": {
+            "keywords": {
+              "earn": 1.0,
+              "amy": 1.0,
+              "talent": 1.0,
+              "bridge": 1.0,
+              "resume": 1.0,
+              "recommended": 1.0,
+              "remote": 1.0,
+              "part": 1.0,
+              "role": 1.0,
+              "paying": 1.0,
+              "tasks": 1.0,
+              "simple": 1.0,
+              "products": 1.0,
+              "commission": 1.0
+            },
+            "phrases": [],
+            "version": 1,
+            "history": [
+              "v1: learned from honeypot transcript"
+            ]
+          },
+          "first_seen": "05:43:29"
+        }
+      },
+      "log": [
+        {
+          "t": "05:43:29",
+          "kind": "skill",
+          "text": "S05 skill v2 promoted to every phone"
+        },
+        {
+          "t": "05:43:29",
+          "kind": "story",
+          "text": "S06 updated from Ray Gutierrez's line (warn)"
+        },
+        {
+          "t": "05:43:29",
+          "kind": "story",
+          "text": "S06 created from Linda Park's line (watch)"
+        },
+        {
+          "t": "05:43:29",
+          "kind": "story",
+          "text": "New story S06: Paid task job offer"
+        },
+        {
+          "t": "05:43:29",
+          "kind": "story",
+          "text": "S05 updated from Ray Gutierrez's line (warn)"
+        },
+        {
+          "t": "05:43:29",
+          "kind": "story",
+          "text": "S05 created from Linda Park's line (watch)"
+        },
+        {
+          "t": "05:43:29",
+          "kind": "story",
+          "text": "New story S05: Grandchild in trouble, needs bail"
+        },
+        {
+          "t": "05:43:29",
+          "kind": "story",
+          "text": "S04 updated from Ray Gutierrez's line (warn)"
+        },
+        {
+          "t": "05:43:29",
+          "kind": "story",
+          "text": "S04 created from Linda Park's line (watch)"
+        },
+        {
+          "t": "05:43:29",
+          "kind": "story",
+          "text": "New story S04: Phone bill past due"
+        },
+        {
+          "t": "05:43:28",
+          "kind": "story",
+          "text": "S03 updated from Ray Gutierrez's line (warn)"
+        },
+        {
+          "t": "05:43:28",
+          "kind": "story",
+          "text": "S03 created from Linda Park's line (watch)"
+        },
+        {
+          "t": "05:43:28",
+          "kind": "story",
+          "text": "New story S03: Package on hold, fee required"
+        },
+        {
+          "t": "05:43:28",
+          "kind": "story",
+          "text": "S02 updated from Ray Gutierrez's line (warn)"
+        },
+        {
+          "t": "05:43:28",
+          "kind": "story",
+          "text": "S02 created from Linda Park's line (watch)"
+        },
+        {
+          "t": "05:43:28",
+          "kind": "story",
+          "text": "New story S02: Unpaid toll notice"
+        },
+        {
+          "t": "05:43:28",
+          "kind": "story",
+          "text": "S01 updated from Ray Gutierrez's line (warn)"
+        },
+        {
+          "t": "05:43:28",
+          "kind": "story",
+          "text": "S01 created from Linda Park's line (watch)"
+        },
+        {
+          "t": "05:43:28",
+          "kind": "story",
+          "text": "New story S01: Fake bank fraud alert"
+        }
+      ],
+      "personas": {
+        "decoy-01": {
+          "id": "decoy-01",
+          "name": "Linda Park",
+          "age": 71,
+          "city": "Plano, TX",
+          "number": "(214) 555-0101",
+          "seeded_on": "List A (simulated data broker)",
+          "style": "polite, a little unsure with phones, writes full sentences",
+          "fake_details": {
+            "bank": "Lakeview Credit Union",
+            "card_last4": "4417 (fake)"
+          }
+        },
+        "decoy-02": {
+          "id": "decoy-02",
+          "name": "Ray Gutierrez",
+          "age": 66,
+          "city": "Mesquite, TX",
+          "number": "(972) 555-0102",
+          "seeded_on": "List B (simulated leaked sweepstakes list)",
+          "style": "friendly, chatty, asks a lot of questions",
+          "fake_details": {
+            "bank": "Lakeview Credit Union",
+            "card_last4": "9021 (fake)"
+          }
+        },
+        "decoy-03": {
+          "id": "decoy-03",
+          "name": "Doris Whitfield",
+          "age": 78,
+          "city": "Sulphur Springs, TX (rural)",
+          "number": "(903) 555-0103",
+          "seeded_on": "List C (simulated old phone directory scrape)",
+          "style": "short replies, slow to trust, mentions her grandson helps with tech",
+          "fake_details": {
+            "bank": "Lakeview Credit Union",
+            "card_last4": "3388 (fake)"
+          }
+        }
+      },
+      "last_event": 15,
+      "scenarios": {
+        "bank_alert": "Fake bank fraud alert",
+        "toll": "Unpaid toll notice",
+        "parcel": "Package on hold",
+        "carrier_bill": "Phone bill past due",
+        "grandkid": "Grandchild in trouble",
+        "job": "Remote job offer",
+        "poison": "Attack: plant a real bank number"
+      }
+    }
+  }
+}

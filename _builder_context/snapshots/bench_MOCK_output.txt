@@ -1,0 +1,12 @@
+Mode: mock  Model: mock (no API key)
+
+Built-in held-out set
+  Number/link blocklist (today's approach)              caught  1/12  false alarms 0/6   unsure 0   hosted checks 0
+  On-device matcher only                                caught  7/12  false alarms 0/6   unsure 6   hosted checks 0
+  On-device + Nemotron rescue                           caught 12/12  false alarms 0/6   unsure 1   hosted checks 6
+
+Campaign replay x5
+  Nemotron checks every copy (projected)                caught 60/60  false alarms 0/30  unsure 5   hosted checks 30
+  Nemotron checks once, then teaches the phone          caught 60/60  false alarms 0/30  unsure 5   hosted checks 10
+
+Done in 0s. Saved /home/claude/detour/results/benchmark.json

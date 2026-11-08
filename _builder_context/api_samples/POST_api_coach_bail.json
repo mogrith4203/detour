@@ -1,0 +1,56 @@
+{
+  "status": 200,
+  "body": {
+    "answer": "Paying $3,000 from checking right now would cause real trouble. Checking would first drop below $0 on Nov 9, to -$266.67. On Dec 1 the $1,180 mortgage autopay would hit an account already at -$2,623.67, leaving checking at -$1,805.28 that day. Checking would be below $0 on 50 of the next 60 days (versus 0 without this). Cash Runway goes from 3.1 months (watch) to 2.4 months (risk). Bill Coverage goes from $376.33 (watch) to -$2,623.67 (risk). If the payment is truly needed, paying from savings instead keeps your 30-day checking low point at $376.33, though your cash runway still drops to 2.4 months. An urgent call asking for bail money is one of the most common scams aimed at older adults, so hang up and call the person or a family member on a number you already know before sending anything. This is general guidance, not financial advice.",
+    "numbers_cited": [
+      "$3,000",
+      "$0",
+      "-$266.67",
+      "$1,180",
+      "-$2,623.67",
+      "-$1,805.28",
+      "$0",
+      "$376.33",
+      "-$2,623.67",
+      "$376.33"
+    ],
+    "next_steps": [
+      "Verify the request by calling family or the court directly on a number you look up yourself.",
+      "Do not pay by Zelle, wire, gift card or cash advance to someone who called you.",
+      "Ask us to lock your savings while you check."
+    ],
+    "tool_trace": [
+      {
+        "tool": "run_whatif",
+        "args": {
+          "scenario": [
+            {
+              "type": "payment",
+              "amount": 3000.0,
+              "from": "checking",
+              "date": "2026-11-09",
+              "label": "Bail payment"
+            }
+          ]
+        },
+        "result_summary": "Cash Runway 3.1 months -> 2.4 months; Bill Coverage $376.33 low point -> -$2,623.67 low point"
+      },
+      {
+        "tool": "run_whatif",
+        "args": {
+          "scenario": [
+            {
+              "type": "payment",
+              "amount": 3000.0,
+              "from": "savings",
+              "date": "2026-11-09",
+              "label": "Bail payment"
+            }
+          ]
+        },
+        "result_summary": "Cash Runway 3.1 months -> 2.4 months"
+      }
+    ],
+    "mode": "mock"
+  }
+}

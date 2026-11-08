@@ -1,0 +1,30 @@
+{
+  "status": 200,
+  "body": [
+    {
+      "label": "New number, old play (bank)",
+      "sender": "(972) 555-0177",
+      "text": "LAKEVIEW FRAUD DEPT: we stopped a $980 charge attempt. To reverse it and secure your money, move it to a protected account today. Call (972) 555-0161."
+    },
+    {
+      "label": "Toll scam, new domain",
+      "sender": "(214) 555-0158",
+      "text": "TX toll services: your unpaid toll balance gets a late fee at midnight. Settle it now: https://txtoll-pay.top"
+    },
+    {
+      "label": "Grandparent scam, no number",
+      "sender": "(682) 555-0120",
+      "text": "Nana it's me, I'm in a bad spot and can't call anyone else. Can you send money through Western Union tonight? I'll pay you back."
+    },
+    {
+      "label": "Real bank alert (look-alike)",
+      "sender": "33622",
+      "text": "Lakeview Credit Union: A $1,249.00 purchase at BestMart was approved. If this wasn't you, call the number on the back of your card."
+    },
+    {
+      "label": "Friend with a new number",
+      "sender": "(682) 555-0126",
+      "text": "Hi! It's Sam, I got a new number. Save this one. Are we still on for lunch Saturday?"
+    }
+  ]
+}
