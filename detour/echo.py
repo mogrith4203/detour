@@ -14,6 +14,7 @@ import copy
 import hashlib
 import json
 import re
+import threading
 import time
 import uuid
 
@@ -267,10 +268,15 @@ class Defense:
         return self._public(rec)
 
     def _answer(self, rec, answer, trusted, trust_reasons):
+        """Status flips to 'answered' only after the outcome is complete, so a poller never sees a half-done record."""
+        self._answer_inner(rec, answer, trusted, trust_reasons)
+        rec["status"] = "answered"
+        return self._public(rec)
+
+    def _answer_inner(self, rec, answer, trusted, trust_reasons):
         rec["answer"] = "not_me" if answer == "not_me" else "yes"
         rec["trusted"] = bool(trusted)
         rec["trust_reasons"] = trust_reasons
-        rec["status"] = "answered"
         who = rec["target_label"]
         self.emit("Identity Echo", "answer", output=f"{who}: {'NOT ME' if rec['answer'] == 'not_me' else 'yes, it is me'}"
                   + ("" if trusted else " · UNTRUSTED (" + "; ".join(trust_reasons) + ")"), mode="simulated")
@@ -320,7 +326,18 @@ class Defense:
                 continue
             if acct and self._tripwire(acct, f"Echo denial {rec['echo_id']}"):
                 trips.append(acct)
-        skill = self._learn(thread[-1] if thread else "", "bank" if is_business else "family_emergency")
+        # the skill forge calls Nemotron; run it in the background so Linda sees the truth in seconds
+        skill = {"pending": True, "promoted": None, "version": None, "bytes": None}
+        raw, cat = (thread[-1] if thread else ""), ("bank" if is_business else "family_emergency")
+
+        def learn():
+            try:
+                res = self._learn(raw, cat)
+            except Exception as e:  # never let a model hiccup break the Echo outcome
+                res = {"promoted": False, "version": None, "bytes": None, "reason": f"forge failed: {str(e)[:80]}"}
+            res["pending"] = False
+            skill.update(res)  # the same dict the outcome holds, so no race with the outcome being assigned
+        threading.Thread(target=learn, daemon=True).start()
         # divert the thread to a decoy that plays Linda (the scammer never learns he was caught)
         rec["decoy"] = {"persona": "decoy-01", "convo": [{"who": "scammer", "text": t, "sender": sender} for t in thread[-3:]],
                         "diverted_at": _now(), "canary": None}
@@ -526,7 +543,7 @@ class Defense:
             sigs.append({"family": "carrier", "name": "on_call_unknown", "weight": 0.5,
                          "detail": "Linda is on a call with an unknown number right now (simulated carrier signal)."})
         echo = self._echo_for(s)
-        if echo and echo["status"] == "answered" and not echo["trusted"]:
+        if echo and echo.get("answer") and echo.get("trusted") is False:
             sigs.append({"family": "carrier", "name": "echo_untrusted", "weight": 0.6,
                          "detail": "The Echo answer came from a line with a SIM swap or forwarding: " + "; ".join(echo["trust_reasons"])})
         if echo and echo["status"] == "no_answer":

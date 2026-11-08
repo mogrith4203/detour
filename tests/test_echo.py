@@ -61,7 +61,13 @@ def test_scam_path_not_me_cancels_payment_and_learns(c):
     assert pays[0]["status"] == "cancelled"
     g = c.get("/api/gauntlet", params={"payment_id": pays[0]["id"]}).json()
     assert g["action"] == "cancel" and g["independent"] >= 2
-    assert rec["outcome"]["skill"]["version"] is not None
+    import time as _t
+    for _ in range(50):
+        sk = c.get("/api/echo/status", params={"echo_id": st["echo_id"]}).json()["outcome"]["skill"]
+        if not sk.get("pending"):
+            break
+        _t.sleep(0.05)
+    assert sk["version"] is not None and sk["promoted"] is not None
     ev = [e["agent"] for e in c.get("/api/events").json()["events"]]
     for agent in ("Claim extractor", "Identity Echo", "Ground-truth label", "Skill forge", "Gate (tests)"):
         assert agent in ev

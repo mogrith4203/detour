@@ -21,7 +21,7 @@ OUT = ROOT / "results" / "flow"
 PORT = int(os.getenv("E2E_PORT", "8030"))
 MODE = os.getenv("E2E_MODE", "mock")
 BADGE = {"mock": "MOCK", "record": "LIVE", "replay": "REPLAY"}[MODE]
-T = 8000 if MODE == "mock" else 45000  # live model calls take seconds
+T = 8000 if MODE == "mock" else 120000  # live model calls take seconds
 URL = f"http://127.0.0.1:{PORT}/"
 W, H = (int(sys.argv[1]), int(sys.argv[2])) if len(sys.argv) > 2 else (1440, 900)
 
@@ -93,6 +93,7 @@ def main():
             lens("tmo")
             page.locator("#jakeNotMe").first.click(timeout=T)
             expect(page.locator("#lens-tmo")).to_contain_text("isn't him", timeout=T)
+            expect(page.locator("#scamText")).to_be_enabled(timeout=T)
             shot("real_jake_says_not_me")
             page.fill("#scamComposer input, #scamComposer textarea", "ok send it now pls")
             with page.expect_response(lambda r: "/api/echo/decoy_say" in r.url, timeout=T):
