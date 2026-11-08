@@ -139,6 +139,9 @@ select.field{appearance:none;padding-right:28px;background-image:linear-gradient
 .pm-legend{display:flex;justify-content:space-between;gap:8px;margin-top:8px;font-size:13px;color:var(--muted)}
 .pm-legend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px}
 .pm-legend b{color:var(--text);font-family:var(--mono)}
+.pm-sync{margin-top:7px;font-size:12.5px;color:var(--muted)} .pm-sync b{color:var(--text);font-family:var(--mono)} .pm-sync span{color:var(--dim);margin-left:6px}
+.thead .inbrowser{margin-top:2px;font:600 9.5px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:#FF4FA8;border:1px solid rgba(226,0,116,.45);border-radius:20px;padding:3px 7px}
+.thead .inbrowser.stale{color:#8E8E93;border-color:#3A3A3C}
 
 /* phone */
 .phone-wrap{display:flex;align-items:center;justify-content:center;min-height:0}
@@ -474,9 +477,10 @@ svg .lbl{font:700 12px var(--mono)}
       </form>
       <div class="privacy">
         <div class="eyebrow">Privacy meter</div>
-        <div class="pm-big"><b id="pmBytes">0</b><span>bytes left the phone</span></div>
+        <div class="pm-big"><b id="pmBytes">0</b><span>message bytes left the phone</span></div>
         <div class="pm-bar"><div class="dev" id="pmDevBar" style="width:0"></div><div class="cons" id="pmConsBar" style="width:0"></div></div>
         <div class="pm-legend"><span><i style="background:var(--ok)"></i><b id="pmDev">0</b> on device</span><span><i style="background:var(--amber)"></i><b id="pmCons">0</b> sent with consent</span></div>
+        <div class="pm-sync">Skills synced to phone: <b id="pmSkills">–</b><span id="pmSkillsV"></span></div>
       </div>
     </div>
   </aside>
@@ -487,7 +491,7 @@ svg .lbl{font:700 12px var(--mono)}
       <div class="sbar"><span>9:41</span><span class="ic">
         <svg width="18" height="11" viewBox="0 0 18 11"><rect x="0" y="7" width="3" height="4" rx="1" fill="#fff"/><rect x="5" y="5" width="3" height="6" rx="1" fill="#fff"/><rect x="10" y="2.5" width="3" height="8.5" rx="1" fill="#fff"/><rect x="15" y="0" width="3" height="11" rx="1" fill="#fff"/></svg>
         <svg width="25" height="12" viewBox="0 0 25 12"><rect x=".5" y=".5" width="21" height="11" rx="3" fill="none" stroke="#fff" opacity=".5"/><rect x="2" y="2" width="15" height="8" rx="1.5" fill="#fff"/><rect x="23" y="4" width="1.5" height="4" rx=".7" fill="#fff" opacity=".5"/></svg></span></div>
-      <div class="thead"><div class="avatar" id="phAvatar">?</div><div class="nm" id="phSender">No messages yet</div><div class="meta" id="phMeta">Detour screens on device</div></div>
+      <div class="thead"><div class="avatar" id="phAvatar">?</div><div class="nm" id="phSender">No messages yet</div><div class="meta" id="phMeta">Detour screens on device</div><div class="inbrowser" id="phRuns" title="static/matcher.js: the matcher runs here, in this browser tab, with rules synced from the server">runs in this browser</div></div>
       <div class="thread" id="thread"><div class="empty" style="margin:auto;color:#636366">Deliver a text from the left.<br>Detour checks it <b style="color:#aaa">on this phone</b> first.</div></div>
       <div class="composer"><div class="fake">Text Message</div>
         <svg width="26" height="26" viewBox="0 0 26 26"><circle cx="13" cy="13" r="13" fill="#2C2C2E"/><path d="M13 7v12M8 12l5-5 5 5" stroke="#8E8E93" stroke-width="2" fill="none" stroke-linecap="round"/></svg></div>
@@ -495,9 +499,9 @@ svg .lbl{font:700 12px var(--mono)}
       <div class="sheet" id="sheet">
         <div class="grab"></div>
         <h3>Not sure about this one. Send a redacted copy to Detour for a second look?</h3>
-        <p>Only this redacted text leaves the phone, plus the sender ID for a registration check. Nothing is sent unless you tap.</p>
+        <p>Only this redacted text leaves the phone, plus the sender ID for a registration check and the phone's own score. Nothing is sent unless you tap.</p>
         <div class="leave" id="sheetText"></div>
-        <div class="bytes"><span id="sheetBytes">0 bytes</span><span>emails and long digit runs removed</span></div>
+        <div class="bytes"><span id="sheetBytes">0 bytes</span><span>name, emails, codes, long digit runs removed</span></div>
         <button class="sbtn send" id="sheetSend">Send redacted copy</button>
         <button class="sbtn keep" id="sheetKeep">Keep it on my phone</button>
       </div>
@@ -605,6 +609,7 @@ svg .lbl{font:700 12px var(--mono)}
 <footer><span>All personas, numbers (555-01xx), businesses and customers are synthetic.</span><span>Keys <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> switch lenses</span></footer>
 <div id="toasts"></div>
 
+<script src="/static/matcher.js"></script>
 <script>
 "use strict";
 /* ------------------------------------------------------------ utils */
@@ -625,8 +630,11 @@ function toast(msg, kind = "info", ms = 4200) {
   setTimeout(() => { el.style.transition = "opacity .3s"; el.style.opacity = "0"; setTimeout(() => el.remove(), 300); }, ms);
 }
 
+const ADMIN_TOKEN = new URLSearchParams(location.search).get("token") || "1";
+const ADMIN_PATHS = /^\/api\/(reset|seed|approve|benchmark)(\?|$)/;
 async function api(path, opts = {}, quiet = false) {
   const o = {method: opts.method || (opts.body ? "POST" : "GET"), headers: {}};
+  if (ADMIN_PATHS.test(path)) o.headers["x-detour-admin"] = ADMIN_TOKEN;
   if (opts.body !== undefined) { o.body = JSON.stringify(opts.body); o.headers["content-type"] = "application/json"; }
   let r;
   try { r = await fetch(path, o); }
@@ -637,7 +645,7 @@ async function api(path, opts = {}, quiet = false) {
   if (!r.ok) {
     const d = data && data.detail;
     const msg = d ? (typeof d === "string" ? d : JSON.stringify(d)) : `${r.status} ${r.statusText || "error"}`;
-    if (!quiet) toast(`${msg}`, "err");
+    if (!quiet) toast(`${msg}`, r.status === 429 ? "info" : (r.status === 400 || r.status === 409) ? "warn" : "err");
     const err = new Error(msg); err.status = r.status; throw err;
   }
   if (data && data.error && !quiet) toast(data.error, "warn");
@@ -647,7 +655,9 @@ async function api(path, opts = {}, quiet = false) {
 /* ------------------------------------------------------------ global state */
 const S = {lens: "tmo", llm: null, stats: {}, stories: {}, personas: {}, scenarios: {}, lastEv: 0, offline: false,
   threads: {}, phoneSender: null, pending: null, live: null, running: false, bench: null, benchRevealed: false,
-  fin: null, whatif: null, wiKey: null, rescue: null};
+  fin: null, whatif: null, wiKey: null, rescue: null,
+  rules: null, rulesAt: 0, pm: {dev: 0, cons: 0, bytes: 0}};
+const OWNER_NAMES = ["Linda Park"];  // the phone's owner: redacted on the phone before anything can leave
 
 /* ------------------------------------------------------------ lenses */
 const LENSES = ["tmo", "nv", "pnc"];
@@ -674,14 +684,39 @@ function renderLLM(llm) {
   b.title = llm.last_error ? "Last model error: " + llm.last_error : (llm.base_url || "");
   $("#hostedCalls").textContent = llm.hosted_calls ?? 0;
 }
-function renderStats(st) {
-  if (!st) return; S.stats = st;
-  const dev = st.handled_on_device || 0, cons = st.rescues || 0, tot = Math.max(dev + cons, 1);
-  $("#pmBytes").textContent = (st.bytes_to_cloud || 0).toLocaleString();
-  $("#pmBytes").style.color = st.bytes_to_cloud ? "var(--amber)" : "var(--ok)";
+function renderStats(st) { if (st) S.stats = st; }
+/* Privacy meter: counted on the phone from what it actually sent, never from the server's own tally. */
+function renderPrivacy() {
+  const {dev, cons, bytes} = S.pm, tot = Math.max(dev + cons, 1);
+  $("#pmBytes").textContent = bytes.toLocaleString();
+  $("#pmBytes").style.color = bytes ? "var(--amber)" : "var(--ok)";
   $("#pmDev").textContent = dev; $("#pmCons").textContent = cons;
   $("#pmDevBar").style.width = (dev / tot * 100) + "%"; $("#pmConsBar").style.width = (cons / tot * 100) + "%";
+  if (S.rules) {
+    $("#pmSkills").textContent = (S.rules.skill_bytes / 1024).toFixed(1) + " KB";
+    $("#pmSkillsV").textContent = `${S.rules.stories.length} plays · ${S.rules.known_good.length} known-good hashes`;
+  }
 }
+/* Server -> phone: skills and rules. The only thing that ever flows that way. */
+let rulesBusy = null;
+function refreshRules() {
+  if (rulesBusy) return rulesBusy;
+  rulesBusy = (async () => {
+    try {
+      const r = await api("/api/phone/rules", {}, true);
+      DetourMatcher.prep(r);  // compiles every rule pattern; throws if one can't run here
+      S.rules = r; S.rulesAt = Date.now();
+      $("#phRuns").classList.remove("stale"); $("#phRuns").textContent = `runs in this browser · ${r.stories.length} skills`;
+      renderPrivacy();
+    } catch (e) {
+      if (!(e && e.status) && !S.offline) console.warn("rules sync failed", e);
+      $("#phRuns").classList.add("stale");
+    } finally { rulesBusy = null; }
+    return S.rules;
+  })();
+  return rulesBusy;
+}
+const RULE_EVENTS = new Set(["validate", "gate", "reset", "extract", "report", "consent", "verdict"]);
 function applyState(st) {
   if (!st) return;
   renderLLM(st.llm); renderStats(st.stats);
@@ -689,7 +724,6 @@ function applyState(st) {
 }
 
 /* ================================================================ T-MOBILE: phone */
-function redactJS(t) { return t.replace(/[\w.+-]+@[\w-]+\.[\w.]+/g, "[email]").replace(/\b\d{6,}\b/g, "[number]"); }
 
 async function loadSamples() {
   try {
@@ -701,6 +735,7 @@ async function loadSamples() {
 $("#customForm").addEventListener("submit", e => {
   e.preventDefault();
   const t = $("#cText").value.trim(); if (!t) { toast("Type a message first.", "warn"); return; }
+  document.activeElement?.blur?.();  // so keys 1/2/3 switch lenses again
   deliver(t, $("#cSender").value.trim(), $("#cKnown").checked);
 });
 
@@ -722,18 +757,27 @@ async function deliver(text, sender, known) {
     S.phoneSender = key; $("#thread").innerHTML = `<div class="when">Today 9:41 AM</div>`; phoneHeader(sender, known);
   }
   threadAdd(`<div class="bub in">${esc(text)}</div>`);
-  if (!known) { const th = (S.threads[key] ||= []); th.push(text); while (th.length > 3) th.shift(); }
   const od = threadAdd(`<div class="ondev"><div class="hd"><span>Detour · on device</span><span class="tag dev">0 bytes sent</span></div></div>`);
   const line = async (txt, cls = "", wait = 230) => { const l = document.createElement("div"); l.className = "ln" + (cls ? " l-" + cls : ""); l.innerHTML = `<i></i><span>${txt}</span>`; od.appendChild(l); $("#thread").scrollTop = 1e9; await sleep(20); l.classList.add("on"); await sleep(wait); };
   await line("Reading message on this phone…", "", 260);
   let res;
-  try { res = await api("/api/check", {body: {text, sender, known}}); }
-  catch { await line("Check failed. Message left unscreened.", "r", 0); phoneBusy = false; return; }
+  try {
+    const rules = S.rules || await refreshRules();
+    if (!rules) throw new Error("no rules");
+    // The matcher runs here. The per-sender thread lives only in this tab's memory.
+    res = await DetourMatcher.checkOnPhone(text, sender, known, rules, known ? null : (S.threads[key] ||= []));
+  } catch (e) { console.warn(e); await line("No skills synced to this phone yet. Message left unscreened.", "r", 0); phoneBusy = false; return; }
+  await line(`Skills v${esc(rulesVersion())} · synced ${esc(Math.max(0, Math.round((Date.now() - S.rulesAt) / 1000)))}s ago`, "", 140);
   for (const st of res.steps || []) await renderStep(st, line, od);
-  applyState(res.state);
-  showCard(res.card, text, res.check_id);
+  // Phone -> server: only the verdict, for the live counters. No text, no sender.
+  api("/api/phone/verdict", {body: res.report}, true).then(d => d && renderStats(d.stats)).catch(() => {});
+  if (res.card.consent) {
+    S.pendingCheck = {context: res.context, sender, local: res.local, fingerprint: res.fingerprint};
+  } else { S.pm.dev++; renderPrivacy(); }
+  showCard(res.card, text, res.card.consent ? "local" : null);
   phoneBusy = false;
 }
+function rulesVersion() { return S.rules ? S.rules.stories.map(s => s.skill.version).reduce((a, b) => a + b, 0) : 0; }
 
 async function renderStep(st, line, od) {
   if (st.stage === "contact") { await line(esc(st.note), "g"); return; }
@@ -790,38 +834,55 @@ function showCard(card, text, checkId) {
   el.addEventListener("click", async e => {
     const b = e.target.closest("[data-act]"); if (!b) return;
     if (b.dataset.act === "fin") { setLens("pnc"); runWhatIf("bail"); }
-    if (b.dataset.act === "report") { try { applyState(await api("/api/report", {body: {story_id: b.dataset.sid}})); b.textContent = "Reported"; b.disabled = true; toast("Report added to the story map.", "ok"); } catch {} }
+    if (b.dataset.act === "report") {
+      try { applyState(await api("/api/report", {body: {story_id: b.dataset.sid}})); toast("Report added to the story map.", "ok"); refreshRules(); }
+      catch (err) { if (err.status !== 429) return; }
+      b.textContent = "Reported"; b.disabled = true;
+    }
   });
   requestAnimationFrame(() => { $("#thread").scrollTop = $("#thread").scrollHeight; });
   setTimeout(() => { $("#thread").scrollTop = $("#thread").scrollHeight; }, 320);
   if (card.consent) openSheet(checkId);
 }
 
-function openSheet(checkId) {
-  const ctx = (S.threads[S.phoneSender] || []).join(" ");
-  const red = redactJS(ctx);
-  S.pending = checkId;
-  $("#sheetText").innerHTML = esc(red).replace(/\[(email|number)\]/g, "<mark>[$1]</mark>");
-  $("#sheetBytes").textContent = new TextEncoder().encode(red).length + " bytes would leave";
+function openSheet() {
+  const pc = S.pendingCheck; if (!pc || !S.rules) return;
+  // Exactly the payload "Send redacted copy" will POST: redacted on this phone, capped like the server caps it.
+  const text = Array.from(DetourMatcher.redact(S.rules, pc.context, OWNER_NAMES)).slice(0, 1500).join("");
+  const sender = Array.from(pc.sender || "").slice(0, 40).join("");
+  const lowText = text.toLowerCase();
+  // An ask's quoted value goes only if the customer can see it in the redacted text (e.g. never a domain from their own email).
+  const asks = (pc.local.asks || []).map(a => a.replace(/\(((?:[^()]|\([^()]*\))*)\)$/, (m, v) => lowText.includes(v.toLowerCase()) ? m : "([redacted])"));
+  const local = {score: pc.local.score, asks, ranked: (pc.local.ranked || []).map(r => ({story_id: r.story_id, title: r.title, score: r.score})),
+    fingerprint: pc.fingerprint};
+  const bytes = DetourMatcher.byteLen(text) + DetourMatcher.byteLen(sender);
+  S.pending = {text, sender, local, bytes};
+  $("#sheetText").innerHTML = esc(text).replace(/\[(email|number|name|ssn|card|last4|address|code)\]/g, "<mark>[$1]</mark>") +
+    `<div style="margin-top:6px;color:#8E8E93">Sender ID: ${esc(sender || "(none)")}</div>`;
+  $("#sheetBytes").textContent = bytes + " bytes would leave";
   setTimeout(() => $("#screen").classList.add("sheet-on"), 450);
 }
 function closeSheet() { $("#screen").classList.remove("sheet-on"); }
 $("#sheetBg").onclick = () => { closeSheet(); keptOnPhone(); };
 $("#sheetKeep").onclick = () => { closeSheet(); keptOnPhone(); };
-function keptOnPhone() { if (!S.pending) return; S.pending = null; threadAdd(`<div class="when">Kept on phone. 0 bytes sent.</div>`); }
+function keptOnPhone() { if (!S.pending) return; S.pending = null; S.pendingCheck = null; S.pm.dev++; renderPrivacy(); threadAdd(`<div class="when">Kept on phone. 0 bytes sent.</div>`); }
 $("#sheetSend").onclick = async () => {
-  const id = S.pending; if (!id) return closeSheet();
-  S.pending = null; closeSheet();
+  const pay = S.pending; if (!pay) return closeSheet();
+  S.pending = null; S.pendingCheck = null; closeSheet();
   const od = threadAdd(`<div class="ondev"><div class="hd"><span>Detour · second look</span><span class="tag fallback" id="odBytes">sending…</span></div></div>`);
   const line = async (txt, cls = "", wait = 260) => { const l = document.createElement("div"); l.className = "ln" + (cls ? " l-" + cls : ""); l.innerHTML = `<i></i><span>${txt}</span>`; od.appendChild(l); $("#thread").scrollTop = 1e9; await sleep(20); l.classList.add("on"); await sleep(wait); };
   await line("You tapped consent. Sending the redacted copy…", "a");
   let res;
-  try { res = await api("/api/consent", {body: {id}}); } catch { await line("Couldn't reach Detour. Nothing was sent.", "r", 0); return; }
+  try { res = await api("/api/consent", {body: {text: pay.text, sender: pay.sender, local: pay.local}}); }
+  catch { await line("Couldn't reach Detour. Nothing was sent.", "r", 0); return; }
+  S.pm.bytes += pay.bytes; S.pm.cons++; renderPrivacy();  // the meter counts the payload this phone sent
   if (res.error) { await line(esc(res.error), "r", 0); return; }
-  $("#odBytes", od).textContent = (res.cloud_bytes || 0) + " bytes sent";
+  $("#odBytes", od).textContent = pay.bytes + " bytes sent";
+  if (res.cloud_bytes != null && res.cloud_bytes !== pay.bytes) await line(`Server counted ${esc(res.cloud_bytes)} bytes (phone sent ${esc(pay.bytes)})`, "a");
+  refreshRules();  // a promoted skill reaches this phone right away
   for (const st of (res.steps || []).filter(s => s.stage !== "local")) await renderStep(st, line, od);
   applyState(res.state);
-  showCard(res.card, (S.threads[S.phoneSender] || []).join(" "), res.check_id);
+  showCard(res.card, pay.text, null);
 };
 
 /* ================================================================ T-MOBILE: decoy console */
@@ -967,11 +1028,12 @@ function renderStories() {
 }
 function flashStory(id) { const el = document.getElementById("st-" + id); if (!el) return; el.scrollIntoView({behavior: "smooth", inline: "center", block: "nearest"}); el.classList.add("flash"); setTimeout(() => el.classList.remove("flash"), 1800); }
 
-$("#btnSeed").onclick = async () => { try { applyState(await api("/api/seed", {body: {}})); toast("Decoy history loaded into the story map.", "ok"); } catch {} };
+$("#btnSeed").onclick = async () => { try { applyState(await api("/api/seed", {body: {}})); refreshRules(); toast("Decoy history loaded into the story map.", "ok"); } catch {} };
 $("#btnReset").onclick = async () => {
   try {
     applyState(await api("/api/reset", {body: {}}));
-    S.threads = {}; S.phoneSender = null; S.pending = null; closeSheet();
+    S.threads = {}; S.phoneSender = null; S.pending = null; S.pendingCheck = null; closeSheet();
+    S.pm = {dev: 0, cons: 0, bytes: 0}; refreshRules(); renderPrivacy();
     $("#thread").innerHTML = `<div class="empty" style="margin:auto;color:#636366">Deliver a text from the left.</div>`; phoneHeader("", false); $("#phSender").textContent = "No messages yet";
     if (!S.live) { $("#chat").innerHTML = `<div class="empty" style="margin:auto">State reset. Run a decoy session or load decoy history.</div>`; intelIdle(); }
     resetGraph(); S.rescue = null; renderRescue();
@@ -1147,6 +1209,7 @@ async function poll() {
     if (d.last < S.lastEv) S.lastEv = 0;
     const evs = d.events || [];
     if (evs.length) { S.lastEv = evs[evs.length - 1].id; queue.push(...evs); runQueue(); }
+    if (evs.some(e => RULE_EVENTS.has(e.stage) || e.agent === "system")) refreshRules();
     else S.lastEv = Math.max(S.lastEv, d.last || 0);
     $("#pollDot").className = "chip mono ok";
   } catch {
@@ -1319,7 +1382,7 @@ window.addEventListener("resize", () => { if (S.lens === "pnc") drawChart(); });
 const QS = [["Can I afford to pay $3,000 bail for my grandson tomorrow?", true], ["Should I pay off my car loan?"], ["How do I protect my savings from scams?"], ["Will I overdraft this month?"]];
 $("#qchips").innerHTML = QS.map(([q, hero]) => `<button class="qchip ${hero ? "hero" : ""}">${esc(q)}</button>`).join("");
 $("#qchips").onclick = e => { const b = e.target.closest(".qchip"); if (b) ask(b.textContent); };
-$("#askForm").addEventListener("submit", e => { e.preventDefault(); const q = $("#askText").value.trim(); if (q) { $("#askText").value = ""; ask(q); } });
+$("#askForm").addEventListener("submit", e => { e.preventDefault(); const q = $("#askText").value.trim(); $("#askText").blur(); if (q) { $("#askText").value = ""; ask(q); } });
 let asking = false;
 async function ask(q) {
   if (asking) return; asking = true; $(".coach").classList.add("asked");
@@ -1356,7 +1419,8 @@ async function boot() {
     for (const ev of d.events || []) handleEvent(ev, false);
     S.lastEv = d.last || S.lastEv;
   } catch { $("#stories").innerHTML = `<div class="empty" style="margin:auto">Server unavailable.</div>`; }
-  loadSamples(); loadFinance();
+  loadSamples(); loadFinance(); refreshRules(); renderPrivacy();
+  setInterval(() => { if (Date.now() - S.rulesAt > 2900) refreshRules(); }, 3000);
   api("/api/benchmark/last", {}, true).then(b => renderBench(b && b.rows ? b : null)).catch(() => renderBench(null));
   setInterval(poll, 700);
 }

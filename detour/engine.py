@@ -204,7 +204,7 @@ class Engine:
         if fingerprint(text) in self.good:
             self.stats["handled_on_device"] += 1
             local = {"decision": "clear", "score": 0, "best": None, "ranked": [], "asks": [],
-                     "note": "Same message was already verified as legitimate (the phone sent only a hash)."}
+                     "note": "Same message was already verified as legitimate (checked against a list of hashes synced to this phone)."}
             steps.append({"stage": "local", "agent": "On-device matcher", "data": local})
             self.emit("On-device matcher", "local", output="clear (known-good hash)", mode="on-device")
             return {"check_id": check_id, "steps": steps, "cloud_bytes": 0, "state": self.state(),
@@ -287,6 +287,7 @@ class Engine:
     def consent_text(self, redacted_text, sender, local):
         """Customer tapped 'send a redacted copy'. The phone already redacted it; we redact again in case."""
         check_id = uuid.uuid4().hex[:8]
+        local_in = local if isinstance(local, dict) else {}
         local = {"score": float(local.get("score") or 0), "asks": [str(a)[:120] for a in (local.get("asks") or [])][:6],
                  "best": local.get("best"), "decision": "unsure", "sender": sender_status(sender),
                  "ranked": [{"story_id": str(r.get("story_id", ""))[:8], "title": str(r.get("title", ""))[:80],
@@ -295,7 +296,9 @@ class Engine:
         text = redact(redacted_text or "")[:1500]
         self.stats["asked_consent"] += 1
         self._cap(self.pending)
-        self.pending[check_id] = {"text": text, "raw": text, "sender": (sender or "")[:40], "local": local, "steps": steps}
+        fp = str((local_in or {}).get("fingerprint") or "")
+        self.pending[check_id] = {"text": text, "raw": text, "sender": (sender or "")[:40], "local": local, "steps": steps,
+                                  "fp": fp if re.fullmatch(r"[0-9a-f]{16}", fp) else ""}  # hash of the original text, computed on the phone
         return self.consent(check_id)
 
     def decide(self, verdict, trace, asks):
@@ -333,7 +336,7 @@ class Engine:
                     "next_step": CATEGORY_STEPS.get(story["category"] if story else "other"), "story_id": story["id"] if story else ""}
         elif verdict["verdict"] == "legit":
             if _num(verdict.get("confidence")) >= 0.7:
-                self.good.add(fingerprint(p["raw"]))
+                self.good.add(p.get("fp") or fingerprint(p["raw"]))
             card = {"level": "clear", "title": "Looks legitimate", "why": [strip_indicators(verdict.get("customer_message") or verdict.get("reason", ""))], "next_step": ""}
         else:
             card = {"level": "unsure", "title": "Still not sure. Play it safe", "why": [verdict.get("policy") or verdict.get("reason", "")],
