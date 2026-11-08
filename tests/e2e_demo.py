@@ -2,6 +2,8 @@
 
     python3 tests/e2e_demo.py            # starts its own MOCK server on :8030
     python3 tests/e2e_demo.py 1280 800   # other viewport
+    E2E_MODE=record python3 tests/e2e_demo.py   # LIVE Nemotron, saves replays/ (needs the key in .env)
+    E2E_MODE=replay python3 tests/e2e_demo.py   # serves replays/ (REPLAY badge)
 
 Exit code 0 = every step passed and the console stayed clean.
 """
@@ -17,6 +19,9 @@ from playwright.sync_api import expect, sync_playwright
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "results" / "flow"
 PORT = int(os.getenv("E2E_PORT", "8030"))
+MODE = os.getenv("E2E_MODE", "mock")
+BADGE = {"mock": "MOCK", "record": "LIVE", "replay": "REPLAY"}[MODE]
+T = 8000 if MODE == "mock" else 45000  # live model calls take seconds
 URL = f"http://127.0.0.1:{PORT}/"
 W, H = (int(sys.argv[1]), int(sys.argv[2])) if len(sys.argv) > 2 else (1440, 900)
 
@@ -39,7 +44,8 @@ def wait_up():
 
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
-    env = {**os.environ, "DETOUR_MOCK": "1", "DETOUR_REPLAY": "0", "DETOUR_RECORD": "0", "DEMO_TOKEN": ""}
+    env = {**os.environ, "DETOUR_MOCK": "1" if MODE == "mock" else "0", "DETOUR_REPLAY": "1" if MODE == "replay" else "0",
+           "DETOUR_RECORD": "1" if MODE == "record" else "0", "DEMO_TOKEN": ""}
     srv = subprocess.Popen([sys.executable, "-m", "uvicorn", "server:app", "--port", str(PORT), "--log-level", "warning"],
                            cwd=ROOT, env=env)
     errors, step = [], [0]
@@ -54,7 +60,7 @@ def main():
 
             def shot(name):
                 step[0] += 1
-                page.screenshot(path=str(OUT / f"{W}x{H}_{step[0]:02d}_{name}.png"))
+                page.screenshot(path=str(OUT / f"{MODE}_{W}x{H}_{step[0]:02d}_{name}.png"))
                 print(f"  [PASS] {name}")
 
             def lens(l):
@@ -67,41 +73,44 @@ def main():
                 page.fill("#cText", text)
                 page.click('#customForm button[type="submit"]')
 
+            page.set_default_timeout(T)
             page.goto(URL)
-            expect(page.locator("#modeBadge")).to_contain_text("MOCK", timeout=8000)
+            expect(page.locator("#modeBadge")).to_contain_text(BADGE, timeout=15000)
             # 1. reset + load decoy history
             page.click("#btnReset")
             page.wait_for_timeout(400)
-            page.click("#btnSeed")
+            with page.expect_response(lambda r: "/api/seed" in r.url, timeout=max(T, 120000)):
+                page.click("#btnSeed")
             page.wait_for_timeout(800)
             shot("reset_and_seed")
 
             # 2. Echo scam path
             deliver(*SCAM)
-            expect(page.locator("#echoChip").last).to_contain_text("Jake", timeout=8000)
+            expect(page.locator("#echoChip").last).to_contain_text("Jake", timeout=T)
             shot("claimed_jake_checking")
             page.click("#payBail")  # Linda's pending $3,000 Zelle (lives on the PNC lens; strip mirrors it)
-            expect(page.locator("#payList")).to_contain_text("HELD", timeout=6000, ignore_case=True)
+            expect(page.locator("#payList")).to_contain_text("HELD", timeout=T, ignore_case=True)
             lens("tmo")
-            page.locator("#jakeNotMe").first.click(timeout=8000)
-            expect(page.locator("#lens-tmo")).to_contain_text("isn't him", timeout=8000)
+            page.locator("#jakeNotMe").first.click(timeout=T)
+            expect(page.locator("#lens-tmo")).to_contain_text("isn't him", timeout=T)
             shot("real_jake_says_not_me")
             page.fill("#scamComposer input, #scamComposer textarea", "ok send it now pls")
-            page.locator("#scamComposer button[type=submit], #scamComposer button.send").first.click()
-            page.wait_for_timeout(900)
+            with page.expect_response(lambda r: "/api/echo/decoy_say" in r.url, timeout=T):
+                page.locator("#scamComposer button[type=submit], #scamComposer button.send").first.click()
+            page.wait_for_timeout(600)
             page.fill("#scamComposer input, #scamComposer textarea", "whats ur card number grandma")
             page.locator("#scamComposer button[type=submit], #scamComposer button.send").first.click()
-            expect(page.locator("#lens-tmo")).to_contain_text("Canary", timeout=8000, ignore_case=True)
+            expect(page.locator("#lens-tmo")).to_contain_text("Canary", timeout=T, ignore_case=True)
             shot("decoy_stalls_and_hands_canary")
 
             # 3. PNC: payment cancelled automatically
             lens("pnc")
-            expect(page.locator("#payList")).to_contain_text("CANCELLED", timeout=6000, ignore_case=True)
+            expect(page.locator("#payList")).to_contain_text("CANCELLED", timeout=T, ignore_case=True)
             shot("pnc_payment_cancelled")
 
             # 4. canary fires
             page.click("#cashOutCanary")
-            expect(page.locator("#lens-pnc")).to_contain_text("5 chars", timeout=6000)
+            expect(page.locator("#lens-pnc")).to_contain_text("5 chars", timeout=T)
             shot("canary_fired_kanon")
 
             # 5. Space: SIM swap → untrusted
@@ -109,38 +118,38 @@ def main():
             page.click("#togSimSwap")
             page.wait_for_timeout(400)
             deliver(*SCAM2)
-            expect(page.locator("#echoChip").last).to_contain_text("Jake", timeout=8000)
+            expect(page.locator("#echoChip").last).to_contain_text("Jake", timeout=T)
             page.click("#payBail")
             lens("tmo")
-            page.locator("#jakeYes").first.click(timeout=8000)
-            expect(page.locator("#lens-tmo")).to_contain_text("untrusted", timeout=8000, ignore_case=True)
+            page.locator("#jakeYes").first.click(timeout=T)
+            expect(page.locator("#lens-tmo")).to_contain_text("untrusted", timeout=T, ignore_case=True)
             shot("sim_swap_answer_untrusted")
             page.click("#togSimSwap")  # back to a clean line
             page.wait_for_timeout(400)
 
             # 6. Echo legit path: trusted yes releases the hold
             deliver(*LEGIT_SCAM3)
-            expect(page.locator("#echoChip").last).to_contain_text("Jake", timeout=8000)
+            expect(page.locator("#echoChip").last).to_contain_text("Jake", timeout=T)
             page.click("#payBail")
             lens("tmo")
-            page.locator("#jakeYes").first.click(timeout=8000)
-            expect(page.locator("#lens-tmo")).to_contain_text("Confirmed by Jake", timeout=8000)
+            page.locator("#jakeYes").first.click(timeout=T)
+            expect(page.locator("#lens-tmo")).to_contain_text("Confirmed by Jake", timeout=T)
             shot("confirmed_by_jake")
             lens("pnc")
-            expect(page.locator("#payList")).to_contain_text("RELEASED", timeout=6000, ignore_case=True)
+            expect(page.locator("#payList")).to_contain_text("RELEASED", timeout=T, ignore_case=True)
             shot("pnc_released")
 
             # 7. Business Echo
             deliver(*LAKE_FAKE)
-            expect(page.locator("#lens-tmo")).to_contain_text("didn't send", timeout=8000)
+            expect(page.locator("#lens-tmo")).to_contain_text("didn't send", timeout=T)
             deliver(*LAKE_REAL)
-            expect(page.locator("#lens-tmo")).to_contain_text("Lakeview confirms", timeout=8000)
+            expect(page.locator("#lens-tmo")).to_contain_text("Lakeview confirms", timeout=T)
             shot("business_echo")
 
             # 8. NVIDIA lens
             lens("nv")
             page.wait_for_timeout(1200)
-            expect(page.locator("#lens-nv")).to_contain_text("Claim extractor", timeout=6000)
+            expect(page.locator("#lens-nv")).to_contain_text("Claim extractor", timeout=T)
             shot("nvidia_lens")
             b.close()
     finally:
@@ -148,7 +157,7 @@ def main():
     if errors:
         print("\nConsole/HTTP errors:\n  " + "\n  ".join(errors[:30]))
         sys.exit(1)
-    print(f"\nDemo flow passed at {W}x{H}, 0 console errors. Screenshots in {OUT}")
+    print(f"\nDemo flow passed in {BADGE} mode at {W}x{H}, 0 console errors. Screenshots in {OUT}")
 
 
 if __name__ == "__main__":
