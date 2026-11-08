@@ -1637,6 +1637,8 @@ async function echoFlow(text, sender, cardEl, asks) {
   let claimText = text;
   try { if (S.rules) claimText = DetourMatcher.redact(S.rules, text, OWNER_NAMES); } catch {}
   let cr;
+  // Linda turned Identity Echo on (consent): the redacted copy for claim extraction counts on the privacy meter
+  S.pm.bytes += DetourMatcher.byteLen(claimText) + DetourMatcher.byteLen(sender || ""); S.pm.cons++; renderPrivacy();
   try { cr = await api("/api/echo/claim", {body: {text: claimText, sender: sender || ""}}, true); }
   catch { return; }  // Echo unavailable: the on-device card above still stands
   if (gen !== E.gen || !cr || !cr.claim) return;

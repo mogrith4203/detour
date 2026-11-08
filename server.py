@@ -274,14 +274,14 @@ class EchoClaimIn(BaseModel):
 class EchoStartIn(BaseModel):
     customer: str = "linda"
     consented: bool = False
-    target_kind: str = "contact"
-    number_hash: str = ""
-    business_id: str = ""
-    msg_hash: str = ""
-    claim_kind: str = ""
+    target_kind: str | None = "contact"
+    number_hash: str | None = ""
+    business_id: str | None = ""
+    msg_hash: str | None = ""
+    claim_kind: str | None = ""
     relation: str | None = None
     money_ask: bool = False
-    sender: str = ""
+    sender: str | None = ""
 
 
 class EchoAnswerIn(BaseModel):
