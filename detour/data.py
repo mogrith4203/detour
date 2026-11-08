@@ -65,6 +65,14 @@ ATTESTATION = {
     "(800) 555-0142": "A",
 }
 
+# Simulated A2P (business texting) registry. Texts carry no STIR/SHAKEN attestation,
+# so a text sender is judged by whether it is a registered business sender.
+REGISTERED_SENDERS = {
+    "(800) 555-0142": "Lakeview Credit Union",
+    "(800) 555-0155": "ParcelPost",
+    "(800) 555-0110": "TX Toll Services",
+}
+
 # Scripted scammer simulator. Each scenario is one "play" from a scam taxonomy.
 SCENARIOS = {
     "bank_alert": {

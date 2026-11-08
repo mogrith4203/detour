@@ -1,4 +1,4 @@
-"""Detour demo server.  Run:  uvicorn server:app --reload  then open http://localhost:8000"""
+"""Detour demo server.  Start with ./run.sh (or: uvicorn server:app --port 8000), then open http://localhost:8000"""
 import json
 import os
 import time
@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from fastapi import FastAPI, HTTPException  # noqa: E402
+from fastapi import Depends, FastAPI, HTTPException, Request  # noqa: E402
 from fastapi.responses import FileResponse, StreamingResponse  # noqa: E402
 from fastapi.staticfiles import StaticFiles  # noqa: E402
 from pydantic import BaseModel  # noqa: E402
@@ -20,7 +20,23 @@ ROOT = Path(__file__).parent
 app = FastAPI(title="Detour")
 engine = Engine()
 BENCH_FILE = ROOT / "results" / "benchmark.json"
+DEMO_TOKEN = os.getenv("DEMO_TOKEN", "")
 app.mount("/static", StaticFiles(directory=ROOT / "static"), name="static")
+
+try:  # the PNC finance module is optional until it lands
+    from detour import finance  # noqa: E402
+except Exception:  # pragma: no cover
+    finance = None
+
+
+def admin_only(request: Request):
+    """Admin actions only from this laptop (or with the demo token), so nobody on venue Wi-Fi can reset or approve."""
+    host = request.client.host if request.client else ""
+    if host in ("127.0.0.1", "::1", "localhost", "testclient"):
+        return
+    if DEMO_TOKEN and request.headers.get("x-demo-token") == DEMO_TOKEN:
+        return
+    raise HTTPException(403, "Admin actions are only allowed from the demo laptop.")
 
 
 class CheckIn(BaseModel):
@@ -29,9 +45,27 @@ class CheckIn(BaseModel):
     known: bool = False
 
 
+class IdIn(BaseModel):
+    id: str
+
+
 class StoryIn(BaseModel):
     story_id: str
     number: str = ""
+
+
+class LiveIn(BaseModel):
+    session: str = ""
+    decoy: str = "decoy-01"
+    text: str = ""
+
+
+class CoachIn(BaseModel):
+    question: str
+
+
+class WhatIfIn(BaseModel):
+    scenario: list
 
 
 @app.get("/")
@@ -44,16 +78,22 @@ def state():
     return engine.state()
 
 
+@app.get("/api/events")
+def events(since: int = 0):
+    return {"events": engine.events_since(since), "last": engine.ev_seq, "llm": engine.llm.describe(), "stats": engine.stats}
+
+
 @app.get("/api/samples")
 def samples():
     return PHONE_SAMPLES
 
 
+# ---- decoys
 @app.get("/api/honeypot")
 def honeypot(scenario: str, decoy: str):
     if scenario not in SCENARIOS or decoy not in PERSONAS:
         raise HTTPException(404, "unknown scenario or decoy")
-    pause = 0.7 if engine.llm.mock else 0.0  # mock replies are instant; pace them so the demo reads well
+    pause = 0.6 if engine.llm.mode in ("mock", "replay") else 0.0  # pace instant replies so the demo reads well
 
     def stream():
         for ev in engine.honeypot_session(scenario, decoy):
@@ -64,9 +104,32 @@ def honeypot(scenario: str, decoy: str):
     return StreamingResponse(stream(), media_type="text/event-stream", headers={"Cache-Control": "no-cache"})
 
 
+@app.post("/api/live/start")
+def live_start(body: LiveIn):
+    if body.decoy not in PERSONAS:
+        raise HTTPException(404, "unknown decoy")
+    return engine.live_start(body.decoy)
+
+
+@app.post("/api/live/say")
+def live_say(body: LiveIn):
+    return engine.live_say(body.session, body.text)
+
+
+@app.post("/api/live/end")
+def live_end(body: LiveIn):
+    return engine.live_end(body.session)
+
+
+# ---- phone
 @app.post("/api/check")
 def check(body: CheckIn):
-    return engine.check_message(body.text, body.sender, body.known)
+    return engine.check_message(body.text[:2000], body.sender[:40], body.known)
+
+
+@app.post("/api/consent")
+def consent(body: IdIn):
+    return engine.consent(body.id)
 
 
 @app.post("/api/report")
@@ -74,23 +137,24 @@ def report(body: StoryIn):
     return engine.report(body.story_id)
 
 
-@app.post("/api/approve")
+# ---- admin
+@app.post("/api/approve", dependencies=[Depends(admin_only)])
 def approve(body: StoryIn):
     return engine.approve_block(body.story_id, body.number)
 
 
-@app.post("/api/seed")
+@app.post("/api/seed", dependencies=[Depends(admin_only)])
 def seed():
     return engine.seed()
 
 
-@app.post("/api/reset")
+@app.post("/api/reset", dependencies=[Depends(admin_only)])
 def reset():
     engine.reset()
     return engine.state()
 
 
-@app.post("/api/benchmark")
+@app.post("/api/benchmark", dependencies=[Depends(admin_only)])
 def benchmark():
     res = engine.benchmark()
     res["ran_at"] = time.strftime("%Y-%m-%d %H:%M:%S")
@@ -101,12 +165,42 @@ def benchmark():
 
 @app.get("/api/benchmark/last")
 def benchmark_last():
-    if BENCH_FILE.exists():
-        return json.loads(BENCH_FILE.read_text())
-    return {}
+    return json.loads(BENCH_FILE.read_text()) if BENCH_FILE.exists() else {}
+
+
+# ---- PNC navigator
+def _fin():
+    if finance is None:
+        raise HTTPException(503, "Finance module not loaded")
+    return finance
+
+
+@app.get("/api/finance/overview")
+def fin_overview():
+    f = _fin()
+    c = f.load_customer()
+    return {"snapshot": f.snapshot(c), "indicators": f.indicators(c), "forecast": f.forecast(c, 60)}
+
+
+@app.post("/api/finance/whatif")
+def fin_whatif(body: WhatIfIn):
+    f = _fin()
+    res = f.whatif(f.load_customer(), body.scenario)
+    engine.emit("Finance engine (rules)", "whatif", output=" · ".join(res.get("facts", [])[:2])[:240], mode="rules")
+    return res
+
+
+@app.post("/api/coach")
+def coach(body: CoachIn):
+    f = _fin()
+    res = f.coach(engine.llm, body.question[:500])
+    for t in res.get("tool_trace", []):
+        engine.emit("Nemotron coach", "tool", tool=t.get("tool"), input=json.dumps(t.get("args"))[:160],
+                    output=str(t.get("result_summary"))[:200], mode=res.get("mode"))
+    return res
 
 
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", "8000")))
+    uvicorn.run(app, host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", "8000")))

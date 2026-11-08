@@ -4,10 +4,15 @@ Works with build.nvidia.com (integrate.api.nvidia.com) or OpenRouter.
 If no API key is set (or DETOUR_MOCK=1), every agent falls back to its
 deterministic mock so the demo still runs; the UI labels that mode.
 """
+import hashlib
 import json
 import os
 import re
 import time
+from pathlib import Path
+from types import SimpleNamespace
+
+REPLAY_DIR = Path(__file__).resolve().parent.parent / "replays"
 
 
 def _env(name, default=None):
@@ -26,26 +31,28 @@ class Nemotron:
             default_base = "https://openrouter.ai/api/v1"
         self.base_url = _env("NEMOTRON_BASE_URL", default_base)
         self.model = _env("NEMOTRON_MODEL", "nvidia/nemotron-3.5-lightning")
-        self.mock = _env("DETOUR_MOCK", "0") == "1" or not self.key
+        self.record = _env("DETOUR_RECORD", "0") == "1"
+        self.replay = _env("DETOUR_REPLAY", "0") == "1"
+        self.mock = (_env("DETOUR_MOCK", "0") == "1" or not self.key) and not self.replay
         self.thinking = _env("NEMOTRON_THINKING", "off")
         self._send_thinking_flag = True
         self.calls = 0
         self.errors = 0
         self.last_error = None
         self.client = None
-        if not self.mock:
+        if not self.mock and not self.replay:
             from openai import OpenAI
 
             self.client = OpenAI(api_key=self.key, base_url=self.base_url, timeout=90)
 
     @property
     def mode(self):
-        return "mock" if self.mock else "live"
+        return "replay" if self.replay else ("mock" if self.mock else "live")
 
     def describe(self):
         return {
             "mode": self.mode,
-            "model": self.model if not self.mock else "mock (no API key)",
+            "model": "recorded run" if self.replay else (self.model if not self.mock else "mock (no API key)"),
             "base_url": self.base_url if not self.mock else None,
             "hosted_calls": self.calls,
             "errors": self.errors,
@@ -56,6 +63,15 @@ class Nemotron:
         """Returns the assistant message object. Raises on failure."""
         if self.mock:
             raise RuntimeError("mock mode")
+        key = hashlib.sha256(json.dumps([self.model, messages, tools], sort_keys=True, default=str).encode()).hexdigest()[:24]
+        if self.replay:  # venue backup: serve a response recorded during an earlier live run
+            f = REPLAY_DIR / f"{key}.json"
+            if not f.exists():
+                raise RuntimeError("no recording for this exact call")
+            self.calls += 1
+            d = json.loads(f.read_text())
+            calls = [SimpleNamespace(id=c["id"], type="function", function=SimpleNamespace(**c["function"])) for c in d.get("tool_calls") or []]
+            return SimpleNamespace(content=d.get("content"), tool_calls=calls or None)
         kwargs = dict(model=self.model, messages=messages, temperature=temperature, max_tokens=max_tokens)
         if tools:
             kwargs["tools"] = tools
@@ -79,7 +95,12 @@ class Nemotron:
                 self.errors += 1
                 self.last_error = str(e)[:300]
                 raise
-        return resp.choices[0].message
+        msg = resp.choices[0].message
+        if self.record:
+            REPLAY_DIR.mkdir(exist_ok=True)
+            calls = [{"id": c.id, "function": {"name": c.function.name, "arguments": c.function.arguments}} for c in (msg.tool_calls or [])]
+            (REPLAY_DIR / f"{key}.json").write_text(json.dumps({"content": msg.content, "tool_calls": calls}))
+        return msg
 
     def text(self, messages, **kw):
         msg = self.chat(messages, **kw)

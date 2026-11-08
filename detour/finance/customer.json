@@ -1,0 +1,42 @@
+{
+  "synthetic": true,
+  "note": "Synthetic demo customer. Not a real person or real account data.",
+  "as_of": "2026-11-08",
+  "customer": {"name": "Linda Park", "age": 71, "city": "Plano, TX"},
+  "essentials_monthly": 1600.00,
+  "accounts": [
+    {"id": "checking", "type": "checking", "name": "Everyday Checking", "balance": 2840.00,
+     "kind": "asset", "liquid": true, "instantly_movable": true,
+     "zelle_enabled": true, "zelle_daily_limit": 2500.00, "wire_daily_limit": 10000.00},
+    {"id": "savings", "type": "savings", "name": "Savings", "balance": 9600.00,
+     "kind": "asset", "liquid": true, "instantly_movable": true, "instant_transfer_to": "checking"},
+    {"id": "cd", "type": "cd", "name": "12-Month CD", "balance": 15000.00,
+     "kind": "asset", "liquid": false, "instantly_movable": false,
+     "apy": 4.5, "term_months": 12, "matures": "2027-03-15", "early_withdrawal_penalty_days": 90},
+    {"id": "ira", "type": "ira", "name": "Traditional IRA", "balance": 142000.00,
+     "kind": "asset", "liquid": false, "instantly_movable": false,
+     "note": "Long-term only; early or extra withdrawals are taxable."},
+    {"id": "auto", "type": "auto_loan", "name": "Auto Loan", "balance": 8200.00,
+     "kind": "liability", "liquid": false, "instantly_movable": false,
+     "apr": 6.9, "payment": 412.00, "due_day": 12, "pay_from": "checking"},
+    {"id": "personal", "type": "personal_loan", "name": "Personal Loan", "balance": 3100.00,
+     "kind": "liability", "liquid": false, "instantly_movable": false,
+     "apr": 11.5, "payment": 185.00, "due_day": 22, "pay_from": "checking"},
+    {"id": "card", "type": "credit_card", "name": "Credit Card", "balance": 1650.00,
+     "kind": "liability", "liquid": false, "instantly_movable": false,
+     "limit": 8000.00, "apr": 22.9, "payment": 200.00, "due_day": 25, "pay_from": "checking",
+     "cash_advance_enabled": true},
+    {"id": "mortgage", "type": "mortgage", "name": "Mortgage", "balance": 96000.00,
+     "kind": "liability", "liquid": false, "instantly_movable": false,
+     "payment": 1180.00, "due_day": 1, "pay_from": "checking", "autopay": true}
+  ],
+  "income": [
+    {"label": "Pension", "amount": 2050.00, "day": 1, "to": "checking"},
+    {"label": "Social Security", "amount": 2150.00, "day": 3, "to": "checking"}
+  ],
+  "bills": [
+    {"label": "Utilities", "amount": 210.00, "day": 15, "from": "checking"},
+    {"label": "Phone", "amount": 85.00, "day": 15, "from": "checking"},
+    {"label": "Insurance", "amount": 145.00, "day": 20, "from": "checking"}
+  ]
+}
