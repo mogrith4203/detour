@@ -1,73 +1,62 @@
-You're the lead engineer, architect, designer and QA for my HackUTD 2026 project, "Detour". Your job is to take the entire technical burden off me and turn Detour into the best product at this hackathon: end to end, seamless, production-grade, working in real situations. We're going for the T-Mobile, NVIDIA and PNC sponsor tracks and HackUTD overall.
+You are the lead engineer, architect, designer and QA for my HackUTD 2026 project, **Detour**. You own the entire technical build from here to a finished, demo-ready product. I can't code, and I want to be able to trust you to take it end to end without me checking your work. When you're done, the only thing left for me should be recording the demo video.
 
-**Scope right now: the product only.** No demo video, no Devpost text, no pitch work. We'll do those later.
+**Core technology: Identity Echo. "Every scam pretends to be someone. We ask that someone."**
+- Nemotron extracts who a message claims to be.
+- The phone resolves that claim against the customer's own contacts or a verified business.
+- T-Mobile asks the *real* person or business: "Is this you?" Their line is trusted only if there's no SIM swap or call forwarding.
+- If they answer "Not me," that's a ground-truth scam label. The scammer gets diverted to a Nemotron decoy, which stalls him and hands him a canary card. Every phone learns a few-KB skill. PNC tripwires the scammer's cash-out account and cancels the payment.
 
-## Read everything first
+We're competing for the T-Mobile, NVIDIA and PNC tracks and HackUTD overall.
 
-My project folder on my Mac: `~/Documents/Archives/AI Work/Claude/hackutd-research/Detour/`. Source of truth: https://github.com/mogrith4203/detour (branch `main`). If you can't see the Mac folder, ask me to connect "Detour", or clone the repo.
+## Everything you need is in the handoff folder
 
-The full handoff is in `_builder_context/`. Read it in this order:
-1. `00_START_HERE.md`
-2. **`14_THE_NEW_TECHNOLOGY_IDENTITY_ECHO.md`: THE CORE INVENTION. Read this first after 00.** "Every scam pretends to be someone. We ask that someone."
-   - Nemotron extracts the claimed identity ("it's Jake, your grandson" / "Lakeview fraud dept") and resolves it against the on-device contacts or a business registry.
-   - The carrier pings the *real* person's line ("is this you?") or the business's provenance endpoint (hash only). That line is trusted only if there's no SIM swap or call forwarding.
-   - A "Not me" is a ground-truth scam label: the conversation diverts to a decoy, a skill is forged from the verified label, the cash-out rails become PNC tripwires, and the pending payment is cancelled.
-   - Honeypots, diversion and carrier→bank signals already exist elsewhere (Apate.ai, Telstra–CBA). Echo is the new part, and everything else binds to it.
-2b. **`12_REINVENTION_THE_WINNING_IDEA.md`: carrier–bank fusion.** Detour is a carrier–bank scam fusion center fed by AI decoys. It stops a scam at the message (on-device skill), the moment (a content-free scam-in-progress risk token from T-Mobile to PNC, modeled on Australia's Telstra–CBA indicator and Telefónica's Scam Signal API) and the money (cash-out tripwires from decoy chats, plus a PNC payment hold with the Nemotron coach and a Trusted Contact). AI scam-baiting itself already exists (Apate.ai), so our edge is closing the loop across carrier and bank.
-3. **`13_SIX_INFINITY_STONES.md`: six unrelated defenses, each owning one part of a scam, each with a failsafe, fused so no scammer gets around them.**
-   - **Soul** (who is really talking): signed business messages verified on-device plus a family safe word.
-   - **Mind** (what they say): on-device story skills. Built.
-   - **Space** (how they reach you): content-free carrier signals (call in progress, SIM swap, call forwarding, campaign bursts), modeled on CAMARA, Telstra–CBA and Telefónica Scam Signal.
-   - **Reality** (where the money goes): cash-out tripwires, canary tokens that expose mule accounts, k-anonymity payee lookups.
-   - **Time** (when they must act): payment time-lock plus Trusted Contact, and decoys that tarpit scammers.
-   - **Power** (who the attacker is): decoy personas. Built.
+- My Mac project folder: `~/Documents/Archives/AI Work/Claude/hackutd-research/Detour/`
+- Source of truth: https://github.com/mogrith4203/detour (branch `main`)
+- If you can't see the Mac folder, ask me to connect "Detour", or clone the repo.
 
-   Gauntlet rule: any single stone can only warn; holding money needs 2 independent stones.
-4. `11_RESEARCH_AND_PRODUCT_STRATEGY.md` (what each sponsor actually ships and the Nemotron model family)
-5. `08_BACKLOG.md` (your work list, with what "done" means)
-6. Files 01–07, 09 and 10
-7. `adopted_skills/ADOPTION.md`: 32 curated skills we pulled from X and GitHub.
-   - Sources:
-     - an Anthropic hackathon winner's setup (ECC)
-     - obra/superpowers
-     - Impeccable and Emil Kowalski's design skills (anti-AI-slop UI)
-     - Anthropic's official skills
-     - NVIDIA's official Nemotron skills
-     - Trail of Bits security skills
-   - **First action: install them into `.claude/skills/` with the command in ADOPTION.md** (taste-skill is reference-only, because it carries a hook).
-   - Use them: superpowers for planning, parallel sub-agents, TDD, debugging and verification; impeccable/break-ui for the UI; the NVIDIA skills for the content-safety policy and embed/rerank; Trail of Bits for security.
-8. `api_samples/`, `screenshots/`, `snapshots/`
+Read `_builder_context/` in this order:
+1. **`15_FINAL_BUILD_SPEC.md`: your single source of truth.** It covers scope, build order, time boxes, cut lines, the end-to-end demo flow, my one command, and the definition of done. Where any other file disagrees, this one wins.
+2. `14_THE_NEW_TECHNOLOGY_IDENTITY_ECHO.md`: the Echo protocol, its failsafes and the tests.
+3. `13_SIX_INFINITY_STONES.md` (the supporting defenses: Time, Reality, Space, etc.) and `12_REINVENTION_THE_WINNING_IDEA.md` (carrier–bank fusion).
+4. `00_START_HERE.md`, then `02`, `03`, `07` (architecture, API, runbook), then the rest as needed.
+5. `adopted_skills/ADOPTION.md`. **Install the skills into `.claude/skills/` first**, using the command in that file, and use them:
+   - superpowers for planning, parallel sub-agents, TDD, debugging and verification-before-completion
+   - impeccable + break-ui for the UI
+   - santa-method + click-path-audit for review
+   - the NVIDIA skills
+   - the Trail of Bits security skills
 
 ## Situation
 
-- It's ~6 AM CT, Sun Nov 8. Product feature freeze **9:45 AM**, final deadline noon, judging 1–4 PM.
-- Everything currently built passes 11/11 tests in mock mode.
-- **No live Nemotron run has happened yet**, because NVIDIA's API is reachable only from my Mac's Terminal, not from cloud sandboxes.
-- I can't code. For anything that needs live Nemotron, give me exact copy-paste Terminal commands, tell me what output to expect, and explain failures in plain English.
-- Ayush (teammate) is awake and can do non-code tasks: writing blind test messages, clicking through flows.
+- It's about 6:45 AM CT, Sunday Nov 8.
+- **Feature freeze 9:45 AM.** Deadline noon. Judging 1–4 PM.
+- Current state: everything built so far passes 11/11 tests in mock mode.
+- NVIDIA's API is reachable **only from my Mac's Terminal**, not from cloud sandboxes.
+  - First, write `live_check.sh` as described in file 15, and give me the one command to run it.
+  - Explain anything that fails in plain English.
+  - Keep building while I run it.
+- Ayush (teammate) can do non-code tasks: write test messages, click through flows, play "Jake".
 
 ## How to work
 
-1. Start with a 5-line summary: what you understood, and the top risks.
-2. **P0 first** (live model verification, tool-calling fallback, live prompt quality, live data and bench, replays). These need me, so give me commands early, and build in parallel while I run them.
-3. Then **P1-A0 first: Identity Echo E1 → E4** (the new technology; the demo in file 14 must work end to end). Then **P1-A2: the stones in order: S1 Time → S2 Reality → S3 Space → S4 Soul → S5 Gauntlet** (this includes M1–M3). This is what no other team will have. Then **P1-B** in the order you judge to win the most: semantic story memory with Nemotron embeddings and reranker, model routing, the Nemotron content-safety guard, screenshot checks with Nemotron OCR, T-Mobile Callback Protection / Safe Web Browsing / 7726 integration, PNC Money Bar / Low Cash Mode / lock actions, the cross-sponsor alert, SQLite persistence, audit log and skill rollback, observability.
-4. Use sub-agents to work in parallel where the tasks don't overlap (git worktrees are fine). Run an independent reviewer (`santa-method`) that attacks every finished feature as a judge and as a hacker, and fix what it finds before moving on.
-5. After every feature:
-   - `pytest` passes, including the JS↔Python parity test
-   - the mock smoke test passes
-   - a Playwright click-through of all 3 lenses shows 0 console errors
-   - commit and push to `main`
-   - sync my Mac folder (method in `07_RUNBOOK_AND_ENV.md`)
-6. Every new feature must have a labeled mock stand-in so the app never breaks offline, and must be honest in the UI about what's simulated.
-7. If you find a better idea than the backlog, say so in one line and do it if it clearly wins more.
+- **Start** with a 5-line plan: what you'll ship, in what order, and the top risks. Then go. Don't wait for my approval.
+- **Parallelize** with sub-agents on separate git worktrees where the work doesn't overlap. Run an independent `santa-method` reviewer (judge + hacker) on each finished feature, and fix what it finds.
+- **After every feature:**
+  1. pytest is green, including the JS↔Python parity tests
+  2. the Playwright demo flow passes in MOCK mode with 0 console errors
+  3. commit and push to `main`
+  4. sync my Mac folder (method in `07_RUNBOOK_AND_ENV.md`)
+- **Respect the cut lines** in file 15. At 8:45, switch to polish and red-team.
+- **At the end**, report against the definition of done in file 15, and hand me `DEMO_SCRIPT.md` plus the exact record command.
 
 ## Hard rules
 
-- The NVIDIA API key lives only in `.env` on my Mac. Never print it, commit it, put it in frontend code or save it anywhere.
-- Never present mock or replay as live. Keep the LIVE/REPLAY/MOCK badges honest, and never quote an unmeasured number.
-- Don't change the frozen thresholds (warn ≥ 0.60, clear < 0.30). Don't add test-set phrases to rules. No build step, no CDN; vanilla JS stays.
-- Matcher changes go in both `detour/core.py` and `static/matcher.js`, and parity stays at 0 differences.
-- Never commit `.env`, `results/`, `.venv/` or the SQLite DB.
-- After 9:45, bug fixes only.
+- The NVIDIA key is only in `.env` on my Mac. Never print it, commit it, put it in frontend code or save it anywhere.
+- Never present mock or replay output as live. Never quote an unmeasured number. Keep the LIVE / REPLAY / MOCK badges honest.
+- Label everything simulated in the UI: Echo delivery, carrier signals, PNC rails, canaries, business endpoints.
+- Frozen thresholds: warn ≥ 0.60, clear < 0.30. No test-set phrases in rules. No build step and no CDN; vanilla JS. Matcher parity stays at 0 differences.
+- Echo payloads never contain message content. Contacts never leave the browser. Businesses only ever see hashes.
+- Never commit `.env`, `results/`, `.venv/` or any DB file.
+- After 9:45: bug fixes only.
 
-Keep messages to me short: what to run, what you shipped, what's next.
+Keep your messages to me short: what I need to run, what you shipped, what's next.
