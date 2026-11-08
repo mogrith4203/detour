@@ -508,6 +508,15 @@ svg .node.hot rect.bg{filter:none}
 .mir-src div{border-left-width:2px;background:var(--panel2);border-color:transparent;border-left-color:var(--c)}
 .mir-src b{font-size:12.5px}
 .ondev{font-size:12.5px}
+
+/* ======== Simplify: hide secondary detail (style only) ======== */
+#customForm,.pm-legend,.pm-sync{display:none!important}
+.feed-panel{display:none!important}
+.nv-grid{grid-template-columns:minmax(0,1fr)!important}
+.acct .an span{display:none}
+.preset[data-k="car"],.preset[data-k="lock"]{display:none}
+#qchips>:nth-child(n+3){display:none}
+.ind .fx,.ind .fml{display:none!important}
 </style>
 </head>
 <body data-lens="tmo">
