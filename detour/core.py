@@ -484,6 +484,12 @@ class Agents:
             smap.log("attack", f"Poisoning/injection blocked from {PERSONAS[decoy_id]['name']}'s decoy line")
             return {"checks": checks, "story": None, "quarantined": True}
         story = merged_into or smap.new_story(ext, decoy_id, scam_text)
+        # Keep the scammer's own lines (the "script") so the bank can show a customer what comes next.
+        script = story.setdefault("script", [])
+        for t in transcript:
+            line = (t.get("text") or "").strip()
+            if t.get("who") == "scammer" and line and line not in script and len(script) < 12:
+                script.append(line[:300])
         if live:
             story["live"] = story.get("live", 0) + 1
         elif decoy_id not in story["decoys"]:

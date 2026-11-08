@@ -105,6 +105,32 @@ class Engine:
     def events_since(self, since):
         return [e for e in list(self.events) if e["id"] > since]
 
+    def script_mirror(self, category="family_emergency"):
+        """PNC 'Script Mirror': the scam script our decoys captured, shown to the customer at the moment of payment.
+        Only lines from real decoy conversations are shown (numbers and links stripped); each is tagged by plain rules."""
+        from . import core as C
+        tags = [(C.SECRECY_RE, "Isolation", "They tell you to keep it secret so nobody can warn you."),
+                (C.URGENCY_RE, "Rush", "Pressure to act now stops you from checking."),
+                (re.compile(r"\b(cash|courier|gift ?cards?|bitcoin|crypto|wire|zelle|western union|moneygram|venmo|cash ?app)\b", re.I),
+                 "Untraceable payment", "Cash, couriers, gift cards and crypto can't be pulled back."),
+                (C.AUTHORITY_RE, "Emergency or authority", "Jail, police, lawyers: a story built to scare you.")]
+        with self.lock:
+            stories = [s for s in self.smap.stories.values() if s["category"] == category and s.get("script")]
+        stories.sort(key=lambda s: (s["status"] != "warn", -len(set(s["decoys"]))))
+        if not stories:
+            return {"active": False, "category": category,
+                    "message": "No active play in this category yet. Load decoy history on the T-Mobile tab."}
+        st = stories[0]
+        lines = []
+        for line in st["script"]:
+            hits = [(name, why) for rx, name, why in tags if rx.search(C.normalize(line))]
+            if hits:
+                lines.append({"text": strip_indicators(line), "tactics": [h[0] for h in hits], "why": hits[0][1]})
+        self.emit("Script Mirror (rules)", "mirror", output=f"{st['id']} · {len(lines)} scripted lines shown to the customer", mode="rules")
+        return {"active": True, "category": category, "label": CATEGORY_LABEL.get(category, category),
+                "story_id": st["id"], "status": st["status"], "decoys": len(set(st["decoys"])),
+                "lines": lines[:4], "next_step": CATEGORY_STEPS.get(category, "")}
+
     def state(self):
         return {"llm": self.llm.describe(), "stats": self.stats, "stories": self.smap.snapshot(),
                 "log": self.smap.events[-40:][::-1], "personas": PERSONAS, "last_event": self.ev_seq,

@@ -255,6 +255,11 @@ def fin_whatif(body: WhatIfIn):
     return res
 
 
+@app.get("/api/finance/script_mirror")
+def script_mirror(category: str = "family_emergency"):
+    return engine.script_mirror(category[:32])
+
+
 @app.post("/api/coach")
 def coach(body: CoachIn):
     f = _fin()

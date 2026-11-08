@@ -437,6 +437,29 @@ svg .lbl{font:700 12px var(--mono)}
   .pm-big{margin:0 0 6px}
   .pm-big b{font-size:28px}
 }
+
+/* ---- PNC Script Mirror ---- */
+.mir-bg{position:fixed;inset:0;background:rgba(5,7,10,.72);backdrop-filter:blur(3px);z-index:60;display:none;align-items:center;justify-content:center;padding:16px}
+.mir-bg.on{display:flex}
+.mir{width:min(760px,100%);max-height:calc(100vh - 32px);overflow:auto;background:var(--panel);border:1px solid var(--border2);border-top:3px solid var(--pnc);border-radius:var(--r);padding:20px 22px;box-shadow:0 30px 80px rgba(0,0,0,.55)}
+.mir .mh{display:flex;align-items:center;gap:10px}
+.mir .mh h3{margin:0;font-size:20px;letter-spacing:-.01em}
+.mir .mh .grow{flex:1}
+.mir .lead{color:var(--text);font-size:15px;line-height:1.5;margin:8px 0 14px}
+.mir .lead b{color:var(--pnc)}
+.mir .eyebrow2{font:600 11px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:14px 0 8px}
+.mir ol{margin:0;padding:0;list-style:none;display:grid;gap:8px}
+.mir li{background:var(--panel2);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 12px}
+.mir li q{display:block;font-size:15px;line-height:1.45;color:var(--text);quotes:"\201C" "\201D"}
+.mir li .tc{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px;align-items:center}
+.mir li .tc span.t{font:600 11px/1 var(--mono);padding:4px 7px;border-radius:6px;background:rgba(239,118,34,.14);color:#FFB27A;border:1px solid rgba(239,118,34,.35)}
+.mir li .tc em{font-style:normal;color:var(--muted);font-size:13px}
+.mir .ledger{display:grid;gap:6px;margin:0;padding:0;list-style:none}
+.mir .ledger li{background:rgba(255,77,94,.07);border-color:rgba(255,77,94,.3);font-size:14.5px;line-height:1.45;padding:9px 12px}
+.mir .acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.mir .acts .btn{font-size:14px}
+.mir .note{color:var(--dim);font-size:12px;margin-top:12px;line-height:1.5}
+.mir .simtag{font:600 10px/1 var(--mono);letter-spacing:.08em;padding:4px 6px;border-radius:5px;border:1px solid rgba(90,169,255,.45);color:var(--info)}
 </style>
 </head>
 <body data-lens="tmo">
@@ -607,6 +630,10 @@ svg .lbl{font:700 12px var(--mono)}
 </main>
 
 <footer><span>All personas, numbers (555-01xx), businesses and customers are synthetic.</span><span>Keys <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> switch lenses</span></footer>
+
+<div class="mir-bg" id="mirBg" role="dialog" aria-modal="true" aria-labelledby="mirTitle">
+  <div class="mir" id="mir"></div>
+</div>
 <div id="toasts"></div>
 
 <script src="/static/matcher.js"></script>
@@ -1273,12 +1300,44 @@ async function loadFinance() {
   try { S.fin = await api("/api/finance/overview"); renderFinance(); }
   catch { $("#snapBody").innerHTML = `<div class="empty">Finance module unavailable.</div>`; $("#inds").innerHTML = ""; }
 }
+
+/* ---- PNC Script Mirror: show the customer the scam script our decoys captured, at the moment of payment ---- */
+async function openMirror(amount, W) {
+  let m;
+  try { m = await api("/api/finance/script_mirror?category=family_emergency", {}, true); } catch { return; }
+  const el = $("#mir");
+  if (!m || !m.active) {
+    el.innerHTML = `<div class="mh"><h3 id="mirTitle">Script Mirror</h3><span class="grow"></span><button class="btn sm ghost" id="mirX">Close</button></div>
+      <p class="lead">${esc(m && m.message || "No active scam script yet.")}</p>`;
+  } else {
+    const facts = (W && W.facts || []).filter(f => /below \$0|autopay|overdr/i.test(f)).slice(0, 3);
+    el.innerHTML = `<div class="mh"><h3 id="mirTitle">Before you send ${fmt$(amount)}</h3><span class="grow"></span><span class="tag rules">Script Mirror · rules</span><button class="btn sm ghost" id="mirX" aria-label="Close">✕</button></div>
+      <p class="lead">This payment matches a <b>${esc(m.label.toLowerCase())}</b> scam that our decoys are talking to right now (${m.decoys} decoy lines). Here is the script those scammers use. <b>Does any of it sound familiar?</b></p>
+      <div class="eyebrow2">Their script, from our decoy chats</div>
+      <ol>${m.lines.map(l => `<li><q>${esc(l.text)}</q><div class="tc">${l.tactics.map(t => `<span class="t">${esc(t)}</span>`).join("")}<em>${esc(l.why)}</em></div></li>`).join("")}</ol>
+      ${facts.length ? `<div class="eyebrow2">What your own accounts say</div><ul class="ledger">${facts.map(f => `<li>${esc(f)}</li>`).join("")}</ul>` : ""}
+      <div class="eyebrow2">What to do</div><p class="lead" style="margin:0">${esc(m.next_step)}</p>
+      <div class="acts"><button class="btn pri" data-a="call">Call Maria (your daughter)</button><button class="btn" data-a="wait">Hold it for 24 hours</button><button class="btn ghost" data-a="send">I'm sure, send it</button></div>
+      <p class="note"><span class="simtag">SIMULATED</span> payment and call. The script lines are from our decoys' scam chats (synthetic demo), with phone numbers and links removed. No message from Linda's phone is used here.</p>`;
+  }
+  $("#mirBg").classList.add("on");
+  const close = () => $("#mirBg").classList.remove("on");
+  $("#mirX").onclick = close;
+  $("#mirBg").onclick = e => { if (e.target.id === "mirBg") close(); };
+  $$("#mir .acts .btn").forEach(b => b.onclick = () => {
+    const a = b.dataset.a;
+    toast(a === "call" ? "Calling Maria… (simulated)" : a === "wait" ? "Payment held for 24 hours. You can release it anytime. (simulated)" : "Sent. If anything feels off, call PNC right away. (simulated)", a === "send" ? "warn" : "ok");
+    close();
+  });
+}
+document.addEventListener("keydown", e => { if (e.key === "Escape") $("#mirBg").classList.remove("on"); });
 async function runWhatIf(k) {
   if (!S.fin) await loadFinance();
   if (!S.fin) return;
   try {
     const r = await api("/api/finance/whatif", {body: {scenario: presetScenario(k)}});
     S.whatif = r; S.wiKey = k; renderFinance();
+    if (k === "bail") setTimeout(() => openMirror(3000, r), 700);
   } catch {}
 }
 const ACCT_SUB = a => ({checking: a.zelle_enabled ? `Zelle ${fmt$(a.zelle_daily_limit)}/day · wire ${fmt$(a.wire_daily_limit)}/day` : "",
