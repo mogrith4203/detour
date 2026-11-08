@@ -160,7 +160,7 @@ select.field{appearance:none;padding-right:28px;background-image:linear-gradient
 .sbar .ic{display:flex;gap:5px;align-items:center}
 .thead{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 10px 10px;border-bottom:1px solid #1C1C1E;background:rgba(18,18,20,.9)}
 .avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(180deg,#9AA0AA,#6B717B);display:grid;place-items:center;font-weight:700;font-size:16px;color:#fff}
-.thead .nm{font-size:13px;color:#ddd;font-family:var(--mono)}
+.thead .nm{font-size:13px;color:#ddd;font-family:var(--mono);max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .thead .meta{font-size:11px;color:#8E8E93}
 .thread{flex:1;overflow:auto;padding:12px 12px 16px;display:flex;flex-direction:column;gap:8px;scroll-behavior:smooth}
 .thread .when{align-self:center;font-size:11px;color:#8E8E93;margin:4px 0}
@@ -514,6 +514,7 @@ body[data-cmode="echo"] .story{gap:2px;padding:7px 11px}
 /* PNC: pending payments */
 .pnc-mid{grid-template-rows:auto minmax(0,1.5fr) minmax(120px,.8fr)}
 .pays .ph .btn{flex:none}
+@media (max-width:1500px){.pays .ph .sub{display:none}}
 .pays .pb{flex:1;overflow-y:auto;overflow-x:hidden;display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:12px;padding-top:10px}
 .pays .pb>*{min-width:0}
 .paylist{display:flex;flex-direction:column;gap:8px}
@@ -683,7 +684,7 @@ body[data-cmode="echo"] .story{gap:2px;padding:7px 11px}
         <div class="mini"><div class="scr">
           <div class="msb"><span>9:41</span><span>Jake · (214) 555-0130</span></div>
           <div class="mhd">T-Mobile Identity Echo</div>
-          <div class="mbody" id="jakeBody"><div class="jidle">No Echo prompts.<br>When someone claims to be Jake,<br>T-Mobile asks him here.</div></div>
+          <div class="mbody" id="jakeBody"><div class="jidle">No Echo prompts.<br>When someone claims to be Jake, T-Mobile asks him here.</div></div>
         </div></div>
       </div>
       <div class="ecol">
@@ -762,7 +763,7 @@ body[data-cmode="echo"] .story{gap:2px;padding:7px 11px}
         <div class="reality">
           <div class="box"><div class="bh"><span class="eyebrow">Tripwired cash-out accounts</span><span class="tag sim">SIMULATED</span></div><div class="trips" id="tripList"><span style="color:var(--dim);font-size:13px">None yet</span></div></div>
           <div class="box"><div class="bh"><span class="eyebrow">Canary card</span><span class="tag sim">SIMULATED</span></div>
-            <button class="btn sm" id="cashOutCanary" disabled>Simulate scammer cashes out the decoy's card</button>
+            <button class="btn sm" id="cashOutCanary" disabled title="Available once the decoy has handed the scammer a canary card">Simulate scammer cashes out the decoy's card</button>
             <div class="kout" id="canaryOut">The decoy hands the scammer a canary card when he asks for payment details.</div></div>
         </div>
       </div>
@@ -1424,10 +1425,12 @@ function renderRescue() {
 /* polling */
 let polling = false;
 async function poll() {
-  if (polling) return; polling = true;
+  if (polling) return;
+  if (S.offline && Date.now() - (S.pollAt || 0) < 2000) return;  // back off while the server is down
+  polling = true; S.pollAt = Date.now();
   try {
     const d = await api(`/api/events?since=${S.lastEv}`, {}, true);
-    if (S.offline) { S.offline = false; toast("Reconnected to the Detour server.", "ok"); }
+    if (S.offline) { S.offline = false; toast("Reconnected to the Detour server.", "ok"); refreshRules(); pollInbox(); refreshPayments(); }
     renderLLM(d.llm); renderStats(d.stats);
     if (d.last < S.lastEv) S.lastEv = 0;
     const evs = d.events || [];
@@ -1772,7 +1775,7 @@ function echoResult(entry, rec) {
 /* ---------- Jake's mini phone (SIMULATED Echo delivery) */
 let inboxBusy = false;
 async function pollInbox() {
-  if (inboxBusy) return; inboxBusy = true;
+  if (inboxBusy || S.offline) return; inboxBusy = true;
   try {
     const r = await api("/api/echo/inbox?who=jake", {}, true);
     renderInbox((r && r.items) || []);
@@ -1783,7 +1786,7 @@ function renderInbox(items) {
   if (key === E.inboxKey) return; E.inboxKey = key;
   const box = $("#jakeBody");
   if (!items.length) {
-    box.innerHTML = E.jakeNote ? `<div class="jdone">${E.jakeNote}</div>` : `<div class="jidle">No Echo prompts.<br>When someone claims to be Jake,<br>T-Mobile asks him here.</div>`;
+    box.innerHTML = E.jakeNote ? `<div class="jdone">${E.jakeNote}</div>` : `<div class="jidle">No Echo prompts.<br>When someone claims to be Jake, T-Mobile asks him here.</div>`;
     return;
   }
   const it = items[items.length - 1];
@@ -1835,8 +1838,11 @@ function sendScam(t) {
   E.chain = E.chain.then(async () => {
     if (gen !== E.gen) return;
     let r;
-    try { r = await api("/api/echo/decoy_say", {body: {echo_id: id, text: t}}); } catch { return; }
-    if (gen !== E.gen || !r || r.error) return;
+    const note = msg => { const c = $("#echoChat"); c.insertAdjacentHTML("beforeend", `<div class="when" style="align-self:center;font-size:12px;color:var(--dim)">${esc(msg)}</div>`); c.scrollTop = c.scrollHeight; };
+    try { r = await api("/api/echo/decoy_say", {body: {echo_id: id, text: t}}, true); }
+    catch (e) { if (gen === E.gen) note(e && e.status === 429 ? "Decoy is pacing replies. Try again in a moment." : e && e.status ? `Decoy didn't reply: ${e.message}` : "Decoy Linda couldn't reply (server unreachable). Nothing was sent to the scammer."); return; }
+    if (gen !== E.gen || !r) return;
+    if (r.error) { note(`Decoy didn't reply: ${r.error}`); return; }
     const tags = `${modeTag(r.mode)}${r.tactic ? `<span class="tag fallback">${esc(r.tactic)}</span>` : ""}`;
     echoMsg("decoy", r.reply || "", tags);
     $("#decoyMode").innerHTML = modeTag(r.mode);
@@ -1883,7 +1889,7 @@ for (const [id, [who, k]] of Object.entries(TOGS)) {
 function left(until) { const s = Math.max(0, Math.round(until - Date.now() / 1000)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; }
 let payBusy = false;
 async function refreshPayments() {
-  if (payBusy) return; payBusy = true;
+  if (payBusy || S.offline) return; payBusy = true;
   try {
     const [p, t] = await Promise.all([api("/api/pnc/payments", {}, true), api("/api/pnc/tripwires", {}, true)]);
     renderPays((p && p.items) || []); renderTrips((t && t.items) || []);
@@ -1944,8 +1950,8 @@ $("#cashOutCanary").addEventListener("click", guard(async () => {
   if (!E.canary) { toast("No canary card handed over yet.", "warn"); return; }
   const out = $("#canaryOut");
   let r;
-  try { r = await api("/api/pnc/card_auth", {body: {token: E.canary.token, merchant: "QuickCash ATM (simulated)", payout_account: PAYOUT}}); }
-  catch { return; }
+  try { r = await api("/api/pnc/card_auth", {body: {token: E.canary.token, merchant: "QuickCash ATM (simulated)", payout_account: PAYOUT}}, true); }
+  catch (e) { out.innerHTML = `<span style="color:var(--amber)">${e && e.status ? esc(e.message) : "Couldn't reach PNC's card rails (simulated). Nothing changed; try again."}</span>`; return; }
   let head;
   if (r.fired) head = `Canary •••• <b>${esc(E.canary.last4)}</b> fired at QuickCash ATM (simulated). Declined. Attributed to decoy thread from <b>${esc(r.attribution && r.attribution.scammer_number || "?")}</b>. Payout <b>${esc(PAYOUT)}</b> ${r.tripwired ? "tripwired" : "not tripwired"}.`;
   else if (r.already_fired) head = `This canary already fired; the payout account is tripwired.`;
@@ -1981,7 +1987,7 @@ async function boot() {
     S.lastEv = d.last || S.lastEv;
   } catch { $("#stories").innerHTML = `<div class="empty" style="margin:auto">Server unavailable.</div>`; }
   loadSamples(); loadFinance(); refreshRules(); renderPrivacy();
-  setInterval(() => { if (Date.now() - S.rulesAt > 2900) refreshRules(); }, 3000);
+  setInterval(() => { if (!S.offline && Date.now() - S.rulesAt > 2900) refreshRules(); }, 3000);
   api("/api/benchmark/last", {}, true).then(b => renderBench(b && b.rows ? b : null)).catch(() => renderBench(null));
   setInterval(poll, 700);
   echoBoot(); setCMode("echo");
