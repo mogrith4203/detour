@@ -38,7 +38,7 @@ BUSINESS_SENT = {
 }
 CONSENTED = {"linda"}  # customers who turned Echo on
 
-ECHO_PER_CUSTOMER = 6      # per 10 minutes
+ECHO_PER_CUSTOMER = 10     # per 10 minutes
 ECHO_PENDING_PER_TARGET = 2
 ECHO_WINDOW_S = 600
 HOLD_SECONDS = 30 * 60     # cooling-off hold

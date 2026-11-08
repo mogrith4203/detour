@@ -37,7 +37,10 @@ flowchart LR
 
 ```bash
 ./run.sh                       # sets up a venv, installs, opens http://localhost:8000
-python3 check_nemotron.py      # PASS/FAIL for chat, JSON and tool calling with your key
+python3 check_nemotron.py      # PASS/FAIL for chat, JSON, tool calling and claim extraction with your key
+./live_check.sh                # one-shot: venv, Nemotron check, test set, live benchmark
+python3 -m pytest -q tests     # unit, Echo, and JS↔Python parity tests (mock, no network)
+python3 tests/e2e_demo.py      # Playwright: full demo flow in MOCK, screenshots in results/flow/
 ```
 
 `.env` holds `NVIDIA_API_KEY` and `NEMOTRON_MODEL`. Copy the exact model id from "View Code" on build.nvidia.com.
@@ -62,10 +65,21 @@ It uses three sets: the built-in held-out split, `data/generated.jsonl` (written
 
 The blocklist row is low by construction, because the test messages use new numbers. Only quote numbers from a live run; the UI blurs mock-mode results.
 
+## Identity Echo
+
+1. Nemotron reads the message and returns who it claims to be (`detour/claims.py`, JSON; a lexicon stand-in in MOCK).
+2. The phone matches that claim to Linda's contacts or a verified business (`static/resolver.js`, parity-tested against `detour/resolver.py`). Contacts never leave the browser. Only a hash of the one resolved number goes out.
+3. The carrier asks the real person on their own line: "Is this you?" The prompt carries no message content. An answer counts only if that line shows no SIM swap and no call forwarding.
+4. For a business, the phone sends only a hash of the message. The business says whether it sent it.
+5. "Not me" is a ground-truth scam label: the sender is tripwired, the thread goes to a decoy, the skill forge proposes an update that must pass the gate, and linked payments are cancelled.
+6. No answer is never treated as safe: safe-word prompt, cooling-off hold, and the on-device story check keep running.
+
+Money rule (`Defense.gauntlet` in `detour/echo.py`): one signal can only warn. A hold needs 2 independent signal families (message, bank, carrier, Echo). A cancel needs the Echo denial plus one more.
+
 ## What's real and what's simulated
 
-- **Real:** the agent pipeline, Nemotron calls (with a key), tool calling, the validator rules, the in-browser matcher, the skill forge and gate, the finance engine, and the benchmark.
-- **Simulated:** the scammer traffic (scripted plays, or you typing), the decoy phone lines, sender registration, the verified-business list, the customer phone (a browser panel), and the bank customer.
+- **Real:** the agent pipeline, Nemotron calls (with a key), tool calling, claim extraction, the validator rules, the in-browser matcher and claim resolver, the skill forge and gate, the hold/cancel rules, the finance engine, and the benchmark.
+- **Simulated (labeled in the UI):** Echo delivery to the real person (Jake's phone is a browser panel), carrier signals (SIM swap, forwarding, active call; CAMARA-style), PNC payment rails, holds and tripwires, canary cards, business provenance endpoints, the scammer traffic, the decoy phone lines, sender registration, the verified-business list, the customer phone, and the bank customer.
 
 ## Layout
 
@@ -74,10 +88,14 @@ server.py              FastAPI app
 detour/llm.py          Nemotron client (OpenAI-compatible; mock / record / replay)
 detour/core.py         signals, matcher (reference copy), story map, agents, gate
 detour/engine.py       orchestration, phone rules API, consent + rescue, benchmark
+detour/claims.py       Echo claim extraction (Nemotron JSON + mock)
+detour/resolver.py     claim → contact/business (Python twin of static/resolver.js)
+detour/echo.py         Identity Echo, carrier signals, PNC rails, canary, k-anonymity, gauntlet
 detour/finance/        PNC engine + coach
 detour/data.py         synthetic personas, plays, allowlist, eval set
 static/index.html      three-lens demo UI
 static/matcher.js      the phone matcher (parity-tested against core.py)
+static/resolver.js     the phone-side claim resolver (parity-tested against resolver.py)
 bench.py · datagen.py · check_nemotron.py · run.sh
 ```
 
