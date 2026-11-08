@@ -15,7 +15,7 @@ CLAIM_SYSTEM = (
     '"name" (the first name or business name the sender uses for themselves, or null), '
     '"relation" (e.g. "grandson", "daughter", "bank", or null), '
     '"business" (business or agency name if any, else null), '
-    '"money_ask" (true if the message asks for money, gift cards, a payment, codes, or account details), '
+    '"money_ask" (true if the message asks for money, gift cards, a payment, codes, account details, or to verify, log in, or call a new number), '
     '"confidence" (0 to 1). '
     "Do not repeat or quote the message."
 )
@@ -32,7 +32,7 @@ ADDRESS_TO_RELATION = {
     "aunt": "nephew/niece", "uncle": "nephew/niece",
 }
 MONEY = re.compile(r"\$\s?\d|\b(money|bail|gift ?cards?|zelle|venmo|cash ?app|wire|western union|pay|payment|send|"
-                   r"transfer|code|account|bitcoin|crypto|fee|lawyer)\b", re.I)
+                   r"transfer|code|account|bitcoin|crypto|fee|lawyer|verify|log ?in|locked|suspended|card)\b", re.I)
 SELF_NAME = re.compile(r"\b(?:it'?s|its|this is|im|i'm|i am)\s+([A-Z][a-z]{1,15}|[a-z]{2,15})\b", re.I)
 NOT_NAMES = {"me", "your", "you", "the", "a", "an", "not", "so", "really", "just", "going", "in", "at", "on",
              "stuck", "here", "okay", "ok", "fine", "safe", "sorry", "urgent", "calling", "texting", "from", "with"}

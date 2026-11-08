@@ -84,6 +84,11 @@ class Engine:
         self.threads = {}
         self.pending = {}
         self.live = {}
+        if not hasattr(self, "defense"):
+            from .echo import Defense
+            self.defense = Defense(self)
+        else:
+            self.defense.reset()
         self.stats = {"phone_checks": 0, "handled_on_device": 0, "asked_consent": 0, "rescues": 0,
                       "bytes_to_cloud": 0, "skills_promoted": 0, "skills_rejected": 0, "policy_overrides": 0}
         self.emit("system", "reset", note="Demo state reset")
