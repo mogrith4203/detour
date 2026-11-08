@@ -287,6 +287,7 @@ class EchoStartIn(BaseModel):
 class EchoAnswerIn(BaseModel):
     echo_id: str
     answer: str = ""
+    who: str = ""
 
 
 class DecoySayIn(BaseModel):
@@ -348,7 +349,7 @@ def echo_inbox(who: str = "jake"):
 def echo_answer(body: EchoAnswerIn):
     if body.answer not in ("not_me", "yes"):
         raise HTTPException(400, "answer must be not_me or yes")
-    return _rec(_d().answer(body.echo_id[:12], body.answer))
+    return _rec(_d().answer(body.echo_id[:12], body.answer, body.who[:20]))
 
 
 @app.post("/api/echo/timeout")
@@ -420,8 +421,12 @@ def pnc_card_auth(body: CardAuthIn):
 
 
 @app.get("/api/pnc/kanon")
-def pnc_kanon(account: str):
-    return _d().kanon(account[:80])
+def pnc_kanon(prefix: str):
+    """The PNC side sends 5 hex chars of sha256(account) and compares the returned range itself."""
+    r = _d().kanon_range(prefix)
+    if "error" in r:
+        raise HTTPException(400, r["error"])
+    return r
 
 
 @app.get("/api/gauntlet")

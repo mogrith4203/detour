@@ -19,7 +19,7 @@ import uuid
 
 from .claims import extract_claim
 from .core import gate, redact
-from .resolver import BUSINESSES, msg_hash
+from .resolver import BUSINESSES, digits, msg_hash
 
 # ---------------------------------------------------------------- simulated parties
 # Carrier subscriber directory: number hash -> subscriber. The carrier, not the phone, knows who the hash is.
@@ -161,6 +161,7 @@ class Defense:
         recent = [t for c, t in self.history if c == customer and _now() - t < ECHO_WINDOW_S]
         if len(recent) >= ECHO_PER_CUSTOMER:
             self.emit("Identity Echo", "rate-limit", output=f"rate limited ({len(recent)} in 10 min)", mode="rules")
+            self._claim_only(customer, body, "rate limited")
             return {**base, "status": "rate_limited", "reason": "Too many Echo checks in 10 minutes. Falling back to the safe word."}
         sender = str(body.get("sender") or "")[:40]
         payload = {"type": "identity_echo", "from_customer": customer, "claim_kind": str(body.get("claim_kind") or "")[:20],
@@ -182,15 +183,33 @@ class Defense:
         nh = str(body.get("number_hash") or "")
         sub = SUBSCRIBERS.get(nh)
         if not sub:
+            self._claim_only(customer, body, "unreachable")
             return {**base, "reason": "That contact isn't reachable through the carrier, so we fall back to the safe word."}
         pending = [e for e in self.echoes.values() if e["target_who"] == sub["who"] and e["status"] == "pending"]
         if len(pending) >= ECHO_PENDING_PER_TARGET:
+            self._claim_only(customer, body, "target busy")
             return {**base, "status": "rate_limited", "reason": f"{sub['label']} already has open Echo prompts."}
         payload["target"] = {"number_hash": nh}
         rec = self._new(customer, sender, payload, sub["label"], target_who=sub["who"])
         self.emit("Identity Echo", "deliver", input=json.dumps(payload)[:200],
                   output=f"Asked the real {sub['label']} on their own line (simulated delivery)", mode="simulated")
         return self._public(rec)
+
+    def _claim_only(self, customer, body, why):
+        """The claim still counts when we couldn't ask: treated exactly like no answer (never safe)."""
+        sender = str(body.get("sender") or "")[:40]
+        if not sender or body.get("target_kind") == "business":
+            return
+        payload = {"type": "claim_only", "claim_kind": str(body.get("claim_kind") or "")[:20], "reason": why}
+        rec = {"echo_id": uuid.uuid4().hex[:8], "customer": customer, "sender": sender, "payload": payload,
+               "target_label": "unknown", "target_who": None, "status": "no_answer", "answer": None, "trusted": None,
+               "trust_reasons": [], "outcome": None, "created": _now(), "decoy": None, "simulated": True,
+               "fallback": [f"Couldn't ask the real person ({why}). No answer is never treated as safe.",
+                            "Ask the caller for your family safe word.", "Any payment to them waits in a cooling-off hold."]}
+        self.echoes[rec["echo_id"]] = rec
+        self.engine._cap(self.echoes, 100)
+        for p in self._linked(sender):
+            self._evaluate(p)
 
     def _new(self, customer, sender, payload, label, target_who):
         eid = uuid.uuid4().hex[:8]
@@ -223,9 +242,9 @@ class Defense:
     def list(self):
         return {"items": [self._public(e) for e in sorted(self.echoes.values(), key=lambda e: -e["created"])]}
 
-    def answer(self, eid, answer):
+    def answer(self, eid, answer, who=None):
         rec = self.echoes.get(eid)
-        if not rec:
+        if not rec or not rec["target_who"] or who != rec["target_who"]:
             return None
         if rec["status"] != "pending":
             return self._public(rec)
@@ -263,6 +282,14 @@ class Defense:
                 self._evaluate(p)
             return self._public(rec)
         if rec["answer"] == "yes":
+            biz_id = rec["payload"].get("target", {}).get("business_id")
+            if biz_id:  # a business "yes" labels the message only; it never vouches for the sender or releases money
+                rec["outcome"] = {"label": "confirmed", "message": f"{who} confirms they sent this message.", "payments": []}
+                return self._public(rec)
+            if rec["sender"] in self.denied_senders:
+                rec["outcome"] = {"label": "confirmed", "message": f"{who} says yes, but this number was already reported as not them. "
+                                  "Nothing is released.", "payments": []}
+                return self._public(rec)
             if rec["sender"]:
                 self.confirmed_senders[rec["sender"]] = rec["echo_id"]
             released = []
@@ -286,7 +313,11 @@ class Defense:
             self.denied_senders[sender] = rec["echo_id"]
         trips = []
         thread = list(self.claim_texts.get(sender or "unknown", []))
+        protected = {digits(s["number"]) for s in SUBSCRIBERS.values()} | {digits(b["number"]) for b in BUSINESSES}
         for acct in ([sender] if sender else []) + [r for t in thread for r in extract_rails(t)]:
+            if digits(acct) in protected and len(digits(acct)) == 10:
+                self.emit("PNC tripwire (simulated)", "skip", output=f"not tripwiring {acct}: it's a real customer line", mode="rules")
+                continue
             if acct and self._tripwire(acct, f"Echo denial {rec['echo_id']}"):
                 trips.append(acct)
         skill = self._learn(thread[-1] if thread else "", "bank" if is_business else "family_emergency")
@@ -356,7 +387,7 @@ class Defense:
             tactic = STALL_TACTICS[len(d["convo"]) // 2 % len(STALL_TACTICS)]
         d["convo"].append({"who": "decoy", "text": reply})
         self.emit("Honeypot persona", "reply", input=text[:160], output=reply[:200], **meta)
-        return {"reply": reply, "mode": meta.get("mode"), "canary": canary, "tactic": tactic,
+        return {"reply": reply, "mode": meta.get("mode"), "canary": canary, "tactic": tactic, "simulated": True,
                 "time_burned_s": self._burned(rec), "tripwires": trips}
 
     def _burned(self, rec):
@@ -387,6 +418,9 @@ class Defense:
         c = self.canaries.get(token or "")
         if not c:
             return {"fired": False, "reason": "Not a canary card.", "simulated": True}
+        if c["fired"]:
+            return {"fired": False, "already_fired": True, "reason": "This canary already fired; the payout account is tripwired.",
+                    "simulated": True}
         c["fired"] = True
         rec = self.echoes.get(c["echo_id"], {})
         tripped = self._tripwire(payout, f"canary {token} fired at {merchant}")
@@ -396,13 +430,20 @@ class Defense:
         return {"fired": True, "declined": True, "attribution": attribution, "tripwired": bool(tripped) or (payout or "").lower() in self.tripwires,
                 "simulated": True}
 
+    def kanon_range(self, prefix):
+        """k-anonymity range lookup: PNC sends only 5 hex chars of the account hash and gets every tripwire hash in that
+        range back. PNC compares locally, so the network never learns which account PNC asked about."""
+        prefix = (prefix or "").lower()[:5]
+        if not re.fullmatch(r"[0-9a-f]{5}", prefix):
+            return {"error": "prefix must be 5 hex chars"}
+        hashes = sorted(acct_hash(a) for a in self.tripwires if acct_hash(a).startswith(prefix))
+        return {"prefix_received": prefix, "chars_received": 5, "range": hashes, "simulated": True}
+
     def kanon(self, account):
-        """k-anonymity range lookup: PNC sends 5 hex chars of the account hash, gets every tripwire hash in that range,
-        and compares locally. The network never learns which account PNC asked about."""
+        """Reference for the PNC side (tests): hash locally, send 5 chars, compare the returned range locally."""
         h = acct_hash(account)
-        prefix = h[:5]
-        in_range = [acct_hash(a) for a in self.tripwires if acct_hash(a).startswith(prefix)]
-        return {"prefix_sent": prefix, "chars_sent": 5, "matches_in_range": len(in_range), "hit": h in in_range, "simulated": True}
+        r = self.kanon_range(h[:5])
+        return {"prefix_sent": h[:5], "chars_sent": 5, "matches_in_range": len(r["range"]), "hit": h in r["range"], "simulated": True}
 
     def pay(self, to_handle, amount, memo, linked_sender):
         pid = "pay_" + uuid.uuid4().hex[:6]
@@ -424,6 +465,10 @@ class Defense:
             sigs = self.gauntlet(p)
             if any(s["family"] == "echo" and s["name"] == "echo_denied" for s in sigs["signals"]):
                 p["decision_reasons"].append("Can't release: the real person said 'not me'.")
+            elif by == "customer" and (any(s["name"] in ("echo_untrusted", "echo_no_answer", "tripwire") for s in sigs["signals"])
+                                       or (p["hold_until"] and _now() < p["hold_until"])):
+                p["decision_reasons"].append("Not yet: the cooling-off hold is still running and we couldn't confirm the real person. "
+                                             "Ask your Trusted Contact to review it, or wait.")
             elif by == "trusted_contact":
                 p["status"] = "released"
                 p["decision_reasons"].append("Released after Linda's Trusted Contact (Mia) reviewed it (simulated).")
@@ -488,7 +533,7 @@ class Defense:
             sigs.append({"family": "echo", "name": "echo_no_answer", "weight": 0.3, "detail": "The real person didn't answer. No answer is never treated as safe."})
         risky = [x for x in sigs if x["weight"] > 0]
         fams = {x["family"] for x in risky}
-        if any(x["name"] == "echo_confirmed" for x in sigs) and not any(x["name"] in ("tripwire",) for x in sigs):
+        if any(x["name"] == "echo_confirmed" for x in sigs) and not any(x["name"] in ("tripwire", "on_call_unknown", "echo_untrusted") for x in sigs):
             action = "allow"
         elif "echo" in fams and any(x["name"] == "echo_denied" for x in sigs) and len(fams) >= 2:
             action = "cancel"

@@ -119,7 +119,9 @@ def extract_claim(llm, text):
         try:
             d = llm.json([{"role": "system", "content": CLAIM_SYSTEM},
                           {"role": "user", "content": text}], max_tokens=200, temperature=0)
-            return normalize_claim(d), llm.mode
+            c = normalize_claim(d)
+            c["money_ask"] = c["money_ask"] or bool(MONEY.search(text or ""))  # rules can only add an ask, never remove one
+            return c, llm.mode
         except Exception:
             pass
     return normalize_claim(mock_claim(text)), "mock"

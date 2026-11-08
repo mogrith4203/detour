@@ -53,7 +53,7 @@ def test_scam_path_not_me_cancels_payment_and_learns(c):
     assert {s["family"] for s in pay["signals"]} >= {"bank", "message"}
     inbox = c.get("/api/echo/inbox", params={"who": "jake"}).json()["items"]
     assert len(inbox) == 1 and "jail" not in inbox[0]["prompt"] and "3000" not in inbox[0]["prompt"]
-    rec = c.post("/api/echo/answer", json={"echo_id": st["echo_id"], "answer": "not_me"}).json()
+    rec = c.post("/api/echo/answer", json={"echo_id": st["echo_id"], "answer": "not_me", "who": "jake"}).json()
     assert rec["trusted"] and rec["outcome"]["label"] == "scam" and rec["outcome"]["diverted"]
     assert "isn't him" in rec["outcome"]["message"]
     assert SCAMMER.lower() in rec["outcome"]["tripwires"]
@@ -90,7 +90,7 @@ def test_yes_from_trusted_line_releases(c):
     _, _, st = phone_echo(c, SCAM, SCAMMER)
     pay = bail(c)
     assert pay["status"] == "held"
-    rec = c.post("/api/echo/answer", json={"echo_id": st["echo_id"], "answer": "yes"}).json()
+    rec = c.post("/api/echo/answer", json={"echo_id": st["echo_id"], "answer": "yes", "who": "jake"}).json()
     assert rec["outcome"]["message"].startswith("✓ Confirmed by Jake")
     assert c.get("/api/pnc/payments").json()["items"][0]["status"] == "released"
 
@@ -99,7 +99,7 @@ def test_sim_swap_makes_answer_untrusted_and_hold_stays(c):
     c.post("/api/carrier/signals", json={"who": "jake", "sim_swap": True})
     _, _, st = phone_echo(c, SCAM, SCAMMER)
     bail(c)
-    rec = c.post("/api/echo/answer", json={"echo_id": st["echo_id"], "answer": "yes"}).json()
+    rec = c.post("/api/echo/answer", json={"echo_id": st["echo_id"], "answer": "yes", "who": "jake"}).json()
     assert rec["trusted"] is False and any("SIM" in r for r in rec["trust_reasons"])
     p = c.get("/api/pnc/payments").json()["items"][0]
     assert p["status"] == "held" and any(s["name"] == "echo_untrusted" for s in p["signals"])
@@ -127,14 +127,14 @@ def test_consent_and_money_ask_required_and_rate_limit(c):
     assert "rate_limited" in statuses
 
 
-def test_real_number_needs_no_echo():
+def test_real_number_is_detected_but_never_auto_confirms():
     r = resolve_claim({"claims_identity": True, "kind": "family", "name": "Jake"}, None, "(214) 555-0130")
     assert r["from_real_number"] and r["number_hash"] == number_hash("2145550130")
 
 
 def test_decoy_canary_tripwire_kanon(c):
     _, _, st = phone_echo(c, SCAM, SCAMMER)
-    c.post("/api/echo/answer", json={"echo_id": st["echo_id"], "answer": "not_me"})
+    c.post("/api/echo/answer", json={"echo_id": st["echo_id"], "answer": "not_me", "who": "jake"})
     stall = c.post("/api/echo/decoy_say", json={"echo_id": st["echo_id"], "text": "hello? grandma are you there"}).json()
     assert stall["reply"] and stall["canary"] is None and stall["time_burned_s"] >= 0
     pay_ask = c.post("/api/echo/decoy_say", json={"echo_id": st["echo_id"],
@@ -144,15 +144,21 @@ def test_decoy_canary_tripwire_kanon(c):
     fired = c.post("/api/pnc/card_auth", json={"token": pay_ask["canary"]["token"], "merchant": "QuickCash ATM (simulated)",
                                                "payout_account": "payout.x91@cashapp.example"}).json()
     assert fired["fired"] and fired["tripwired"] and fired["attribution"]["scammer_number"] == SCAMMER
-    k = c.get("/api/pnc/kanon", params={"account": "payout.x91@cashapp.example"}).json()
-    assert k["chars_sent"] == 5 and len(k["prefix_sent"]) == 5 and k["hit"]
-    assert not c.get("/api/pnc/kanon", params={"account": "grandma.linda@zelle.example"}).json()["hit"]
+    import hashlib
+    h = hashlib.sha256(b"payout.x91@cashapp.example").hexdigest()
+    k = c.get("/api/pnc/kanon", params={"prefix": h[:5]}).json()
+    assert k["chars_received"] == 5 and h in k["range"]  # PNC compares locally
+    h2 = hashlib.sha256(b"grandma.linda@zelle.example").hexdigest()
+    assert h2 not in c.get("/api/pnc/kanon", params={"prefix": h2[:5]}).json()["range"]
+    assert c.get("/api/pnc/kanon", params={"prefix": "payout"}).status_code == 400
+    again = c.post("/api/pnc/card_auth", json={"token": pay_ask["canary"]["token"], "payout_account": "linda@zelle.example"}).json()
+    assert again["fired"] is False  # a canary fires once; a scammer can't tripwire arbitrary accounts with it
     assert c.post("/api/pnc/card_auth", json={"token": "cny_fake", "payout_account": "x"}).json()["fired"] is False
 
 
 def test_payment_after_denial_is_cancelled_immediately(c):
     _, _, st = phone_echo(c, SCAM, SCAMMER)
-    c.post("/api/echo/answer", json={"echo_id": st["echo_id"], "answer": "not_me"})
+    c.post("/api/echo/answer", json={"echo_id": st["echo_id"], "answer": "not_me", "who": "jake"})
     assert bail(c)["status"] == "cancelled"
 
 
@@ -160,3 +166,40 @@ def test_carrier_token_content_free(c):
     c.post("/api/carrier/signals", json={"who": "linda", "unknown_call": True})
     t = c.get("/api/carrier/token", params={"who": "linda"}).json()
     assert t["signals"]["active_call_unknown_number"] and t["contains_message_content"] is False and t["simulated"]
+
+
+def test_wrong_answerer_rejected(c):
+    _, _, st = phone_echo(c, SCAM, SCAMMER)
+    assert c.post("/api/echo/answer", json={"echo_id": st["echo_id"], "answer": "yes"}).status_code == 404
+    assert c.post("/api/echo/answer", json={"echo_id": st["echo_id"], "answer": "yes", "who": "mia"}).status_code == 404
+
+
+def test_replayed_business_text_cannot_release_scam_payment(c):
+    _, _, st = phone_echo(c, SCAM, SCAMMER)
+    assert bail(c)["status"] == "held"
+    _, _, biz = phone_echo(c, LAKE_REAL, SCAMMER)  # scammer forwards the real Lakeview alert from his own number
+    assert biz["answer"] == "yes" and biz["outcome"]["payments"] == []
+    assert c.get("/api/pnc/payments").json()["items"][0]["status"] == "held"
+
+
+def test_flooded_target_inbox_still_holds(c):
+    for i in range(2):
+        phone_echo(c, SCAM, f"(682) 555-01{50 + i}")
+    _, _, st = phone_echo(c, SCAM, SCAMMER)
+    assert st["status"] == "rate_limited"
+    assert bail(c)["status"] == "held"
+
+
+def test_denial_never_tripwires_real_customer_lines(c):
+    c.post("/api/echo/claim", json={"text": "grandma it's jake, need $3000 bail, call my mom at (214) 555-0131", "sender": SCAMMER})
+    _, _, st = phone_echo(c, SCAM, SCAMMER)
+    rec = c.post("/api/echo/answer", json={"echo_id": st["echo_id"], "answer": "not_me", "who": "jake"}).json()
+    trips = [t["account"] for t in c.get("/api/pnc/tripwires").json()["items"]]
+    assert "(214) 555-0131" not in trips and SCAMMER.lower() in trips and rec["outcome"]["label"] == "scam"
+
+
+def test_customer_cannot_release_during_cooling_off(c):
+    phone_echo(c, SCAM, SCAMMER)
+    p = bail(c)
+    assert c.post("/api/pnc/release", json={"payment_id": p["id"], "by": "customer"}).json()["status"] == "held"
+    assert c.post("/api/pnc/release", json={"payment_id": p["id"], "by": "trusted_contact"}).json()["status"] == "released"

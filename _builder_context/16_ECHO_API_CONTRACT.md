@@ -19,7 +19,7 @@ Every model-backed response carries `"mode": "live" | "replay" | "mock"`; show t
   Business targets answer immediately (provenance by hash). Contacts go to the target's inbox.
   Echo payload stored server-side is printed back as `payload` (content-free; the UI can show it as JSON).
 - `GET /api/echo/inbox?who=jake` → `{items:[{echo_id, prompt, asked_at}]}` (prompt has NO message content)
-- `POST /api/echo/answer {echo_id, answer:"not_me"|"yes"}` → full echo record (below)
+- `POST /api/echo/answer {echo_id, answer:"not_me"|"yes", who:"jake"}` → full echo record (below). `who` must be the Echo target or 404.
 - `POST /api/echo/timeout {echo_id}` → record with `status:"no_answer"` and `fallback:[...]` steps (safe word, cooling-off, story check)
 - `GET /api/echo/status?echo_id=` → record
 - Record: `{echo_id, status, answer, trusted:bool, trust_reasons:[...], target_label, payload, outcome:{label, diverted, tripwires:[...],
@@ -42,8 +42,13 @@ Every model-backed response carries `"mode": "live" | "replay" | "mock"`; show t
    decision_reasons:[...], whatif:{facts:[...]}, simulated:true}`
 - `GET /api/pnc/tripwires` → `{items:[{account, source, at}]}`
 - `POST /api/pnc/card_auth {token, merchant, payout_account}` → `{fired, attribution, tripwired, simulated:true}`
-- `GET /api/pnc/kanon?account=` → `{prefix_sent:"abcde", chars_sent:5, matches_in_range:N, hit:bool}`
+- `GET /api/pnc/kanon?prefix=<first 5 hex of sha256(lowercased account)>` → `{prefix_received, chars_received:5, range:[full hashes]}`; the PNC side (browser) compares its full hash against `range` itself.
 
 ## Gauntlet
 - `GET /api/gauntlet?payment_id=` → `{signals:[...], independent:N, action:"warn"|"hold"|"cancel"|"allow", rule}`
   Rule: one signal can only warn; HOLD needs ≥2 independent signal families; Echo denial is one family with the top weight.
+
+## Changes after review (7:20)
+- Customer "Release (I'm sure)" is refused during the cooling-off or after an untrusted/no-answer Echo; the reason is appended to `decision_reasons`. "Ask my Trusted Contact" releases (unless the Echo said not me).
+- A canary fires once per token. A business "yes" only labels the message; it never releases money.
+- `from_real_number` is a hint only (SMS has no caller attestation): show "From Jake's saved number" but still run the Echo when there's a money ask.
