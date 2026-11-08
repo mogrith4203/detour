@@ -160,6 +160,16 @@ def main():
             page.click("#covClose")
             expect(page.locator("#covDlg")).to_be_hidden()
             b.close()
+    except Exception:
+        try:  # leave a trail for debugging: what the agents said (no keys, no secrets in events)
+            import json as _j
+            evs = _j.loads(urllib.request.urlopen(URL + "api/events", timeout=5).read())["events"]
+            print("\nLast agent events:")
+            for e in evs[-25:]:
+                print(f"  {e.get('agent')} [{e.get('mode')}] {str(e.get('output'))[:160]}")
+        except Exception:
+            pass
+        raise
     finally:
         srv.terminate()
     if errors:
