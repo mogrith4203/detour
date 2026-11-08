@@ -241,3 +241,17 @@ def test_safety_parser_reads_response_safety(monkeypatch):
     assert n.safety("u", "r")[0] is True  # judged on the decoy's reply, not the scammer's message
     monkeypatch.setattr(n, "chat", lambda *a, **k: SimpleNamespace(content='{"Response Safety": "unsafe", "Safety Categories": "Threat"}'))
     assert n.safety("u", "r")[:2] == (False, "Threat")
+
+
+def test_claim_normalizes_model_synonyms_and_rules_backfill():
+    from types import SimpleNamespace
+    from detour.claims import extract_claim, normalize_claim
+    assert normalize_claim({"kind": "bank", "business": "Lakeview Credit Union", "claims_identity": "true"})["kind"] == "business"
+
+    class L:
+        mode = "live"
+
+        def json(self, *a, **k):
+            return {"claims_identity": False, "kind": "unknown"}
+    c, mode = extract_claim(L(), "Lakeview fraud dept: your card is locked. Verify now")
+    assert c["business"] == "Lakeview" and mode == "rules"  # labeled as rules, never as the model

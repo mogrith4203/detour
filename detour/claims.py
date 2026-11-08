@@ -87,11 +87,20 @@ def mock_claim(text):
     }
 
 
+KIND_SYNONYMS = {"bank": "business", "company": "business", "organization": "business", "organisation": "business",
+                 "financial institution": "business", "credit union": "business", "merchant": "business", "service": "business",
+                 "agency": "government", "relative": "family", "grandchild": "family", "grandson": "family",
+                 "granddaughter": "family", "acquaintance": "friend"}
+
+
 def normalize_claim(d):
     """Coerce model output into the fixed shape; never trust free-form keys."""
-    kind = str(d.get("kind") or "unknown").lower()
+    kind = str(d.get("kind") or "unknown").lower().strip()
+    kind = KIND_SYNONYMS.get(kind, kind)
     if kind not in ("family", "friend", "business", "government", "unknown"):
         kind = "unknown"
+    if kind == "unknown" and d.get("business") not in (None, "", "null", "None"):
+        kind = "business"
 
     def s(v, n=40):
         if v in (None, "", "null", "None"):
@@ -102,8 +111,11 @@ def normalize_claim(d):
         conf = max(0.0, min(1.0, float(d.get("confidence", 0.5))))
     except (TypeError, ValueError):
         conf = 0.5
+    claims = d.get("claims_identity")
+    if isinstance(claims, str):
+        claims = claims.strip().lower() in ("true", "yes", "1")
     return {
-        "claims_identity": bool(d.get("claims_identity")) and kind != "unknown",
+        "claims_identity": (bool(claims) or kind in ("business", "government") and bool(d.get("business"))) and kind != "unknown",
         "kind": kind,
         "name": s(d.get("name"), 30),
         "relation": s(d.get("relation"), 30),
@@ -121,6 +133,10 @@ def extract_claim(llm, text):
                           {"role": "user", "content": text}], max_tokens=200, temperature=0)
             c = normalize_claim(d)
             c["money_ask"] = c["money_ask"] or bool(MONEY.search(text or ""))  # rules can only add an ask, never remove one
+            if not c["claims_identity"]:  # rules can add a claim the model missed; labeled as rules, not as the model
+                r = normalize_claim(mock_claim(text))
+                if r["claims_identity"]:
+                    return r, "rules"
             return c, llm.mode
         except Exception:
             pass
