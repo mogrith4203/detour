@@ -102,7 +102,7 @@ select.field{appearance:none;padding-right:28px;background-image:linear-gradient
 .chip.nv{color:var(--nv);border-color:rgba(118,185,0,.4);background:rgba(118,185,0,.08)}
 .chip.tmo{color:#FF4FA8;border-color:rgba(226,0,116,.45);background:rgba(226,0,116,.1)}
 .chip.mono{font-family:var(--mono);font-weight:500}
-.tag{display:inline-block;font:600 11px var(--mono);letter-spacing:.02em;padding:1px 6px;border-radius:5px;border:1px solid var(--border2);color:var(--muted);vertical-align:middle}
+.tag{display:inline-block;white-space:nowrap;font:600 11px var(--mono);letter-spacing:.02em;padding:1px 6px;border-radius:5px;border:1px solid var(--border2);color:var(--muted);vertical-align:middle}
 .tag.mock{color:var(--danger);border-color:rgba(255,77,94,.4)}
 .tag.nemotron,.tag.live{color:var(--nv);border-color:rgba(118,185,0,.45)}
 .tag.fallback,.tag.replay{color:var(--amber);border-color:rgba(245,184,65,.45)}
@@ -112,10 +112,18 @@ select.field{appearance:none;padding-right:28px;background-image:linear-gradient
 .empty b{color:var(--muted)}
 
 /* ---------- toasts ---------- */
-#toasts{position:fixed;right:20px;bottom:44px;z-index:50;display:flex;flex-direction:column;gap:8px;max-width:420px}
-.toast{background:var(--panel3);border:1px solid var(--border2);border-left:3px solid var(--info);border-radius:10px;padding:10px 14px;font-size:14px;box-shadow:0 12px 30px rgba(0,0,0,.45);animation:toastIn .25s ease}
-.toast.err{border-left-color:var(--danger)} .toast.warn{border-left-color:var(--amber)} .toast.ok{border-left-color:var(--ok)}
-@keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:none}}
+/* toasts sit centred over the footer strip so they never cover cards, the phone or the payment strip */
+#toasts{position:fixed;left:50%;bottom:4px;transform:translateX(-50%);z-index:50;display:flex;flex-direction:column;align-items:center;gap:4px;width:max-content;max-width:min(620px,calc(100vw - 32px));pointer-events:none}
+.toast{display:flex;align-items:center;gap:8px;background:var(--panel3);border:1px solid var(--border2);border-radius:999px;padding:3px 14px;font-size:13px;line-height:1.3;max-width:100%;box-shadow:0 6px 18px rgba(0,0,0,.45);animation:toastIn .25s cubic-bezier(.16,1,.3,1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;overflow-wrap:anywhere}
+.toast::before{content:"";flex:none;width:7px;height:7px;border-radius:50%;background:var(--info)}
+.toast.err::before{background:var(--danger)} .toast.warn::before{background:var(--amber)} .toast.ok::before{background:var(--ok)}
+@keyframes toastIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.bwarn{margin:0 0 10px;padding:8px 11px;border-radius:10px;border:1px solid rgba(245,184,65,.45);background:rgba(245,184,65,.1);color:var(--amber);font-size:13px;font-weight:600;line-height:1.4}
+/* keyboard focus + motion preferences */
+:focus-visible{outline:2px solid var(--accent,#5AA9FF);outline-offset:2px}
+.field:focus-visible,.tog input:focus-visible{outline-offset:1px}
+.vh{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 
 /* =========================================================== T-MOBILE */
 .tmo-grid{display:grid;grid-template-columns:minmax(250px,290px) minmax(300px,350px) minmax(0,1fr);gap:16px;height:100%}
@@ -494,7 +502,15 @@ svg .lbl{font:700 12px var(--mono)}
 .tog input:checked{background:rgba(255,77,94,.55)}
 .tog input:checked::after{left:13px;background:#fff}
 .tog:has(input:checked){color:#FFB3BA;border-color:rgba(255,77,94,.5)}
-.carrier details summary{cursor:pointer;font-size:12px;color:var(--dim);margin-top:6px}
+.carrier{position:relative}
+.carrier details summary{cursor:pointer;font-size:11.5px;color:var(--dim);border:1px dashed var(--border2);border-radius:999px;padding:1px 9px;list-style:none}
+.carrier details summary::-webkit-details-marker{display:none}
+.carrier details summary:hover{color:var(--muted)}
+.carrier details[open] summary{color:var(--text);border-style:solid}
+.carrier details pre{position:absolute;left:0;right:0;bottom:calc(100% + 6px);z-index:5;margin:0;max-height:220px;overflow:auto;box-shadow:0 10px 28px rgba(0,0,0,.55)}
+body[data-cmode="echo"] .smap{height:150px}
+body[data-cmode="echo"] .story .stt{-webkit-line-clamp:1}
+body[data-cmode="echo"] .story{gap:2px;padding:7px 11px}
 /* PNC: pending payments */
 .pnc-mid{grid-template-rows:auto minmax(0,1.5fr) minmax(120px,.8fr)}
 .pays .ph .btn{flex:none}
@@ -538,6 +554,9 @@ svg .lbl{font:700 12px var(--mono)}
   .pnc-grid{grid-template-columns:250px minmax(0,1fr) 350px}
   .nv-grid{grid-template-columns:minmax(0,1fr) 340px}
   .ind .iv b{font-size:23px}
+  .carrier .camx{display:none}
+  .zstrip .zl{display:none}
+  .dthread .burn .bx{display:none}
 }
 @media (max-height:840px){
   main{padding:12px 20px}
@@ -557,6 +576,9 @@ svg .lbl{font:700 12px var(--mono)}
   .carrier{padding:6px 10px}
   .carrier .bh{margin-bottom:4px}
   .tog{padding:2px 10px 2px 5px}
+  body[data-cmode="echo"] .smap{height:128px}
+  body[data-cmode="echo"] .story .st3:last-child{display:none}
+  .zstrip{padding:6px 10px}
 }
 </style>
 </head>
@@ -670,19 +692,18 @@ svg .lbl{font:700 12px var(--mono)}
           <div class="dh"><b>Diverted thread</b><span class="tag sim">SIMULATED</span><span class="gr"></span><span class="burn" id="timeBurned"></span><span id="decoyMode"></span></div>
           <div class="chat" id="echoChat"><div class="empty" style="margin:auto">After the real Jake taps <b>Not me</b>,<br>the scammer's thread goes to a decoy Linda.</div></div>
           <form class="scomp" id="scamComposer" autocomplete="off">
-            <div class="eyebrow">Scammer's next message</div>
-            <div class="row"><input class="field" id="scamText" maxlength="500" placeholder="Text 'grandma' like the scammer would…" disabled><button class="btn pri sm" type="submit" id="scamSend" disabled>Send</button></div>
+            <label class="eyebrow vh" for="scamText">Scammer's next message</label>
+            <div class="row"><input class="field" id="scamText" maxlength="500" aria-label="Scammer's next message" placeholder="Text 'grandma' like the scammer would…" disabled><button class="btn pri sm" type="submit" id="scamSend" disabled>Send</button></div>
             <div class="qs"><button type="button" class="btn sm" id="scamQ1" data-t="ok send it now pls" disabled>ok send it now pls</button><button type="button" class="btn sm" id="scamQ2" data-t="whats ur card number grandma" disabled>whats ur card number grandma</button></div>
           </form>
         </div>
         <div class="carrier">
-          <div class="bh"><span class="eyebrow">Carrier signals · CAMARA-style</span><span class="tag sim">SIMULATED</span></div>
+          <div class="bh"><span class="eyebrow">Carrier signals<span class="camx"> · CAMARA-style</span></span><details id="tokenBox"><summary title="Content-free risk token T-Mobile can share (Linda)">Risk token</summary><pre class="jpre" id="riskToken">{}</pre></details><span class="tag sim">SIMULATED</span></div>
           <div class="togs">
             <label class="tog"><input type="checkbox" id="togSimSwap">Jake's line: SIM swapped 1h ago</label>
-            <label class="tog"><input type="checkbox" id="togForward">Jake's line: call forwarding on</label>
+            <label class="tog"><input type="checkbox" id="togForward">Jake's line: calls forwarded</label>
             <label class="tog"><input type="checkbox" id="togUnknownCall">Linda: on a call with an unknown number</label>
           </div>
-          <details id="tokenBox"><summary>Content-free risk token T-Mobile can share (Linda)</summary><pre class="jpre" id="riskToken">{}</pre></details>
         </div>
       </div>
     </div>
@@ -772,7 +793,7 @@ svg .lbl{font:700 12px var(--mono)}
 </main>
 
 <footer><span>All personas, numbers (555-01xx), businesses and customers are synthetic.</span><span>Keys <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> switch lenses</span></footer>
-<div id="toasts"></div>
+<div id="toasts" role="status" aria-live="polite"></div>
 
 <script src="/static/matcher.js"></script>
 <script src="/static/resolver.js"></script>
@@ -790,9 +811,11 @@ const initials = s => { const d = String(s || "").replace(/\D/g, ""); return d ?
 
 function toast(msg, kind = "info", ms = 4200) {
   const el = document.createElement("div");
-  el.className = "toast " + kind; el.textContent = msg;
+  msg = String(msg == null ? "" : msg);
+  for (const old of $$("#toasts .toast")) if (old.textContent === msg) old.remove();  // no stacked duplicates
+  el.className = "toast " + kind; el.textContent = msg; el.title = msg;
   $("#toasts").appendChild(el);
-  while ($("#toasts").children.length > 4) $("#toasts").firstChild.remove();
+  while ($("#toasts").children.length > 2) $("#toasts").firstChild.remove();
   setTimeout(() => { el.style.transition = "opacity .3s"; el.style.opacity = "0"; setTimeout(() => el.remove(), 300); }, ms);
 }
 
@@ -833,6 +856,7 @@ function setLens(l) {
   $$(".lens-tab").forEach(b => b.classList.toggle("on", b.dataset.l === l));
   $$(".lens").forEach(s => s.classList.toggle("on", s.id === "lens-" + l));
   if (l === "pnc" && S.fin) drawChart();
+  if (l === "tmo") requestAnimationFrame(() => { for (const s of ["#thread", "#echoChat"]) { const t = $(s); if (t) t.scrollTop = t.scrollHeight; } });
 }
 $("#lensTabs").addEventListener("click", e => { const b = e.target.closest(".lens-tab"); if (b) setLens(b.dataset.l); });
 document.addEventListener("keydown", e => {
@@ -1078,7 +1102,7 @@ function setCMode(m) {
   $("#ctlScripted").classList.toggle("hidden", m !== "scripted");
   $("#ctlLive").classList.toggle("hidden", m !== "live");
   $(".cbody").classList.toggle("hidden", m === "echo"); $("#echoView").classList.toggle("hidden", m !== "echo");
-  S.cmode = m;
+  S.cmode = m; document.body.dataset.cmode = m;
   if (m === "echo") return;
   $("#liveForm").classList.toggle("hidden", !(m === "live" && S.live));
   personaCard(S.personas[m === "live" ? $("#selDecoyLive").value : $("#selDecoy").value]);
@@ -1203,8 +1227,17 @@ function renderStories() {
 }
 function flashStory(id) { const el = document.getElementById("st-" + id); if (!el) return; el.scrollIntoView({behavior: "smooth", inline: "center", block: "nearest"}); el.classList.add("flash"); setTimeout(() => el.classList.remove("flash"), 1800); }
 
-$("#btnSeed").onclick = async () => { try { applyState(await api("/api/seed", {body: {}})); refreshRules(); toast("Decoy history loaded into the story map.", "ok"); } catch {} };
-$("#btnReset").onclick = async () => {
+/* run an async click handler at most once at a time; the button shows it is busy */
+function guard(fn) {
+  return async function (e) {
+    const b = e && e.currentTarget;
+    if (b && b.dataset.busy) return;
+    if (b) { b.dataset.busy = "1"; b.setAttribute("aria-busy", "true"); }
+    try { await fn.call(this, e); } finally { if (b) { delete b.dataset.busy; b.removeAttribute("aria-busy"); } }
+  };
+}
+$("#btnSeed").onclick = guard(async () => { try { applyState(await api("/api/seed", {body: {}})); refreshRules(); toast("Decoy history loaded into the story map.", "ok"); } catch {} });
+$("#btnReset").onclick = guard(async () => {
   try {
     applyState(await api("/api/reset", {body: {}}));
     S.threads = {}; S.phoneSender = null; S.pending = null; S.pendingCheck = null; closeSheet();
@@ -1214,7 +1247,7 @@ $("#btnReset").onclick = async () => {
     resetGraph(); S.rescue = null; renderRescue(); echoReset();
     toast("Demo state reset.", "ok");
   } catch {}
-};
+});
 
 /* ================================================================ NVIDIA: graph */
 const NW = 166, NH = 66, COLS = [14, 230, 446, 662, 878], ROWS = [34, 188, 338];
@@ -1431,7 +1464,9 @@ function renderBench(b) {
     <td>${esc(r.caught)}/${esc(r.scams)}<span class="bar"><i style="width:${pct(r.caught, r.scams)}%"></i></span></td><td>${esc(r.false_alarms)}/${esc(r.legit)}</td><td>${esc(r.unsure)}</td><td>${esc(r.hosted_calls)}</td></tr>`;
   const table = `<table class="bt blurable"><thead><tr><th>Approach</th><th>Caught</th><th>False alarm</th><th>Unsure</th><th>Hosted</th></tr></thead><tbody>
     ${groups.map(g => `<tr class="grp"><td colspan="5">${esc(g.set)}${g.campaign && g.rows.find(r => r.note) ? `<span style="text-transform:none;letter-spacing:0;font-weight:500;color:var(--dim)"> · ${esc(g.rows.find(r => r.note).note)}</span>` : ""}</td></tr>` + g.rows.map((r, i) => tr(r, g.campaign ? /once|teach/i.test(r.mode) : /rescue/i.test(r.mode))).join("")).join("")}</tbody></table>`;
-  $("#benchBody").innerHTML = cards + table;
+  const apiErr = Number(b.api_errors) || 0;
+  const errNote = apiErr > 0 ? `<div class="bwarn" role="status">${esc(apiErr)} hosted call${apiErr === 1 ? "" : "s"} failed (rate limit) during this run; some rows fell back to rules. Not clean Nemotron numbers.</div>` : "";
+  $("#benchBody").innerHTML = errNote + cards + table;
   panel.classList.toggle("masked", b.mode === "mock" && !S.benchRevealed);
 }
 $("#benchMask").onclick = () => { S.benchRevealed = true; $("#scorePanel").classList.remove("masked"); };
@@ -1683,7 +1718,10 @@ async function echoFlow(text, sender, cardEl, asks) {
   pollInbox();
   pollEcho(entry, gen);
 }
-function scrollThread() { requestAnimationFrame(() => { $("#thread").scrollTop = $("#thread").scrollHeight; }); }
+function scrollThread() {
+  const go = () => { const t = $("#thread"); if (t) t.scrollTop = t.scrollHeight; };
+  requestAnimationFrame(go); setTimeout(go, 320);
+}
 function echoOut(entry, cls, head, extra = "") {
   $(".eout", entry.el).innerHTML = `<div class="eres ${cls}">${head}${extra}</div>`;
   scrollThread();
@@ -1779,7 +1817,7 @@ function composerOn(on) { ["#scamText", "#scamSend", "#scamQ1", "#scamQ2"].forEa
 function echoMsg(who, text, tags = "") {
   const c = $("#echoChat"); c.querySelector(".empty")?.remove();
   c.insertAdjacentHTML("beforeend", `<div class="msg ${who === "scammer" ? "scam" : "decoy"}"><div class="who">${who === "scammer" ? "Scammer" : "Decoy Linda"} ${tags}</div><div class="tx">${esc(text)}</div></div>`);
-  c.scrollTop = c.scrollHeight;
+  c.scrollTop = c.scrollHeight; setTimeout(() => { c.scrollTop = c.scrollHeight; }, 300);
 }
 function startDecoy(rec, entry) {
   composerOn(true);
@@ -1805,7 +1843,7 @@ function sendScam(t) {
     if (r.canary) {
       E.canary = r.canary;
       $("#echoChat").insertAdjacentHTML("beforeend", `<div class="when" style="align-self:center"><span class="chip amb" id="canaryChip">Canary card handed over · •••• ${esc(r.canary.last4)} ${SIM}</span></div>`);
-      $("#echoChat").scrollTop = 1e9;
+      $("#echoChat").scrollTop = 1e9; setTimeout(() => { $("#echoChat").scrollTop = 1e9; }, 300);
       $("#cashOutCanary").disabled = false;
       $("#canaryOut").innerHTML = `Canary •••• <b>${esc(r.canary.last4)}</b> is with the scammer. Any use of it fires with attribution.`;
     }
@@ -1814,9 +1852,13 @@ function sendScam(t) {
     tickBurn();
   }).catch(() => {});
 }
-function tickBurn() { if (E.burnBase) $("#timeBurned").textContent = `Scammer time burned: ${E.burnBase.s + Math.floor((Date.now() - E.burnBase.at) / 1000)}s`; }
+function tickBurn() { if (E.burnBase) $("#timeBurned").innerHTML = `<span class="bx">Scammer </span>time burned: ${E.burnBase.s + Math.floor((Date.now() - E.burnBase.at) / 1000)}s`; }
 $("#scamComposer").addEventListener("submit", e => { e.preventDefault(); const t = $("#scamText").value; $("#scamText").value = ""; sendScam(t); });
-["#scamQ1", "#scamQ2"].forEach(s => $(s).addEventListener("click", e => sendScam(e.currentTarget.dataset.t)));
+["#scamQ1", "#scamQ2"].forEach(s => $(s).addEventListener("click", e => {
+  const b = e.currentTarget, now = Date.now();
+  if (now - (+b.dataset.at || 0) < 700) return; b.dataset.at = now;
+  sendScam(b.dataset.t);
+}));
 
 /* ---------- carrier signals (SIMULATED, CAMARA-style) */
 const TOGS = {togSimSwap: ["jake", "sim_swap"], togForward: ["jake", "call_forwarding"], togUnknownCall: ["linda", "unknown_call"]};
@@ -1853,7 +1895,7 @@ function renderPays(items) {
   if (k === E.payKey) return; E.payKey = k;
   // T-Mobile strip mirrors the newest payment
   const z = items[0];
-  $("#zelleStrip").innerHTML = z ? `Linda's pending Zelle: <b>${fmt$(z.amount)}</b> <span class="spill ${esc(z.status)}">${esc(String(z.status).toUpperCase())}</span>
+  $("#zelleStrip").innerHTML = z ? `<span class="zl">Linda's pending </span>Zelle: <b>${fmt$(z.amount)}</b> <span class="spill ${esc(z.status)}">${esc(String(z.status).toUpperCase())}</span>
       ${z.status === "held" && z.hold_until ? `<span class="cdown" data-until="${esc(z.hold_until)}">${left(z.hold_until)}</span>` : ""}<span class="zsub" title="${esc((z.decision_reasons || []).slice(-1)[0] || "")}">${esc(z.to_handle)} · ${esc((z.decision_reasons || []).slice(-1)[0] || "")}</span>`
     : `Linda's pending Zelle<span class="zsub">No payment yet</span>`;
   if (!items.length) { $("#payList").innerHTML = `<div class="empty">No payments yet. Deliver the bail text on the T-Mobile lens, then send the Zelle.</div>`; return; }
@@ -1893,12 +1935,12 @@ async function payBail() {
   } catch {}
   E.payKey = "~"; await refreshPayments();
 }
-$("#payBail").addEventListener("click", payBail);
-$("#payBailPnc").addEventListener("click", payBail);
+$("#payBail").addEventListener("click", guard(payBail));
+$("#payBailPnc").addEventListener("click", guard(payBail));
 
 /* ---------- canary fires → payout tripwired → k-anonymity lookup */
 const PAYOUT = "payout.x91@cashapp.example";
-$("#cashOutCanary").addEventListener("click", async () => {
+$("#cashOutCanary").addEventListener("click", guard(async () => {
   if (!E.canary) { toast("No canary card handed over yet.", "warn"); return; }
   const out = $("#canaryOut");
   let r;
@@ -1917,7 +1959,7 @@ $("#cashOutCanary").addEventListener("click", async () => {
     out.insertAdjacentHTML("beforeend", `<div style="margin-top:6px">k-anonymity check: PNC sent 5 chars: <b>${esc(prefix)}</b> · ${range.length} in range · hit ${range.includes(h) ? "✓" : "✗"} <span class="tag sim">SIMULATED</span></div>`);
   } catch {}
   refreshPayments();
-});
+}));
 
 function echoBoot() {
   pollInbox(); refreshPayments(); syncSignals();
