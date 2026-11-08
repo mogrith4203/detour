@@ -24,7 +24,7 @@ pass ".env has a key (not shown)"
 # make sure a shell-level override doesn't force mock/replay
 unset DETOUR_MOCK DETOUR_REPLAY DETOUR_RECORD
 
-echo; echo "== 2/5 NVIDIA Nemotron (chat, JSON, tools, claim extraction) =="
+echo; echo "== 2/5 NVIDIA Nemotron (chat, JSON, tool calling) =="
 python3 check_nemotron.py || fail "check_nemotron.py" "Nemotron check failed. The lines above say why (wrong model id, bad key, or no internet)."
 
 echo; echo "== 3/5 Test set =="

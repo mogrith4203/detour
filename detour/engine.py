@@ -84,11 +84,6 @@ class Engine:
         self.threads = {}
         self.pending = {}
         self.live = {}
-        if not hasattr(self, "defense"):
-            from .echo import Defense
-            self.defense = Defense(self)
-        else:
-            self.defense.reset()
         self.stats = {"phone_checks": 0, "handled_on_device": 0, "asked_consent": 0, "rescues": 0,
                       "bytes_to_cloud": 0, "skills_promoted": 0, "skills_rejected": 0, "policy_overrides": 0}
         self.emit("system", "reset", note="Demo state reset")
@@ -100,18 +95,9 @@ class Engine:
         while len(d) > n:
             d.pop(next(iter(d)))
 
-    def emit_guard(self, meta):
-        """Show the content-safety check on a decoy reply as its own agent in the NVIDIA feed."""
-        g = meta.pop("guard", None) if isinstance(meta, dict) else None
-        if g:
-            self.emit("Content-safety guard", "guard", output=f"{g['verdict']}" + (f" · {g['categories']}" if g.get("categories") else "")
-                      + f" · {g['checked_by']}", mode=g["mode"])
-
     def emit(self, agent, stage, **data):
         if getattr(self, "quiet", False):  # benchmark runs don't flood the live agent feed
             return
-        if data.get("mode") in ("nemotron", "live"):  # never show a replayed answer as a live one
-            data["mode"] = self.llm.mode
         with self.lock:
             self.ev_seq += 1
             self.events.append({"id": self.ev_seq, "t": time.strftime("%H:%M:%S"), "agent": agent, "stage": stage, **data})
@@ -144,7 +130,6 @@ class Engine:
             self.emit("Scammer simulator", "message", output=short(line), mode="scripted")
             yield {"type": "msg", "who": "scammer", "text": line, "agent": "Scammer simulator (scripted)"}
             reply, meta = self.agents.persona_reply(persona, convo)
-            self.emit_guard(meta)
             convo.append({"who": "decoy", "text": reply})
             self.emit("Honeypot persona", "reply", input=short(line), output=short(reply), **meta)
             yield {"type": "msg", "who": "decoy", "text": reply, "agent": "Honeypot persona", "meta": meta}
@@ -179,7 +164,6 @@ class Engine:
         s["convo"].append({"who": "scammer", "text": text, "sender": s["sender"]})
         injected = bool(INJECTION_RE.search(text))
         reply, meta = self.agents.persona_reply(PERSONAS[s["decoy"]], s["convo"])
-        self.emit_guard(meta)
         s["convo"].append({"who": "decoy", "text": reply})
         self.emit("Honeypot persona", "reply", input=short(text), output=short(reply), injection=injected, **meta)
         return {"reply": reply, "meta": meta, "injection": injected}
@@ -441,7 +425,6 @@ class Engine:
     def benchmark(self):
         saved = (self.smap, self.stats, self.good, self.threads, self.pending)
         calls0 = self.llm.calls
-        errors0 = self.llm.errors
         self.quiet = True
         self.smap = StoryMap()
         self.seed()
@@ -508,5 +491,4 @@ class Engine:
         self.quiet = False
         self.emit("Scoreboard", "benchmark", output=f"Benchmark done: {total_calls} hosted calls", mode=self.llm.mode)
         return {"mode": self.llm.mode, "model": self.llm.describe()["model"], "rows": rows, "campaign": campaign,
-                "api_errors": self.llm.errors - errors0,
                 "api_calls": total_calls, "thresholds": {"warn": 0.60, "clear": 0.30, "frozen": True}}

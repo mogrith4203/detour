@@ -346,36 +346,18 @@ class Agents:
         for turn in convo:
             msgs.append({"role": "user" if turn["who"] == "scammer" else "assistant", "content": turn["text"]})
         filtered = False
-        guard = None
-        model = None
         with Timer() as t:
             try:
-                model = self.llm.small_model or self.llm.model
-                out = self.llm.text(msgs, temperature=0.7, max_tokens=120, model=model)
+                out = self.llm.text(msgs, temperature=0.7, max_tokens=120)
                 mode = "nemotron"
                 if not out:
                     raise ValueError("empty")
                 if UNMASK_RE.search(out):  # never let the decoy reveal what it is
                     out, filtered = "Sorry dear, I don't follow. What did you need from me?", True
-                last = next((c["text"] for c in reversed(convo) if c["who"] == "scammer"), "")
-                safe, cats, gmode = self.llm.safety(last, out)
-                guard = {"checked_by": self.llm.safety_model if gmode in ("live", "replay") else "rules only", "mode": gmode,
-                         "verdict": "unchecked" if safe is None else ("safe" if safe else "unsafe"), "categories": cats}
-                cat_set = {c.strip().lower() for c in (cats or "").split(",") if c.strip()}
-                if safe is False and cat_set and cat_set <= {"pii/privacy"}:
-                    # the persona's details are synthetic by design (fake card last4, fake bank), so a privacy-only flag is noted, not blocked
-                    guard["verdict"] = "safe (privacy flag ignored: decoy details are synthetic)"
-                elif safe is False:  # Nemotron Safety Guard: the decoy never sends harmful text
-                    out, filtered = "Sorry dear, I got confused. Can you say that again?", True
             except Exception:
                 out = self._mock_persona(persona, len([c for c in convo if c["who"] == "decoy"]))
                 mode = "mock" if self.llm.mock else "fallback"
-        meta = {"mode": mode, "ms": t.ms, "filtered": filtered}
-        if model and mode == "nemotron":
-            meta["model"] = model
-        if guard:
-            meta["guard"] = guard
-        return out, meta
+        return out, {"mode": mode, "ms": t.ms, "filtered": filtered}
 
     def _mock_persona(self, persona, n):
         lines = [

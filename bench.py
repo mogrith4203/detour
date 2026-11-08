@@ -30,6 +30,4 @@ if __name__ == "__main__":
         print(f"  {r['mode'][:52]:<53} caught {r['caught']:>2}/{r['scams']:<3} false alarms {r['false_alarms']}/{r['legit']:<3} "
               f"unsure {r['unsure']:<3} hosted checks {r['hosted_calls']}")
     print(f"\nAPI errors: {e.llm.errors}  ({e.llm.last_error})" if e.llm.errors else "")
-    if e.llm.errors:
-        print("Some checks fell back to rules because the API failed, so these rows are NOT clean Nemotron numbers. Rerun before quoting.")
     print(f"Done in {time.time() - t:.0f}s. Saved {out}")

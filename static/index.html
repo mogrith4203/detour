@@ -102,7 +102,7 @@ select.field{appearance:none;padding-right:28px;background-image:linear-gradient
 .chip.nv{color:var(--nv);border-color:rgba(118,185,0,.4);background:rgba(118,185,0,.08)}
 .chip.tmo{color:#FF4FA8;border-color:rgba(226,0,116,.45);background:rgba(226,0,116,.1)}
 .chip.mono{font-family:var(--mono);font-weight:500}
-.tag{display:inline-block;white-space:nowrap;font:600 11px var(--mono);letter-spacing:.02em;padding:1px 6px;border-radius:5px;border:1px solid var(--border2);color:var(--muted);vertical-align:middle}
+.tag{display:inline-block;font:600 11px var(--mono);letter-spacing:.02em;padding:1px 6px;border-radius:5px;border:1px solid var(--border2);color:var(--muted);vertical-align:middle}
 .tag.mock{color:var(--danger);border-color:rgba(255,77,94,.4)}
 .tag.nemotron,.tag.live{color:var(--nv);border-color:rgba(118,185,0,.45)}
 .tag.fallback,.tag.replay{color:var(--amber);border-color:rgba(245,184,65,.45)}
@@ -112,18 +112,10 @@ select.field{appearance:none;padding-right:28px;background-image:linear-gradient
 .empty b{color:var(--muted)}
 
 /* ---------- toasts ---------- */
-/* toasts sit centred over the footer strip so they never cover cards, the phone or the payment strip */
-#toasts{position:fixed;left:50%;bottom:4px;transform:translateX(-50%);z-index:50;display:flex;flex-direction:column;align-items:center;gap:4px;width:max-content;max-width:min(620px,calc(100vw - 32px));pointer-events:none}
-.toast{display:flex;align-items:center;gap:8px;background:var(--panel3);border:1px solid var(--border2);border-radius:999px;padding:3px 14px;font-size:13px;line-height:1.3;max-width:100%;box-shadow:0 6px 18px rgba(0,0,0,.45);animation:toastIn .25s cubic-bezier(.16,1,.3,1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;overflow-wrap:anywhere}
-.toast::before{content:"";flex:none;width:7px;height:7px;border-radius:50%;background:var(--info)}
-.toast.err::before{background:var(--danger)} .toast.warn::before{background:var(--amber)} .toast.ok::before{background:var(--ok)}
-@keyframes toastIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-.bwarn{margin:0 0 10px;padding:8px 11px;border-radius:10px;border:1px solid rgba(245,184,65,.45);background:rgba(245,184,65,.1);color:var(--amber);font-size:13px;font-weight:600;line-height:1.4}
-/* keyboard focus + motion preferences */
-:focus-visible{outline:2px solid var(--accent,#5AA9FF);outline-offset:2px}
-.field:focus-visible,.tog input:focus-visible{outline-offset:1px}
-.vh{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+#toasts{position:fixed;right:20px;bottom:44px;z-index:50;display:flex;flex-direction:column;gap:8px;max-width:420px}
+.toast{background:var(--panel3);border:1px solid var(--border2);border-left:3px solid var(--info);border-radius:10px;padding:10px 14px;font-size:14px;box-shadow:0 12px 30px rgba(0,0,0,.45);animation:toastIn .25s ease}
+.toast.err{border-left-color:var(--danger)} .toast.warn{border-left-color:var(--amber)} .toast.ok{border-left-color:var(--ok)}
+@keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:none}}
 
 /* =========================================================== T-MOBILE */
 .tmo-grid{display:grid;grid-template-columns:minmax(250px,290px) minmax(300px,350px) minmax(0,1fr);gap:16px;height:100%}
@@ -160,7 +152,7 @@ select.field{appearance:none;padding-right:28px;background-image:linear-gradient
 .sbar .ic{display:flex;gap:5px;align-items:center}
 .thead{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 10px 10px;border-bottom:1px solid #1C1C1E;background:rgba(18,18,20,.9)}
 .avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(180deg,#9AA0AA,#6B717B);display:grid;place-items:center;font-weight:700;font-size:16px;color:#fff}
-.thead .nm{font-size:13px;color:#ddd;font-family:var(--mono);max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.thead .nm{font-size:13px;color:#ddd;font-family:var(--mono)}
 .thead .meta{font-size:11px;color:#8E8E93}
 .thread{flex:1;overflow:auto;padding:12px 12px 16px;display:flex;flex-direction:column;gap:8px;scroll-behavior:smooth}
 .thread .when{align-self:center;font-size:11px;color:#8E8E93;margin:4px 0}
@@ -211,7 +203,7 @@ select.field{appearance:none;padding-right:28px;background-image:linear-gradient
 /* console */
 .console{min-width:0}
 .seg{display:flex;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:3px}
-.seg button{white-space:nowrap;border:0;background:transparent;border-radius:7px;padding:6px 12px;font-size:13.5px;font-weight:600;color:var(--muted)}
+.seg button{border:0;background:transparent;border-radius:7px;padding:6px 12px;font-size:13.5px;font-weight:600;color:var(--muted)}
 .seg button.on{background:var(--panel3);color:var(--text);box-shadow:inset 0 0 0 1px var(--border2)}
 .seg button.hot{color:#FF6BB5}
 .seg button.hot.on{background:rgba(226,0,116,.16);color:#fff;box-shadow:inset 0 0 0 1px rgba(226,0,116,.6)}
@@ -272,7 +264,7 @@ select.field{appearance:none;padding-right:28px;background-image:linear-gradient
 .nv-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,370px);gap:16px;height:100%}
 .nv-main{display:grid;grid-template-rows:auto minmax(0,1fr);gap:16px;min-height:0;min-width:0}
 .graph-panel{position:relative;overflow:hidden}
-.graph-panel svg{width:100%;height:auto;aspect-ratio:1060/418;max-height:37vh;display:block;margin:2px 0 4px}
+.graph-panel svg{width:100%;height:auto;aspect-ratio:1060/318;max-height:31vh;display:block;margin:2px 0 4px}
 .legend{display:flex;gap:12px;font-size:12.5px;color:var(--muted)}
 .legend span{display:flex;align-items:center;gap:5px}
 .legend i{width:9px;height:9px;border-radius:3px;display:inline-block}
@@ -421,126 +413,6 @@ svg .lbl{font:700 12px var(--mono)}
 .ca .note{font-size:12px;color:var(--dim);margin-top:6px}
 .askrow{display:flex;gap:8px;padding:10px 14px 12px;border-top:1px solid var(--border)}
 
-/* =========================================================== IDENTITY ECHO */
-.tag.sim,.tag.simulated{color:var(--info);border-color:rgba(90,169,255,.45);background:rgba(90,169,255,.08);letter-spacing:.06em}
-.samples .sgrp{font-size:11px;letter-spacing:.11em;text-transform:uppercase;color:var(--dim);font-weight:700;margin-top:4px;display:flex;gap:6px;align-items:center}
-.sample.echo-s{border-color:rgba(226,0,116,.28)}
-/* Echo block on Linda's card */
-.echo{margin-top:10px;border-top:1px solid #2A2E36;padding-top:9px;animation:pop .25s ease}
-.echo .eh{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font:700 10.5px var(--mono);text-transform:uppercase;letter-spacing:.08em;color:#8E99A8;margin-bottom:5px}
-.echo .eh .gr{flex:1}
-.echo .eclaim{font-size:13.5px;color:#D5DCE6;line-height:1.35}
-.echo .eclaim .dots::after{content:"…";animation:blink 1.2s infinite}
-.echo .eres{margin-top:7px;padding:8px 10px;border-radius:10px;font-size:13.5px;font-weight:650;line-height:1.35;animation:pop .25s ease}
-.echo .eres.bad{background:rgba(255,77,94,.1);color:#FF8A95;border:1px solid rgba(255,77,94,.38)}
-.echo .eres.ok{background:rgba(61,220,151,.09);color:var(--ok);border:1px solid rgba(61,220,151,.35)}
-.echo .eres.amb{background:rgba(245,184,65,.09);color:var(--amber);border:1px solid rgba(245,184,65,.35)}
-.echo .eres small{display:block;font-weight:500;font-size:12.5px;color:#B6C1CF;margin-top:3px}
-.echo .eres ul{margin:4px 0 0;padding-left:17px;font-weight:500;font-size:12.5px;color:#C9D1DC}
-.echo .echips{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
-.echo .echips .chip{font-size:11.5px;padding:1px 7px}
-.echo details{margin-top:7px}
-.echo summary{cursor:pointer;font-size:12px;color:#8E99A8;list-style:none;display:flex;gap:6px;align-items:center}
-.echo summary::-webkit-details-marker{display:none}
-.echo summary::before{content:"▸";font-size:10px;transition:transform .15s}
-.echo details[open] summary::before{transform:rotate(90deg)}
-.jpre{margin:5px 0 0;font:11px/1.45 var(--mono);max-height:150px;overflow:auto;background:#0D0F12;border:1px solid #1E232B;border-radius:8px;padding:6px 8px;color:#9AA5B4;white-space:pre-wrap;word-break:break-all}
-.thread .divert{align-self:stretch;margin:2px 4px;padding:7px 10px;border-radius:12px;border:1px dashed rgba(226,0,116,.5);background:rgba(226,0,116,.07);font-size:12.5px;color:#FF9ECF;text-align:center}
-/* Echo view in the console */
-.echo-view{flex:1;min-height:0;display:grid;grid-template-columns:220px minmax(0,1fr);gap:14px;padding:12px 14px}
-.echo-view>*{min-width:0;min-height:0}
-.jake{display:flex;flex-direction:column;gap:8px;min-height:0}
-.jake .jl{font-size:12px;color:var(--muted);display:flex;gap:6px;align-items:center;flex-wrap:wrap;line-height:1.2}
-.jake .jl b{color:var(--text);font-size:13px}
-.mini{flex:1;min-height:0;max-height:440px;border-radius:30px;padding:7px;background:linear-gradient(145deg,#2A2F38,#0E1015 40%,#1B1F26);box-shadow:0 0 0 1px #3A404B,0 16px 34px rgba(0,0,0,.5)}
-.mini .scr{height:100%;border-radius:24px;background:#000;display:flex;flex-direction:column;overflow:hidden}
-.mini .msb{display:flex;justify-content:space-between;padding:9px 16px 4px;font-size:11.5px;font-weight:600;color:#ddd}
-.mini .mhd{text-align:center;font-size:11px;color:#8E8E93;padding:2px 10px 8px;border-bottom:1px solid #1C1C1E}
-.mini .mbody{flex:1;min-height:0;overflow:auto;padding:12px 11px;display:flex;flex-direction:column;gap:9px}
-.mini .jidle{margin:auto;text-align:center;color:#636366;font-size:12.5px;line-height:1.45}
-.mini .jprompt{border-radius:14px;background:#15171C;border:1px solid #2A2E36;padding:10px 11px;animation:pop .3s ease}
-.mini .jprompt .jt{display:flex;gap:6px;align-items:center;font:700 10px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:#FF4FA8;margin-bottom:5px}
-.mini .jprompt p{margin:0;font-size:13.5px;line-height:1.35;color:#E5E5EA}
-.jbtn{display:block;width:100%;border:0;border-radius:12px;padding:11px 8px;font-weight:750;font-size:15px;transition:filter .15s,transform .1s}
-.jbtn:hover{filter:brightness(1.12)} .jbtn:active{transform:scale(.98)}
-.jbtn.no{background:var(--danger);color:#fff}
-.jbtn.yes{background:#183527;color:var(--ok);box-shadow:inset 0 0 0 1px rgba(61,220,151,.4)}
-.jlink{background:none;border:0;padding:2px;color:#8E8E93;font-size:12px;text-decoration:underline;align-self:center}
-.jlink:hover{color:#C7C7CC}
-.jdone{font-size:12.5px;color:#9AA5B4;text-align:center;line-height:1.4}
-.ecol{display:flex;flex-direction:column;gap:10px;min-height:0;overflow-y:auto;overflow-x:hidden}
-.ecol>*{flex-shrink:0}
-.ecol>.dthread{flex:1 1 auto;min-height:220px}
-.zstrip{display:flex;align-items:center;gap:9px;flex-wrap:nowrap;border:1px solid var(--border);border-radius:12px;background:linear-gradient(160deg,rgba(239,118,34,.1),transparent 60%),var(--bg2);padding:8px 11px;font-size:13.5px}
-.zstrip .zt{flex:1;min-width:0;line-height:1.3}
-.zstrip>.btn,.zstrip>.tag{flex:none}
-.zstrip .zt b{font-family:var(--mono)}
-.zstrip .zt .zsub{display:block;font-size:12px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.spill{font:700 11px var(--sans);letter-spacing:.08em;text-transform:uppercase;padding:2px 9px;border-radius:999px;white-space:nowrap;border:1px solid}
-.spill.held{color:var(--amber);border-color:rgba(245,184,65,.5);background:rgba(245,184,65,.1)}
-.spill.cancelled{color:var(--danger);border-color:rgba(255,77,94,.5);background:rgba(255,77,94,.1)}
-.spill.released,.spill.sent{color:var(--ok);border-color:rgba(61,220,151,.45);background:rgba(61,220,151,.08)}
-.cdown{font:700 12.5px var(--mono);color:var(--amber)}
-.dthread{flex:1;min-height:0;display:flex;flex-direction:column;border:1px solid var(--border);border-radius:12px;background:var(--bg2);overflow:hidden}
-.dthread .dh{display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding:7px 11px;border-bottom:1px solid var(--border);font-size:13px}
-.dthread .dh b{font-size:13.5px}
-.dthread .dh .gr{flex:1}
-.dthread .chat{padding:10px 12px}
-.dthread .burn{font:600 12px var(--mono);color:var(--amber)}
-.scomp{display:flex;flex-direction:column;gap:6px;padding:8px 10px;border-top:1px solid var(--border)}
-.scomp .row{display:flex;gap:6px}
-.scomp .row .field{padding:7px 10px}
-.scomp .qs{display:flex;gap:6px;flex-wrap:wrap}
-.scomp .qs .btn{font-size:12.5px;padding:3px 9px}
-.carrier{border:1px solid var(--border);border-radius:12px;background:var(--bg2);padding:8px 11px}
-.carrier .bh{display:flex;align-items:center;gap:7px;margin-bottom:6px}
-.carrier .bh .eyebrow{flex:1}
-.togs{display:flex;flex-wrap:wrap;gap:6px}
-.tog{display:flex;align-items:center;gap:7px;border:1px solid var(--border2);border-radius:999px;padding:3px 11px 3px 6px;font-size:12.5px;color:var(--muted);cursor:pointer;transition:all .15s;user-select:none}
-.tog input{appearance:none;width:26px;height:15px;border-radius:9px;background:var(--panel3);position:relative;margin:0;cursor:pointer;transition:background .15s;flex:none}
-.tog input::after{content:"";position:absolute;left:2px;top:2px;width:11px;height:11px;border-radius:50%;background:#7C8899;transition:all .15s}
-.tog input:checked{background:rgba(255,77,94,.55)}
-.tog input:checked::after{left:13px;background:#fff}
-.tog:has(input:checked){color:#FFB3BA;border-color:rgba(255,77,94,.5)}
-.carrier{position:relative}
-.carrier details summary{cursor:pointer;font-size:11.5px;color:var(--dim);border:1px dashed var(--border2);border-radius:999px;padding:1px 9px;list-style:none}
-.carrier details summary::-webkit-details-marker{display:none}
-.carrier details summary:hover{color:var(--muted)}
-.carrier details[open] summary{color:var(--text);border-style:solid}
-.carrier details pre{position:absolute;left:0;right:0;bottom:calc(100% + 6px);z-index:5;margin:0;max-height:220px;overflow:auto;box-shadow:0 10px 28px rgba(0,0,0,.55)}
-body[data-cmode="echo"] .smap{height:150px}
-body[data-cmode="echo"] .story .stt{-webkit-line-clamp:1}
-body[data-cmode="echo"] .story{gap:2px;padding:7px 11px}
-/* PNC: pending payments */
-.pnc-mid{grid-template-rows:auto minmax(0,1.5fr) minmax(120px,.8fr)}
-.pays .ph .btn{flex:none}
-@media (max-width:1500px){.pays .ph .sub{display:none}}
-.pays .pb{flex:1;overflow-y:auto;overflow-x:hidden;display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:12px;padding-top:10px}
-.pays .pb>*{min-width:0}
-.paylist{display:flex;flex-direction:column;gap:8px}
-.pay{border:1px solid var(--border);border-left:3px solid var(--sc,#3A4556);border-radius:11px;background:var(--bg2);padding:8px 11px;animation:pop .25s ease}
-.pay.held{--sc:var(--amber)} .pay.cancelled{--sc:var(--danger)} .pay.released,.pay.sent{--sc:var(--ok)}
-.pay .p1{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.pay .p1 .amt{font:800 17px var(--mono)}
-.pay .p1 .to{font:12.5px var(--mono);color:var(--muted);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.pay .sub2{font-size:12px;color:var(--dim);margin-top:2px}
-.pay h4{margin:8px 0 3px;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--dim)}
-.pay ul{margin:0;padding-left:16px;font-size:12.5px;color:#C3CCD8;line-height:1.4}
-.sig{display:flex;gap:7px;align-items:baseline;font-size:12.5px;color:#C3CCD8;line-height:1.35;margin:2px 0}
-.sig b{font:700 11px var(--mono);flex:none;padding:0 5px;border-radius:4px;background:rgba(255,77,94,.14);color:#FF8A95}
-.sig.neg b{background:rgba(61,220,151,.14);color:var(--ok)}
-.sig .fam{font:11px var(--mono);color:var(--dim);flex:none}
-.pay .pacts{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
-.reality{display:flex;flex-direction:column;gap:10px;min-width:0}
-.reality .btn{white-space:normal;text-align:left;max-width:100%}
-.reality .box{animation:none}
-.trips{display:flex;flex-direction:column;gap:4px;max-height:150px;overflow:auto}
-.trip{display:flex;flex-direction:column;font-size:12.5px;border-bottom:1px solid rgba(35,44,58,.7);padding:3px 0}
-.trip b{font:600 12.5px var(--mono);color:#FF9AA3;word-break:break-all}
-.trip span{font-size:11.5px;color:var(--dim)}
-.kout{font-size:13px;color:#C3CCD8;line-height:1.45;margin-top:6px}
-.kout b{font-family:var(--mono);color:var(--pnc)}
-
 @media (max-width:1360px){
   .lens-tab kbd{display:none}
   .lens-tab{padding:6px 12px}
@@ -549,15 +421,9 @@ body[data-cmode="echo"] .story{gap:2px;padding:7px 11px}
   .badge small{font-size:11px}
   .graph-panel svg{max-height:28vh}
   .tmo-grid{grid-template-columns:250px 310px minmax(0,1fr)}
-  .console>.ph>.sub{display:none}
-  .seg button{padding:6px 9px}
-  .echo-view{grid-template-columns:200px minmax(0,1fr);gap:10px;padding:10px 12px}
   .pnc-grid{grid-template-columns:250px minmax(0,1fr) 350px}
   .nv-grid{grid-template-columns:minmax(0,1fr) 340px}
   .ind .iv b{font-size:23px}
-  .carrier .camx{display:none}
-  .zstrip .zl{display:none}
-  .dthread .burn .bx{display:none}
 }
 @media (max-height:840px){
   main{padding:12px 20px}
@@ -570,26 +436,7 @@ body[data-cmode="echo"] .story{gap:2px;padding:7px 11px}
   .privacy{padding:9px 12px}
   .pm-big{margin:0 0 6px}
   .pm-big b{font-size:28px}
-  .smap{height:142px}
-  .stories{padding-bottom:8px}
-  .scomp .eyebrow{display:none}
-  .dthread .dh{padding:5px 10px}
-  .carrier{padding:6px 10px}
-  .carrier .bh{margin-bottom:4px}
-  .tog{padding:2px 10px 2px 5px}
-  body[data-cmode="echo"] .smap{height:128px}
-  body[data-cmode="echo"] .story .st3:last-child{display:none}
-  .zstrip{padding:6px 10px}
 }
-#covDlg{background:var(--panel);color:var(--text);border:1px solid var(--border2);border-radius:var(--r);padding:18px 20px;max-width:min(1060px,calc(100vw - 32px));width:100%}
-#covDlg::backdrop{background:rgba(5,8,12,.72)}
-.cov-h{display:flex;align-items:center;gap:10px}.cov-h h2{margin:0;font-size:18px}.cov-h .grow{flex:1}
-.cov-sub{color:var(--muted);font-size:13px;margin:8px 0 12px}
-table.cov{width:100%;border-collapse:collapse;font-size:13px}
-table.cov th,table.cov td{border-bottom:1px solid var(--border);padding:7px 8px;text-align:left;vertical-align:top}
-table.cov thead th{color:var(--muted);font-size:12px;font-weight:700}table.cov thead small{display:block;font-weight:400;color:var(--dim)}
-table.cov td.y{color:var(--ok)}table.cov td.n{color:var(--dim);text-align:center}
-table.cov thead th:nth-child(2),table.cov td:nth-child(2){background:color-mix(in srgb,var(--tmo) 8%,transparent)}
 </style>
 </head>
 <body data-lens="tmo">
@@ -663,9 +510,9 @@ table.cov thead th:nth-child(2),table.cov td:nth-child(2){background:color-mix(i
 
   <section class="panel console">
     <div class="ph"><h2>Decoy console</h2><span class="sub">AI personas on decoy lines</span><span class="grow"></span>
-      <div class="seg" id="cmodeSeg"><button data-m="echo" id="segEcho" class="on">Identity Echo</button><button data-m="scripted">Scripted run</button><button data-m="live" class="hot">You be the scammer</button></div>
+      <div class="seg" id="cmodeSeg"><button data-m="scripted" class="on">Scripted run</button><button data-m="live" class="hot">You be the scammer</button></div>
     </div>
-    <div class="ctl hidden" id="ctlScripted">
+    <div class="ctl" id="ctlScripted">
       <select class="field" id="selScenario"></select>
       <select class="field" id="selDecoy"></select>
       <button class="btn pri" id="runDecoy">Run decoy session</button>
@@ -676,7 +523,7 @@ table.cov thead th:nth-child(2),table.cov td:nth-child(2){background:color-mix(i
       <button class="btn" id="liveEnd" disabled>End &amp; analyze</button>
       <span class="hint" id="liveTurns"></span>
     </div>
-    <div class="cbody hidden">
+    <div class="cbody">
       <div class="chatcol">
         <div class="persona" id="personaCard"><div class="pa">?</div><div><b>Pick a decoy</b><div class="pm">Synthetic persona seeded on a simulated list</div></div></div>
         <div class="chat" id="chat"><div class="empty" style="margin:auto">Run a scripted scam against a decoy,<br>or switch to <b>You be the scammer</b> and try to fool it.</div></div>
@@ -686,36 +533,6 @@ table.cov thead th:nth-child(2),table.cov td:nth-child(2){background:color-mix(i
         </form>
       </div>
       <div class="intel" id="intel"></div>
-    </div>
-    <div class="echo-view" id="echoView">
-      <div class="jake" id="jakePanel">
-        <div class="jl"><b>Jake's phone</b><span>·</span><span class="tag sim">SIMULATED</span><span>Echo delivery</span></div>
-        <div class="mini"><div class="scr">
-          <div class="msb"><span>9:41</span><span>Jake · (214) 555-0130</span></div>
-          <div class="mhd">T-Mobile Identity Echo</div>
-          <div class="mbody" id="jakeBody"><div class="jidle">No Echo prompts.<br>When someone claims to be Jake, T-Mobile asks him here.</div></div>
-        </div></div>
-      </div>
-      <div class="ecol">
-        <div class="zstrip"><span class="tag sim">SIMULATED</span><span class="zt" id="zelleStrip">Linda's pending Zelle<span class="zsub">No payment yet</span></span><button class="btn sm" id="payBail" title="Linda sends $3,000 Zelle for Jake's bail (simulated PNC rails)">Linda sends $3,000 Zelle</button></div>
-        <div class="dthread">
-          <div class="dh"><b>Diverted thread</b><span class="tag sim">SIMULATED</span><span class="gr"></span><span class="burn" id="timeBurned"></span><span id="decoyMode"></span></div>
-          <div class="chat" id="echoChat"><div class="empty" style="margin:auto">After the real Jake taps <b>Not me</b>,<br>the scammer's thread goes to a decoy Linda.</div></div>
-          <form class="scomp" id="scamComposer" autocomplete="off">
-            <label class="eyebrow vh" for="scamText">Scammer's next message</label>
-            <div class="row"><input class="field" id="scamText" maxlength="500" aria-label="Scammer's next message" placeholder="Text 'grandma' like the scammer would…" disabled><button class="btn pri sm" type="submit" id="scamSend" disabled>Send</button></div>
-            <div class="qs"><button type="button" class="btn sm" id="scamQ1" data-t="ok send it now pls" disabled>ok send it now pls</button><button type="button" class="btn sm" id="scamQ2" data-t="whats ur card number grandma" disabled>whats ur card number grandma</button></div>
-          </form>
-        </div>
-        <div class="carrier">
-          <div class="bh"><span class="eyebrow">Carrier signals<span class="camx"> · CAMARA-style</span></span><details id="tokenBox"><summary title="Content-free risk token T-Mobile can share (Linda)">Risk token</summary><pre class="jpre" id="riskToken">{}</pre></details><span class="tag sim">SIMULATED</span></div>
-          <div class="togs">
-            <label class="tog"><input type="checkbox" id="togSimSwap">Jake's line: SIM swapped 1h ago</label>
-            <label class="tog"><input type="checkbox" id="togForward">Jake's line: calls forwarded</label>
-            <label class="tog"><input type="checkbox" id="togUnknownCall">Linda: on a call with an unknown number</label>
-          </div>
-        </div>
-      </div>
     </div>
     <div class="smap">
       <div class="ph"><h2>Story map</h2><span class="sub" id="smapSub">plays learned from decoys</span><span class="grow"></span>
@@ -733,7 +550,7 @@ table.cov thead th:nth-child(2),table.cov td:nth-child(2){background:color-mix(i
     <div class="panel graph-panel">
       <div class="ph"><h2>Agent graph</h2><span class="sub">lights up as each agent runs</span><span class="grow"></span>
         <div class="legend"><span><i style="background:var(--nv)"></i>Nemotron</span><span><i style="background:var(--info)"></i>Rules</span><span><i style="background:var(--tmo)"></i>On device</span><span><i style="background:var(--danger)"></i>Untrusted</span></div></div>
-      <svg id="graph" viewBox="0 0 1060 418" preserveAspectRatio="xMidYMid meet"></svg>
+      <svg id="graph" viewBox="0 0 1060 318" preserveAspectRatio="xMidYMid meet"></svg>
     </div>
     <div class="nv-bottom">
       <div class="panel rescue">
@@ -764,19 +581,6 @@ table.cov thead th:nth-child(2),table.cov td:nth-child(2){background:color-mix(i
   </aside>
   <div class="pnc-mid">
     <div class="inds" id="inds"></div>
-    <div class="panel pays" id="paysPanel">
-      <div class="ph"><h2>Pending payments</h2><span class="tag sim">SIMULATED rails</span><span class="sub">2-signal gauntlet</span><span class="grow"></span>
-        <button class="btn pri sm" id="payBailPnc">Linda sends $3,000 Zelle for Jake's bail</button></div>
-      <div class="pb">
-        <div class="paylist" id="payList"><div class="empty">No payments yet. Deliver the bail text on the T-Mobile lens, then send the Zelle.</div></div>
-        <div class="reality">
-          <div class="box"><div class="bh"><span class="eyebrow">Tripwired cash-out accounts</span><span class="tag sim">SIMULATED</span></div><div class="trips" id="tripList"><span style="color:var(--dim);font-size:13px">None yet</span></div></div>
-          <div class="box"><div class="bh"><span class="eyebrow">Canary card</span><span class="tag sim">SIMULATED</span></div>
-            <button class="btn sm" id="cashOutCanary" disabled title="Available once the decoy has handed the scammer a canary card">Simulate scammer cashes out the decoy's card</button>
-            <div class="kout" id="canaryOut">The decoy hands the scammer a canary card when he asks for payment details.</div></div>
-        </div>
-      </div>
-    </div>
     <div class="panel chart-panel">
       <div class="ph"><h2>Checking balance, next 60 days</h2><span class="grow"></span>
         <div class="clegend"><span><i></i>Today's path</span><span id="lgAfter" class="hidden"><i class="d"></i>After what-if</span><span><i class="z"></i>Overdraft</span></div></div>
@@ -802,18 +606,10 @@ table.cov thead th:nth-child(2),table.cov td:nth-child(2){background:color-mix(i
 </section>
 </main>
 
-<footer><span>All personas, numbers (555-01xx), businesses and customers are synthetic.</span><button class="btn sm ghost" id="covOpen">Why there's no way around it</button><span>Keys <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> switch lenses</span></footer>
-<dialog id="covDlg" aria-labelledby="covTitle">
-  <div class="cov-h"><h2 id="covTitle">Coverage matrix</h2><span class="tag sim">design property, not measured</span><span class="grow"></span><button class="btn sm ghost" id="covClose" aria-label="Close coverage matrix">Close</button></div>
-  <p class="cov-sub">Each row is a way a scammer could dodge one defense. A ✓ means that defense still catches the scam. Money is held only when two independent defenses agree.</p>
-  <table class="cov"><thead><tr><th>Scammer's move</th><th>Identity Echo</th><th>Mind<small>on-device skills</small></th><th>Space<small>carrier signals</small></th><th>Reality<small>tripwires</small></th><th>Time<small>cooling-off hold</small></th><th>Power<small>decoys</small></th></tr></thead><tbody><tr><th>New phone number every time</th><td class="y">✓ asks the real person anyway</td><td class="y">✓</td><td class="n">·</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td></tr><tr><th>Brand-new script never seen</th><td class="y">✓ claim, not wording</td><td class="n">·</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td><td class="n">·</td></tr><tr><th>Voice call, no text at all</th><td class="n">·</td><td class="n">·</td><td class="y">✓ call in progress</td><td class="y">✓</td><td class="y">✓</td><td class="n">·</td></tr><tr><th>WhatsApp / iMessage (carrier blind)</th><td class="n">·</td><td class="y">✓ on device</td><td class="n">·</td><td class="y">✓</td><td class="y">✓</td><td class="n">·</td></tr><tr><th>Fresh mule account</th><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td><td class="n">·</td><td class="y">✓</td><td class="y">✓ canary exposes it</td></tr><tr><th>Pretends to be a real business</th><td class="y">✓ hash provenance</td><td class="y">✓</td><td class="n">·</td><td class="y">✓</td><td class="y">✓</td><td class="n">·</td></tr><tr><th>AI voice clone of the grandson</th><td class="n">·</td><td class="n">·</td><td class="y">✓ call in progress</td><td class="y">✓</td><td class="y">✓</td><td class="n">·</td></tr><tr><th>Avoids decoys entirely</th><td class="y">✓</td><td class="y">✓ reports</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td><td class="n">·</td></tr></tbody></table>
-  <p class="cov-sub">The benchmark measures Mind (the matcher and Nemotron rescue). The other columns are how the system is built, shown here as a design argument.</p>
-</dialog>
-
-<div id="toasts" role="status" aria-live="polite"></div>
+<footer><span>All personas, numbers (555-01xx), businesses and customers are synthetic.</span><span>Keys <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> switch lenses</span></footer>
+<div id="toasts"></div>
 
 <script src="/static/matcher.js"></script>
-<script src="/static/resolver.js"></script>
 <script>
 "use strict";
 /* ------------------------------------------------------------ utils */
@@ -828,11 +624,9 @@ const initials = s => { const d = String(s || "").replace(/\D/g, ""); return d ?
 
 function toast(msg, kind = "info", ms = 4200) {
   const el = document.createElement("div");
-  msg = String(msg == null ? "" : msg);
-  for (const old of $$("#toasts .toast")) if (old.textContent === msg) old.remove();  // no stacked duplicates
-  el.className = "toast " + kind; el.textContent = msg; el.title = msg;
+  el.className = "toast " + kind; el.textContent = msg;
   $("#toasts").appendChild(el);
-  while ($("#toasts").children.length > 2) $("#toasts").firstChild.remove();
+  while ($("#toasts").children.length > 4) $("#toasts").firstChild.remove();
   setTimeout(() => { el.style.transition = "opacity .3s"; el.style.opacity = "0"; setTimeout(() => el.remove(), 300); }, ms);
 }
 
@@ -873,7 +667,6 @@ function setLens(l) {
   $$(".lens-tab").forEach(b => b.classList.toggle("on", b.dataset.l === l));
   $$(".lens").forEach(s => s.classList.toggle("on", s.id === "lens-" + l));
   if (l === "pnc" && S.fin) drawChart();
-  if (l === "tmo") requestAnimationFrame(() => { for (const s of ["#thread", "#echoChat"]) { const t = $(s); if (t) t.scrollTop = t.scrollHeight; } });
 }
 $("#lensTabs").addEventListener("click", e => { const b = e.target.closest(".lens-tab"); if (b) setLens(b.dataset.l); });
 document.addEventListener("keydown", e => {
@@ -934,13 +727,9 @@ function applyState(st) {
 
 async function loadSamples() {
   try {
-    let list = [];
-    try { list = await api("/api/samples", {}, true); } catch {}
-    const all = [...ECHO_SAMPLES, ...(Array.isArray(list) ? list : [])];
-    $("#samples").innerHTML = `<div class="sgrp">Identity Echo demo</div>` +
-      ECHO_SAMPLES.map((s, i) => `<button class="sample echo-s" id="${s.id}" data-i="${i}"><b>${esc(s.label)}</b><span>${esc(s.sender)}</span></button>`).join("") +
-      (list.length ? `<div class="sgrp">More samples</div>` + list.map((s, i) => `<button class="sample" data-i="${i + ECHO_SAMPLES.length}"><b>${esc(s.label)}</b><span>${esc(s.sender)}</span></button>`).join("") : "");
-    $("#samples").onclick = e => { const b = e.target.closest(".sample"); if (!b) return; const x = all[+b.dataset.i]; deliver(x.text, x.sender, !!x.known); };
+    const list = await api("/api/samples");
+    $("#samples").innerHTML = list.map((s, i) => `<button class="sample" data-i="${i}"><b>${esc(s.label)}</b><span>${esc(s.sender)}</span></button>`).join("");
+    $("#samples").onclick = e => { const b = e.target.closest(".sample"); if (b) deliver(list[+b.dataset.i].text, list[+b.dataset.i].sender, false); };
   } catch { $("#samples").innerHTML = `<div class="empty">Couldn't load samples.</div>`; }
 }
 $("#customForm").addEventListener("submit", e => {
@@ -985,9 +774,8 @@ async function deliver(text, sender, known) {
   if (res.card.consent) {
     S.pendingCheck = {context: res.context, sender, local: res.local, fingerprint: res.fingerprint};
   } else { S.pm.dev++; renderPrivacy(); }
-  const cardEl = showCard(res.card, text, res.card.consent ? "local" : null);
+  showCard(res.card, text, res.card.consent ? "local" : null);
   phoneBusy = false;
-  echoFlow(text, sender, cardEl, (res.local && res.local.asks) || []).catch(e => console.warn("echo flow", e));
 }
 function rulesVersion() { return S.rules ? S.rules.stories.map(s => s.skill.version).reduce((a, b) => a + b, 0) : 0; }
 
@@ -1055,7 +843,6 @@ function showCard(card, text, checkId) {
   requestAnimationFrame(() => { $("#thread").scrollTop = $("#thread").scrollHeight; });
   setTimeout(() => { $("#thread").scrollTop = $("#thread").scrollHeight; }, 320);
   if (card.consent) openSheet(checkId);
-  return el;
 }
 
 function openSheet() {
@@ -1118,14 +905,11 @@ function setCMode(m) {
   $$("#cmodeSeg button").forEach(b => b.classList.toggle("on", b.dataset.m === m));
   $("#ctlScripted").classList.toggle("hidden", m !== "scripted");
   $("#ctlLive").classList.toggle("hidden", m !== "live");
-  $(".cbody").classList.toggle("hidden", m === "echo"); $("#echoView").classList.toggle("hidden", m !== "echo");
-  S.cmode = m; document.body.dataset.cmode = m;
-  if (m === "echo") return;
   $("#liveForm").classList.toggle("hidden", !(m === "live" && S.live));
   personaCard(S.personas[m === "live" ? $("#selDecoyLive").value : $("#selDecoy").value]);
   if (m === "live" && !S.live) { $("#chat").innerHTML = `<div class="empty" style="margin:auto"><b>You are the scammer.</b><br>Start a session and text the decoy. Try a known play,<br>a new one, or a prompt-injection. The rules decide what counts.</div>`; intelIdle(); }
 }
-$("#cmodeSeg").onclick = e => { const b = e.target.closest("button"); if (b && (!S.running || b.dataset.m === "echo")) setCMode(b.dataset.m); };
+$("#cmodeSeg").onclick = e => { const b = e.target.closest("button"); if (b && !S.running) setCMode(b.dataset.m); };
 
 function chatMsg(who, text, meta, extra = "") {
   const tags = meta ? `<span class="tag ${esc(meta.mode)}">${esc(meta.mode)}${meta.ms ? " · " + esc(meta.ms) + "ms" : ""}</span>${meta.filtered ? `<span class="tag fallback" title="Reply would have unmasked the decoy, so it was replaced">filtered</span>` : ""}` : "";
@@ -1244,30 +1028,21 @@ function renderStories() {
 }
 function flashStory(id) { const el = document.getElementById("st-" + id); if (!el) return; el.scrollIntoView({behavior: "smooth", inline: "center", block: "nearest"}); el.classList.add("flash"); setTimeout(() => el.classList.remove("flash"), 1800); }
 
-/* run an async click handler at most once at a time; the button shows it is busy */
-function guard(fn) {
-  return async function (e) {
-    const b = e && e.currentTarget;
-    if (b && b.dataset.busy) return;
-    if (b) { b.dataset.busy = "1"; b.setAttribute("aria-busy", "true"); }
-    try { await fn.call(this, e); } finally { if (b) { delete b.dataset.busy; b.removeAttribute("aria-busy"); } }
-  };
-}
-$("#btnSeed").onclick = guard(async () => { try { applyState(await api("/api/seed", {body: {}})); refreshRules(); toast("Decoy history loaded into the story map.", "ok"); } catch {} });
-$("#btnReset").onclick = guard(async () => {
+$("#btnSeed").onclick = async () => { try { applyState(await api("/api/seed", {body: {}})); refreshRules(); toast("Decoy history loaded into the story map.", "ok"); } catch {} };
+$("#btnReset").onclick = async () => {
   try {
     applyState(await api("/api/reset", {body: {}}));
     S.threads = {}; S.phoneSender = null; S.pending = null; S.pendingCheck = null; closeSheet();
     S.pm = {dev: 0, cons: 0, bytes: 0}; refreshRules(); renderPrivacy();
     $("#thread").innerHTML = `<div class="empty" style="margin:auto;color:#636366">Deliver a text from the left.</div>`; phoneHeader("", false); $("#phSender").textContent = "No messages yet";
     if (!S.live) { $("#chat").innerHTML = `<div class="empty" style="margin:auto">State reset. Run a decoy session or load decoy history.</div>`; intelIdle(); }
-    resetGraph(); S.rescue = null; renderRescue(); echoReset();
+    resetGraph(); S.rescue = null; renderRescue();
     toast("Demo state reset.", "ok");
   } catch {}
-});
+};
 
 /* ================================================================ NVIDIA: graph */
-const NW = 166, NH = 66, COLS = [14, 230, 446, 662, 878], ROWS = [34, 188, 338];
+const NW = 166, NH = 66, COLS = [14, 230, 446, 662, 878], ROWS = [34, 188];
 const NODES = [
   {id: "scammer", c: 0, r: 0, l: "Scammer", s: "scripted or you", k: "ext"},
   {id: "decoy", c: 1, r: 0, l: "Decoy persona", s: "Nemotron", k: "nv"},
@@ -1279,9 +1054,6 @@ const NODES = [
   {id: "forge", c: 2, r: 1, l: "Skill forge", s: "Nemotron", k: "nv"},
   {id: "gate", c: 1, r: 1, l: "Gate", s: "4 tests · rules", k: "rules"},
   {id: "coach", c: 0, r: 1, l: "Money coach", s: "Nemotron · PNC tools", k: "coach"},
-  {id: "claim", c: 0, r: 2, l: "Claim extractor", s: "Nemotron · who it claims", k: "nv"},
-  {id: "echo", c: 1, r: 2, l: "Identity Echo", s: "asks the real person", k: "dev"},
-  {id: "label", c: 2, r: 2, l: "Ground-truth label", s: "“not me” = scam", k: "rules"},
 ];
 const N = Object.fromEntries(NODES.map(n => [n.id, {...n, x: COLS[n.c], y: ROWS[n.r]}]));
 const KCOL = {nv: "#76B900", rules: "#5AA9FF", dev: "#E20074", ext: "#FF4D5E", coach: "#EF7622"};
@@ -1289,23 +1061,20 @@ function edgePath(a, b) {
   a = N[a]; b = N[b];
   if (a.r === b.r && a.c < b.c) return `M${a.x + NW} ${a.y + NH / 2} L${b.x - 6} ${b.y + NH / 2}`;
   if (a.r === b.r && a.c > b.c) return `M${a.x} ${a.y + NH / 2} L${b.x + NW + 6} ${b.y + NH / 2}`;
-  if (a.r > b.r) return `M${a.x + NW / 2} ${a.y} L${b.x + NW / 2} ${b.y + NH + 6}`;
   return `M${a.x + NW / 2} ${a.y + NH} L${b.x + NW / 2} ${b.y - 6}`;
 }
 const EDGES = [
   ["scammer", "decoy", "texts"], ["decoy", "extract", "chat"], ["extract", "validator", "claims"], ["validator", "story", "play"],
   ["story", "matcher", "skills sync"], ["matcher", "rescue", "consent"], ["rescue", "forge", "verdict"], ["forge", "gate", "skill"],
-  ["claim", "echo", "claim"], ["echo", "label", "“not me”"], ["label", "forge", "label"],
 ];
 function buildGraph() {
   let s = `<defs><marker id="arr" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#3A4658"/></marker>
     <filter id="glow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`;
-  s += `<text class="rowlab" x="14" y="22">LEARN · DECOY LINES</text><text class="rowlab" x="14" y="${ROWS[1] - 12}">PROTECT · CUSTOMER PHONES</text><text class="rowlab" x="14" y="${ROWS[2] - 12}">IDENTITY ECHO · ASK THE REAL PERSON</text>`;
+  s += `<text class="rowlab" x="14" y="22">LEARN · DECOY LINES</text><text class="rowlab" x="14" y="${ROWS[1] - 12}">PROTECT · CUSTOMER PHONES</text>`;
   for (const [a, b, lab] of EDGES) {
     s += `<path id="e-${a}-${b}" class="edge" d="${edgePath(a, b)}" marker-end="url(#arr)"/>`;
     const A = N[a], B = N[b];
     if (A.r === B.r) { const x = (Math.min(A.x, B.x) + NW + Math.max(A.x, B.x)) / 2; s += `<text class="elab" x="${x}" y="${A.y + NH / 2 - 8}" text-anchor="middle">${lab}</text>`; }
-    else if (A.r > B.r) s += `<text class="elab" x="${A.x + NW / 2 + 9}" y="${A.y - 14}">${lab}</text>`;
     else s += `<text class="elab" x="${A.x + NW / 2 + 9}" y="${(A.y + NH + B.y) / 2 + 4}">${lab}</text>`;
   }
   const g = N.gate, m = N.matcher, yb = ROWS[1] + NH;
@@ -1347,12 +1116,7 @@ function route(ev) {
     case "Consent": return [["rescue", "e-matcher-rescue"], "k-cons"];
     case "Nemotron rescue": return [["rescue"], "k-nv"];
     case "Policy (rules)": return [["rescue"], "k-rules"];
-    case "Skill forge": return [["forge", ev._echo ? "e-label-forge" : "e-rescue-forge"], "k-nv"];
-    case "Claim extractor": return [["claim"], "k-nv"];
-    case "Identity Echo": return [["echo", ev.stage === "deliver" || ev.stage === "provenance" ? "e-claim-echo" : null], "k-dev"];
-    case "Ground-truth label": return [["label", "e-echo-label"], "k-rules"];
-    case "Carrier signals (simulated)": return [["echo"], "k-rules"];
-    case "PNC rails (simulated)": case "PNC tripwire (simulated)": case "Canary (simulated)": return [null, "k-coach"];
+    case "Skill forge": return [["forge", "e-rescue-forge"], "k-nv"];
     case "Gate (tests)": return [["gate", "e-forge-gate"], "k-rules", /^promoted/.test(ev.output || "") ? ["matcher", "e-gate-matcher"] : null];
     case "Nemotron coach": return [["coach"], "k-coach"];
     case "Finance engine (rules)": return [["coach"], "k-coach"];
@@ -1367,7 +1131,7 @@ function feedItem(ev, animate) {
   const io = (lab, v) => v == null || v === "" ? "" : `<div class="io"><em>${lab}</em>${esc(trunc(v, 260))}</div>`;
   const mode = ev.mode ? `<span class="tag ${esc(ev.mode === "on-device" ? "dev" : ev.mode === "customer" ? "fallback" : ev.mode)}">${esc(ev.mode)}</span>` : "";
   const html = `<div class="ev ${k}" ${animate ? "" : 'style="animation:none"'}><div class="et"><span class="ag">${esc(ev.agent)}</span><span class="tag">${esc(ev.stage)}</span>${ev.injection ? `<span class="tag mock">injection</span>` : ""}${ev.filtered ? `<span class="tag fallback">filtered</span>` : ""}<span class="gr"></span>${ev.ms != null ? `<span class="t">${esc(ev.ms)}ms</span>` : ""}${mode}<span class="t">${esc(ev.t)}</span></div>
-    ${ev.tool ? `<span class="tl">⟶ ${esc(ev.tool)}()</span>` : ""}${io("in", ev.input)}${io("out", ev.output)}${io("model", ev.model)}${io("note", ev.note)}${io("policy", ev.policy)}</div>`;
+    ${ev.tool ? `<span class="tl">⟶ ${esc(ev.tool)}()</span>` : ""}${io("in", ev.input)}${io("out", ev.output)}${io("note", ev.note)}${io("policy", ev.policy)}</div>`;
   $("#feed").insertAdjacentHTML("afterbegin", html);
   feedN++; $("#feedCount").textContent = feedN + " events";
   while ($("#feed").children.length > 140) $("#feed").lastElementChild.remove();
@@ -1383,11 +1147,7 @@ async function runQueue() {
   }
   qRunning = false;
 }
-let echoForgeNext = false;
 function handleEvent(ev, animate) {
-  if (ev.agent === "Ground-truth label") echoForgeNext = true;
-  else if (ev.agent === "Skill forge" && echoForgeNext) { ev._echo = true; echoForgeNext = false; }
-  else if (ev.agent === "Consent") echoForgeNext = false;
   feedItem(ev, animate);
   if (ev.agent === "system" && ev.stage === "reset") { resetGraph(); }
   const [p, , then] = route(ev);
@@ -1441,12 +1201,10 @@ function renderRescue() {
 /* polling */
 let polling = false;
 async function poll() {
-  if (polling) return;
-  if (S.offline && Date.now() - (S.pollAt || 0) < 2000) return;  // back off while the server is down
-  polling = true; S.pollAt = Date.now();
+  if (polling) return; polling = true;
   try {
     const d = await api(`/api/events?since=${S.lastEv}`, {}, true);
-    if (S.offline) { S.offline = false; toast("Reconnected to the Detour server.", "ok"); refreshRules(); pollInbox(); refreshPayments(); }
+    if (S.offline) { S.offline = false; toast("Reconnected to the Detour server.", "ok"); }
     renderLLM(d.llm); renderStats(d.stats);
     if (d.last < S.lastEv) S.lastEv = 0;
     const evs = d.events || [];
@@ -1483,9 +1241,7 @@ function renderBench(b) {
     <td>${esc(r.caught)}/${esc(r.scams)}<span class="bar"><i style="width:${pct(r.caught, r.scams)}%"></i></span></td><td>${esc(r.false_alarms)}/${esc(r.legit)}</td><td>${esc(r.unsure)}</td><td>${esc(r.hosted_calls)}</td></tr>`;
   const table = `<table class="bt blurable"><thead><tr><th>Approach</th><th>Caught</th><th>False alarm</th><th>Unsure</th><th>Hosted</th></tr></thead><tbody>
     ${groups.map(g => `<tr class="grp"><td colspan="5">${esc(g.set)}${g.campaign && g.rows.find(r => r.note) ? `<span style="text-transform:none;letter-spacing:0;font-weight:500;color:var(--dim)"> · ${esc(g.rows.find(r => r.note).note)}</span>` : ""}</td></tr>` + g.rows.map((r, i) => tr(r, g.campaign ? /once|teach/i.test(r.mode) : /rescue/i.test(r.mode))).join("")).join("")}</tbody></table>`;
-  const apiErr = Number(b.api_errors) || 0;
-  const errNote = apiErr > 0 ? `<div class="bwarn" role="status">${esc(apiErr)} hosted call${apiErr === 1 ? "" : "s"} failed (rate limit) during this run; some rows fell back to rules. Not clean Nemotron numbers.</div>` : "";
-  $("#benchBody").innerHTML = errNote + cards + table;
+  $("#benchBody").innerHTML = cards + table;
   panel.classList.toggle("masked", b.mode === "mock" && !S.benchRevealed);
 }
 $("#benchMask").onclick = () => { S.benchRevealed = true; $("#scorePanel").classList.remove("masked"); };
@@ -1651,345 +1407,6 @@ async function ask(q) {
   cv.scrollTop = lastQ ? lastQ.offsetTop - cv.offsetTop - 8 : cv.scrollHeight; asking = false;
 }
 
-/* ================================================================ IDENTITY ECHO (T-Mobile) + PNC rails
- * "Every scam pretends to be someone. We ask that someone."
- * Phone side: the claim is resolved against Linda's contacts HERE (DetourResolver); only a number hash,
- * a message hash and claim fields go to /api/echo/start. Contacts and message text never go there.
- * Simulated parties (Echo delivery, Jake's phone, carrier signals, PNC rails, canary cards, business endpoints)
- * are tagged SIMULATED in the UI. */
-const ECHO_SAMPLES = [
-  {id: "sScamJake", label: "Jake? (new number)", sender: "(682) 555-0177", text: "grandma it's jake, i got arrested, need $3000 for bail, dont tell mom"},
-  {id: "sScamJake2", label: "Jake? (new number) #2", sender: "(682) 555-0178", text: "grandma its jake again, new phone, i still need $3000 for bail tonight pls"},
-  {id: "sScamJake3", label: "Jake? (new number) #3", sender: "(682) 555-0179", text: "grandma it's jake, phone died, can you send $3000 for my bail? please hurry"},
-  {id: "sRealJake", label: "Jake (his saved number)", sender: "(214) 555-0130", known: true, text: "hey grandma its jake, can you send $40 for my textbook? ill pay u back sunday"},
-  {id: "sFakeLakeview", label: "\"Lakeview fraud dept\"", sender: "(469) 555-0187", text: "Lakeview fraud dept: your card is locked. Verify now at lakeview-secure.example or call (469) 555-0187"},
-  {id: "sRealLakeview", label: "Real Lakeview alert", sender: "(800) 555-0142", text: "Lakeview Credit Union: a $980 charge was flagged. Open the Lakeview app to review it. We will never ask for your PIN."},
-];
-const SIM = `<span class="tag sim">SIMULATED</span>`;
-const modeTag = m => m ? `<span class="tag ${esc(m)}">${esc(String(m).toUpperCase())}</span>` : "";
-const E = {gen: 0, recs: {}, lastSender: null, decoyId: null, decoySender: null, canary: null, burnBase: null,
-  inboxKey: "", jakeNote: "", payKey: "", tripKey: "", pays: [], chain: Promise.resolve()};
-
-function echoReset() {
-  E.gen++; E.recs = {}; E.lastSender = null; E.decoyId = null; E.decoySender = null; E.canary = null; E.burnBase = null;
-  E.inboxKey = "~"; E.jakeNote = ""; E.payKey = "~"; E.tripKey = "~"; E.pays = [];
-  $("#echoChat").innerHTML = `<div class="empty" style="margin:auto">After the real Jake taps <b>Not me</b>,<br>the scammer's thread goes to a decoy Linda.</div>`;
-  $("#timeBurned").textContent = ""; $("#decoyMode").innerHTML = "";
-  composerOn(false);
-  $("#cashOutCanary").disabled = true;
-  $("#canaryOut").textContent = "The decoy hands the scammer a canary card when he asks for payment details.";
-  pollInbox(); refreshPayments(); syncSignals();
-}
-
-/* ---------- Linda's phone: claim → resolve on phone → Echo */
-async function echoFlow(text, sender, cardEl, asks) {
-  if (!cardEl || !window.DetourResolver) return;
-  const gen = E.gen;
-  E.lastSender = sender || null;
-  const cb = $(".cb", cardEl) || cardEl;
-  // what goes to the claim extractor: the phone's own redaction when skills are loaded (the server redacts again)
-  let claimText = text;
-  try { if (S.rules) claimText = DetourMatcher.redact(S.rules, text, OWNER_NAMES); } catch {}
-  let cr;
-  // Linda turned Identity Echo on (consent): the redacted copy for claim extraction counts on the privacy meter
-  S.pm.bytes += DetourMatcher.byteLen(claimText) + DetourMatcher.byteLen(sender || ""); S.pm.cons++; renderPrivacy();
-  try { cr = await api("/api/echo/claim", {body: {text: claimText, sender: sender || ""}}, true); }
-  catch { return; }  // Echo unavailable: the on-device card above still stands
-  if (gen !== E.gen || !cr || !cr.claim) return;
-  const claim = cr.claim;
-  const m = DetourResolver.resolveClaim(claim, DetourResolver.CONTACTS, sender);
-  if (m.match === "none") return;
-  const isBiz = m.match === "business";
-  const short = isBiz ? String(m.name || "").split(" ")[0] : m.name;
-  const moneyAsk = !!claim.money_ask || (asks && asks.length > 0);
-  const el = document.createElement("div"); el.className = "echo";
-  el.innerHTML = `<div class="eh"><span>Identity Echo</span><span class="gr"></span><span title="Claim extractor mode">claim ${modeTag(cr.mode)}</span>${SIM}</div>
-    <div class="eclaim"></div><div class="echips"></div><div class="eout"></div>`;
-  const who = isBiz ? esc(m.name) : `${esc(m.name)}${m.relation ? ` (${esc(m.relation)})` : ""}`;
-  const chips = $(".echips", el);
-  if (m.from_real_number) chips.insertAdjacentHTML("beforeend", `<span class="chip ok" title="A hint only: text messages carry no caller attestation, so we still ask">✓ From ${esc(short)}'s saved number</span>`);
-  if (!isBiz && !moneyAsk) {
-    $(".eclaim", el).innerHTML = `Claimed: <b>${who}</b> · no money ask, so we don't bother the real ${esc(short)}.`;
-    cb.appendChild(el); scrollThread(); return;
-  }
-  const body = {customer: "linda", consented: true, target_kind: m.match, number_hash: m.number_hash, business_id: m.business_id,
-    msg_hash: await DetourResolver.msgHash(text), claim_kind: claim.kind, relation: m.relation || claim.relation || null,
-    money_ask: isBiz ? true : moneyAsk, sender: sender || ""};
-  for (const k of Object.keys(body)) if (body[k] == null) delete body[k];  // the server's fields are strings, not null
-  let rec;
-  try { rec = await api("/api/echo/start", {body}, true); } catch { rec = {status: "error"}; }
-  if (gen !== E.gen) return;
-  $(".eclaim", el).innerHTML = isBiz
-    ? `Claimed: <b>${who}</b> → asking ${esc(short)} if they sent this<span class="dots"></span>`
-    : `Claimed: <b>${who}</b> → checking with the real ${esc(short)}<span class="dots"></span>`;
-  $$("#echoChip").forEach(x => x.removeAttribute("id"));
-  el.id = "echoChip";
-  cb.appendChild(el); scrollThread();
-  const entry = {el, m, short, isBiz, sender, text, done: false};
-  if (S.cmode !== "echo" && !S.running && !S.live) setCMode("echo");
-  if (!rec || rec.status === "error") return echoOut(entry, "amb", `Couldn't reach the Echo service. Ask your family safe word before you send anything.`);
-  if (rec.status === "skipped" || rec.status === "rate_limited") {
-    $(".eclaim .dots", el)?.remove();
-    return echoOut(entry, "amb", isBiz ? `Couldn't check with ${esc(short)}.` : `Couldn't reach ${esc(short)}. Ask your safe word.`, `<small>${esc(rec.reason || "")}</small>`);
-  }
-  entry.id = rec.echo_id; E.recs[rec.echo_id] = entry;
-  if (rec.status !== "pending") { echoResult(entry, rec); return; }
-  pollInbox();
-  pollEcho(entry, gen);
-}
-function scrollThread() {
-  const go = () => { const t = $("#thread"); if (t) t.scrollTop = t.scrollHeight; };
-  requestAnimationFrame(go); setTimeout(go, 320);
-}
-function echoOut(entry, cls, head, extra = "") {
-  $(".eout", entry.el).innerHTML = `<div class="eres ${cls}">${head}${extra}</div>`;
-  scrollThread();
-}
-async function pollEcho(entry, gen) {
-  const t0 = Date.now();
-  while (!entry.done && gen === E.gen && Date.now() - t0 < 20 * 60e3) {
-    await sleep(800);
-    if (entry.done || gen !== E.gen) return;
-    try {
-      const r = await api(`/api/echo/status?echo_id=${encodeURIComponent(entry.id)}`, {}, true);
-      if (gen === E.gen && r && r.status && r.status !== "pending") echoResult(entry, r);
-    } catch {}
-  }
-}
-function echoResult(entry, rec) {
-  if (entry.done || !rec) return;
-  entry.done = true;
-  $(".eclaim .dots", entry.el)?.remove();
-  const o = rec.outcome || {}, msg = o.message || "";
-  const reasons = (rec.trust_reasons || []).filter(Boolean);
-  const payload = rec.payload ? `<details><summary>What T-Mobile sent ${SIM}</summary><pre class="jpre">${esc(JSON.stringify(rec.payload, null, 2))}</pre></details>` : "";
-  let html;
-  if (rec.status === "no_answer") {
-    html = `<div class="eres amb">No answer from ${esc(entry.short)}. No answer is never treated as safe.<ul>${(rec.fallback || []).map(f => `<li>${esc(f)}</li>`).join("")}</ul></div>`;
-  } else if (rec.status === "answered" && rec.trusted === false) {
-    const said = rec.answer === "not_me" ? `${esc(entry.short)} says this isn't him` : `${esc(entry.short)} says yes`;
-    html = `<div class="eres ${rec.answer === "not_me" ? "bad" : "amb"}">${said}, but it's an <u>untrusted answer</u>.<small>${esc(msg)}</small>
-      ${reasons.length ? `<ul>${reasons.map(r => `<li>${esc(r)}</li>`).join("")}</ul>` : ""}</div>`;
-  } else if (rec.status === "answered" && rec.answer === "not_me") {
-    const sk = o.skill || {};
-    html = `<div class="eres bad">${esc(msg || (entry.isBiz ? `${entry.short} says they didn't send this.` : `The real ${entry.short} says this isn't him.`))}</div>
-      <div class="echips">${o.diverted ? `<span class="chip tmo">Thread diverted to a decoy</span>` : ""}
-      ${(o.tripwires || []).length ? `<span class="chip bad" title="${esc(o.tripwires.join(", "))}">${o.tripwires.length} cash-out rail${o.tripwires.length === 1 ? "" : "s"} tripwired</span>` : ""}
-      ${sk.promoted ? `<span class="chip nv">skill v${esc(sk.version)} · ${esc(sk.bytes)} B → every phone</span>` : sk.reason ? `<span class="chip" title="${esc(sk.reason)}">no skill update</span>` : ""}</div>`;
-    if (o.diverted) startDecoy(rec, entry);
-  } else if (rec.status === "answered") {
-    const ok = /^✓|confirms/.test(msg) || !msg;
-    html = `<div class="eres ${ok ? "ok" : "amb"}">${esc(msg || `✓ Confirmed by ${entry.short}`)}</div>`;
-  } else {
-    html = `<div class="eres amb">${esc(rec.reason || "Echo ended without an answer. Ask your safe word.")}</div>`;
-  }
-  $(".eout", entry.el).innerHTML = html + payload;
-  scrollThread();
-  refreshPayments();
-}
-
-/* ---------- Jake's mini phone (SIMULATED Echo delivery) */
-let inboxBusy = false;
-async function pollInbox() {
-  if (inboxBusy || S.offline) return; inboxBusy = true;
-  try {
-    const r = await api("/api/echo/inbox?who=jake", {}, true);
-    renderInbox((r && r.items) || []);
-  } catch {} finally { inboxBusy = false; }
-}
-function renderInbox(items) {
-  const key = items.map(i => i.echo_id).join(",") + "|" + E.jakeNote;
-  if (key === E.inboxKey) return; E.inboxKey = key;
-  const box = $("#jakeBody");
-  if (!items.length) {
-    box.innerHTML = E.jakeNote ? `<div class="jdone">${E.jakeNote}</div>` : `<div class="jidle">No Echo prompts.<br>When someone claims to be Jake, T-Mobile asks him here.</div>`;
-    return;
-  }
-  const it = items[items.length - 1];
-  box.innerHTML = `<div class="jprompt"><div class="jt">T-Mobile · Identity Echo</div><p>${esc(it.prompt)}</p></div>
-    <div style="font-size:11px;color:#8E8E93;text-align:center">The message itself isn't shared with you.</div>
-    <button class="jbtn no" id="jakeNotMe" data-id="${esc(it.echo_id)}">Not me</button>
-    <button class="jbtn yes" id="jakeYes" data-id="${esc(it.echo_id)}">Yes, it's me</button>
-    <button class="jlink" id="jakeTimeout" data-id="${esc(it.echo_id)}">No answer (time out)</button>
-    ${items.length > 1 ? `<div class="jdone">+${items.length - 1} more waiting</div>` : ""}`;
-}
-$("#jakeBody").addEventListener("click", async e => {
-  const b = e.target.closest("button[data-id]"); if (!b) return;
-  const id = b.dataset.id, gen = E.gen;
-  $$("#jakeBody button").forEach(x => { x.disabled = true; });
-  let rec;
-  try {
-    rec = b.id === "jakeTimeout" ? await api("/api/echo/timeout", {body: {echo_id: id}})
-      : await api("/api/echo/answer", {body: {echo_id: id, answer: b.id === "jakeNotMe" ? "not_me" : "yes", who: "jake"}});
-  } catch { $$("#jakeBody button").forEach(x => { x.disabled = false; }); return; }
-  if (gen !== E.gen) return;
-  E.jakeNote = b.id === "jakeNotMe" ? `You answered <b style="color:var(--danger)">Not me</b>.<br>Grandma's thread is protected.`
-    : b.id === "jakeYes" ? `You answered <b style="color:var(--ok)">Yes, it's me</b>.` : `Prompt timed out. No answer is never treated as safe.`;
-  E.inboxKey = "~";
-  const entry = E.recs[id];
-  if (entry && rec) echoResult(entry, rec);
-  pollInbox();
-});
-
-/* ---------- diverted thread: the decoy plays Linda */
-function composerOn(on) { ["#scamText", "#scamSend", "#scamQ1", "#scamQ2"].forEach(s => { $(s).disabled = !on; }); }
-function echoMsg(who, text, tags = "") {
-  const c = $("#echoChat"); c.querySelector(".empty")?.remove();
-  c.insertAdjacentHTML("beforeend", `<div class="msg ${who === "scammer" ? "scam" : "decoy"}"><div class="who">${who === "scammer" ? "Scammer" : "Decoy Linda"} ${tags}</div><div class="tx">${esc(text)}</div></div>`);
-  c.scrollTop = c.scrollHeight; setTimeout(() => { c.scrollTop = c.scrollHeight; }, 300);
-}
-function startDecoy(rec, entry) {
-  composerOn(true);
-  E.decoyId = rec.echo_id; E.decoySender = entry.sender;
-  E.burnBase = {s: (rec.decoy && rec.decoy.time_burned_s) || 0, at: Date.now()};
-  const c = $("#echoChat"); c.innerHTML = `<div class="when" style="align-self:center;font-size:12px;color:var(--dim)">${esc(entry.sender || "Scammer")} → decoy Linda · the scammer never learns he was caught</div>`;
-  echoMsg("scammer", entry.text);
-  $("#thread") && threadAdd(`<div class="divert">Thread diverted to a decoy · replies now come from decoy Linda (SIMULATED)</div>`);
-}
-function sendScam(t) {
-  t = String(t || "").trim(); if (!t) return;
-  if (!E.decoyId) { toast("No diverted thread yet. The real person has to tap Not me first.", "warn"); return; }
-  const id = E.decoyId, gen = E.gen;
-  echoMsg("scammer", t);
-  E.chain = E.chain.then(async () => {
-    if (gen !== E.gen) return;
-    let r;
-    const note = msg => { const c = $("#echoChat"); c.insertAdjacentHTML("beforeend", `<div class="when" style="align-self:center;font-size:12px;color:var(--dim)">${esc(msg)}</div>`); c.scrollTop = c.scrollHeight; };
-    try { r = await api("/api/echo/decoy_say", {body: {echo_id: id, text: t}}, true); }
-    catch (e) { if (gen === E.gen) note(e && e.status === 429 ? "Decoy is pacing replies. Try again in a moment." : e && e.status ? `Decoy didn't reply: ${e.message}` : "Decoy Linda couldn't reply (server unreachable). Nothing was sent to the scammer."); return; }
-    if (gen !== E.gen || !r) return;
-    if (r.error) { note(`Decoy didn't reply: ${r.error}`); return; }
-    const tags = `${modeTag(r.mode)}${r.filtered ? `<span class="tag fallback" title="The safety check replaced the model's reply with a fixed stall line">filtered</span>` : ""}${r.tactic ? `<span class="tag fallback">${esc(r.tactic)}</span>` : ""}`;
-    echoMsg("decoy", r.reply || "", tags);
-    $("#decoyMode").innerHTML = modeTag(r.mode);
-    if (r.canary) {
-      E.canary = r.canary;
-      $("#echoChat").insertAdjacentHTML("beforeend", `<div class="when" style="align-self:center"><span class="chip amb" id="canaryChip">Canary card handed over · •••• ${esc(r.canary.last4)} ${SIM}</span></div>`);
-      $("#echoChat").scrollTop = 1e9; setTimeout(() => { $("#echoChat").scrollTop = 1e9; }, 300);
-      $("#cashOutCanary").disabled = false;
-      $("#canaryOut").innerHTML = `Canary •••• <b>${esc(r.canary.last4)}</b> is with the scammer. Any use of it fires with attribution.`;
-    }
-    if ((r.tripwires || []).length) toast(`Tripwired: ${r.tripwires.join(", ")}`, "ok");
-    if (r.time_burned_s != null) E.burnBase = {s: r.time_burned_s, at: Date.now()};
-    tickBurn();
-  }).catch(() => {});
-}
-function tickBurn() { if (E.burnBase) $("#timeBurned").innerHTML = `<span class="bx">Scammer </span>time burned: ${E.burnBase.s + Math.floor((Date.now() - E.burnBase.at) / 1000)}s`; }
-$("#scamComposer").addEventListener("submit", e => { e.preventDefault(); const t = $("#scamText").value; $("#scamText").value = ""; sendScam(t); });
-["#scamQ1", "#scamQ2"].forEach(s => $(s).addEventListener("click", e => {
-  const b = e.currentTarget, now = Date.now();
-  if (now - (+b.dataset.at || 0) < 700) return; b.dataset.at = now;
-  sendScam(b.dataset.t);
-}));
-
-/* ---------- carrier signals (SIMULATED, CAMARA-style) */
-const TOGS = {togSimSwap: ["jake", "sim_swap"], togForward: ["jake", "call_forwarding"], togUnknownCall: ["linda", "unknown_call"]};
-async function syncSignals(sig) {
-  try {
-    sig = sig || await api("/api/carrier/signals", {}, true);
-    for (const [id, [who, k]] of Object.entries(TOGS)) $("#" + id).checked = !!(sig[who] && sig[who][k]);
-    const tok = await api("/api/carrier/token?who=linda", {}, true);
-    $("#riskToken").textContent = JSON.stringify(tok, null, 2);
-  } catch {}
-}
-for (const [id, [who, k]] of Object.entries(TOGS)) {
-  $("#" + id).addEventListener("change", async e => {
-    const el = e.currentTarget;
-    try { await syncSignals(await api("/api/carrier/signals", {body: {who, [k]: el.checked}})); }
-    catch { el.checked = !el.checked; }
-    refreshPayments();
-  });
-}
-
-/* ---------- PNC: pending payments (SIMULATED rails) */
-function left(until) { const s = Math.max(0, Math.round(until - Date.now() / 1000)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; }
-let payBusy = false;
-async function refreshPayments() {
-  if (payBusy || S.offline) return; payBusy = true;
-  try {
-    const [p, t] = await Promise.all([api("/api/pnc/payments", {}, true), api("/api/pnc/tripwires", {}, true)]);
-    renderPays((p && p.items) || []); renderTrips((t && t.items) || []);
-  } catch {} finally { payBusy = false; }
-}
-function renderPays(items) {
-  E.pays = items;
-  const k = JSON.stringify(items);
-  if (k === E.payKey) return; E.payKey = k;
-  // T-Mobile strip mirrors the newest payment
-  const z = items[0];
-  $("#zelleStrip").innerHTML = z ? `<span class="zl">Linda's pending </span>Zelle: <b>${fmt$(z.amount)}</b> <span class="spill ${esc(z.status)}">${esc(String(z.status).toUpperCase())}</span>
-      ${z.status === "held" && z.hold_until ? `<span class="cdown" data-until="${esc(z.hold_until)}">${left(z.hold_until)}</span>` : ""}<span class="zsub" title="${esc((z.decision_reasons || []).slice(-1)[0] || "")}">${esc(z.to_handle)} · ${esc((z.decision_reasons || []).slice(-1)[0] || "")}</span>`
-    : `Linda's pending Zelle<span class="zsub">No payment yet</span>`;
-  if (!items.length) { $("#payList").innerHTML = `<div class="empty">No payments yet. Deliver the bail text on the T-Mobile lens, then send the Zelle.</div>`; return; }
-  $("#payList").innerHTML = items.map(p => {
-    const sigs = (p.signals || []).map(s => `<div class="sig ${s.weight < 0 ? "neg" : ""}"><b>${s.weight > 0 ? "+" : ""}${esc(s.weight)}</b><span class="fam">${esc(s.family)}</span><span>${esc(s.detail || s.name)}</span></div>`).join("");
-    const facts = (p.whatif && p.whatif.facts) || [];
-    return `<div class="pay ${esc(p.status)}" id="pay_${esc(p.id)}">
-      <div class="p1"><span class="amt">${fmt$(p.amount)}</span><span class="to">→ ${esc(p.to_handle)}</span><span class="spill ${esc(p.status)}">${esc(String(p.status).toUpperCase())}</span>
-        ${p.status === "held" && p.hold_until ? `<span class="cdown" data-until="${esc(p.hold_until)}">${left(p.hold_until)}</span>` : ""}</div>
-      <div class="sub2">${esc(p.rail || "Zelle (simulated)")} · ${esc(p.memo)}${p.linked_sender ? ` · linked to texts from ${esc(p.linked_sender)}` : ""}</div>
-      <h4>Which signals fired</h4>${sigs || `<div class="sig"><span>No risk signals.</span></div>`}
-      ${(p.decision_reasons || []).length ? `<h4>Decision</h4><ul>${p.decision_reasons.map(r => `<li>${esc(r)}</li>`).join("")}</ul>` : ""}
-      ${facts.length ? `<h4>Low Cash Mode what-if</h4><ul>${facts.map(f => `<li>${esc(f)}</li>`).join("")}</ul>` : ""}
-      ${p.status === "held" ? `<div class="pacts"><button class="btn sm" id="release_${esc(p.id)}" data-pid="${esc(p.id)}" data-by="customer">Release (I'm sure)</button>
-        <button class="btn sm" id="trusted_${esc(p.id)}" data-pid="${esc(p.id)}" data-by="trusted_contact">Ask my Trusted Contact</button></div>` : ""}</div>`;
-  }).join("");
-}
-function renderTrips(items) {
-  const k = JSON.stringify(items); if (k === E.tripKey) return; E.tripKey = k;
-  $("#tripList").innerHTML = items.length ? items.map(t => `<div class="trip"><b>${esc(t.account)}</b><span>${esc(t.source)}</span></div>`).join("")
-    : `<span style="color:var(--dim);font-size:13px">None yet</span>`;
-}
-$("#payList").addEventListener("click", async e => {
-  const b = e.target.closest("button[data-pid]"); if (!b) return;
-  b.disabled = true;
-  try {
-    const p = await api("/api/pnc/release", {body: {payment_id: b.dataset.pid, by: b.dataset.by}});
-    const last = (p.decision_reasons || []).slice(-1)[0];
-    if (last) toast(last, p.status === "released" ? "ok" : "warn", 6000);
-  } catch {}
-  E.payKey = "~"; refreshPayments();
-});
-async function payBail() {
-  try {
-    await api("/api/pnc/pay", {body: {to_handle: "bailhelp.jake@zelle.example", amount: 3000, memo: "Jake bail - family emergency",
-      linked_sender: E.lastSender || "(682) 555-0177"}});
-  } catch {}
-  E.payKey = "~"; await refreshPayments();
-}
-$("#payBail").addEventListener("click", guard(payBail));
-$("#payBailPnc").addEventListener("click", guard(payBail));
-
-/* ---------- canary fires → payout tripwired → k-anonymity lookup */
-const PAYOUT = "payout.x91@cashapp.example";
-$("#cashOutCanary").addEventListener("click", guard(async () => {
-  if (!E.canary) { toast("No canary card handed over yet.", "warn"); return; }
-  const out = $("#canaryOut");
-  let r;
-  try { r = await api("/api/pnc/card_auth", {body: {token: E.canary.token, merchant: "QuickCash ATM (simulated)", payout_account: PAYOUT}}, true); }
-  catch (e) { out.innerHTML = `<span style="color:var(--amber)">${e && e.status ? esc(e.message) : "Couldn't reach PNC's card rails (simulated). Nothing changed; try again."}</span>`; return; }
-  let head;
-  if (r.fired) head = `Canary •••• <b>${esc(E.canary.last4)}</b> fired at QuickCash ATM (simulated). Declined. Attributed to decoy thread from <b>${esc(r.attribution && r.attribution.scammer_number || "?")}</b>. Payout <b>${esc(PAYOUT)}</b> ${r.tripwired ? "tripwired" : "not tripwired"}.`;
-  else if (r.already_fired) head = `This canary already fired; the payout account is tripwired.`;
-  else head = esc(r.reason || "Not a canary card.");
-  out.innerHTML = head;
-  try {
-    const h = DetourMatcher.sha256Sync(new TextEncoder().encode(PAYOUT.trim().toLowerCase()));
-    const prefix = h.slice(0, 5);
-    const k = await api(`/api/pnc/kanon?prefix=${prefix}`, {}, true);
-    const range = (k && k.range) || [];
-    out.insertAdjacentHTML("beforeend", `<div style="margin-top:6px">k-anonymity check: PNC sent 5 chars: <b>${esc(prefix)}</b> · ${range.length} in range · hit ${range.includes(h) ? "✓" : "✗"} <span class="tag sim">SIMULATED</span></div>`);
-  } catch {}
-  refreshPayments();
-}));
-
-function echoBoot() {
-  pollInbox(); refreshPayments(); syncSignals();
-  setInterval(pollInbox, 1000);
-  setInterval(refreshPayments, 1500);
-  setInterval(() => { $$(".cdown[data-until]").forEach(el => { el.textContent = left(+el.dataset.until); }); tickBurn(); }, 1000);
-}
-
 /* ================================================================ boot */
 async function boot() {
   buildGraph(); resetGraph(); renderRescue(); intelIdle();
@@ -2003,18 +1420,11 @@ async function boot() {
     S.lastEv = d.last || S.lastEv;
   } catch { $("#stories").innerHTML = `<div class="empty" style="margin:auto">Server unavailable.</div>`; }
   loadSamples(); loadFinance(); refreshRules(); renderPrivacy();
-  setInterval(() => { if (!S.offline && Date.now() - S.rulesAt > 2900) refreshRules(); }, 3000);
+  setInterval(() => { if (Date.now() - S.rulesAt > 2900) refreshRules(); }, 3000);
   api("/api/benchmark/last", {}, true).then(b => renderBench(b && b.rows ? b : null)).catch(() => renderBench(null));
   setInterval(poll, 700);
-  echoBoot(); setCMode("echo");
 }
 boot();
-
-/* ---------- coverage matrix (static design property) */
-(() => { const d = document.getElementById("covDlg"); if (!d || !d.showModal) return;
-  document.getElementById("covOpen").addEventListener("click", () => { if (!d.open) d.showModal(); });
-  document.getElementById("covClose").addEventListener("click", () => d.close());
-  d.addEventListener("click", e => { if (e.target === d) d.close(); }); })();
 </script>
 </body>
 </html>

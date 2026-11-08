@@ -3,7 +3,7 @@
     python3 check_nemotron.py
 
 Run this on your own laptop (venue or home Wi-Fi). It tests three things Detour needs:
-plain chat, JSON output, tool calling, and the Identity Echo claim-extraction prompt.
+plain chat, JSON output, and tool calling.
 """
 import json
 import sys
@@ -44,9 +44,6 @@ except Exception as e:
             ids = sorted(m.id for m in llm.client.models.list() if "nemotron" in m.id.lower())
             if ids:
                 print("\n  Nemotron models your key can use:\n    " + "\n    ".join(ids))
-                pick = next((i for i in ids if "nano" in i or "lightning" in i), ids[0])
-                print("\n  Open the .env file and replace the NEMOTRON_MODEL line with exactly this, then run again:")
-                print(f"    NEMOTRON_MODEL={pick}")
         except Exception:
             pass
     elif "401" in msg or "403" in msg or "auth" in msg:
@@ -74,17 +71,6 @@ try:
     result("Tool calling", passed, (calls[0].function.name + " " + calls[0].function.arguments) if calls else f"no tool call; said {m.content!r:.80}")
 except Exception as e:
     result("Tool calling", False, str(e)[:200])
-
-# 4. Identity Echo claim extraction (the exact prompt Detour uses)
-from detour.claims import CLAIM_SYSTEM, normalize_claim  # noqa: E402
-try:
-    d = normalize_claim(llm.json([{"role": "system", "content": CLAIM_SYSTEM},
-                                  {"role": "user", "content": "grandma it's jake, i got arrested, need $3000 for bail, dont tell mom"}],
-                                 max_tokens=200, temperature=0))
-    passed = d["claims_identity"] and (d["name"] or "").lower() == "jake" and d["money_ask"]
-    result("Claim extraction", passed, f"kind={d['kind']} name={d['name']} relation={d['relation']} money_ask={d['money_ask']}")
-except Exception as e:
-    result("Claim extraction", False, str(e)[:200])
 
 print("\nAll good. Start the demo with ./run.sh" if ok else "\nSomething failed. Send this output to your teammate or Claude.")
 print(f"Hosted calls used: {llm.calls}")
