@@ -617,9 +617,9 @@ svg .lbl{font:700 12px var(--mono)}
 
   <section class="panel console">
     <div class="ph"><h2>Decoy console</h2><span class="sub">AI personas on decoy lines</span><span class="grow"></span>
-      <div class="seg" id="cmodeSeg"><button data-m="scripted" class="on">Scripted run</button><button data-m="live" class="hot">You be the scammer</button><button data-m="echo" id="segEcho">Identity Echo</button></div>
+      <div class="seg" id="cmodeSeg"><button data-m="echo" id="segEcho" class="on">Identity Echo</button><button data-m="scripted">Scripted run</button><button data-m="live" class="hot">You be the scammer</button></div>
     </div>
-    <div class="ctl" id="ctlScripted">
+    <div class="ctl hidden" id="ctlScripted">
       <select class="field" id="selScenario"></select>
       <select class="field" id="selDecoy"></select>
       <button class="btn pri" id="runDecoy">Run decoy session</button>
@@ -630,7 +630,7 @@ svg .lbl{font:700 12px var(--mono)}
       <button class="btn" id="liveEnd" disabled>End &amp; analyze</button>
       <span class="hint" id="liveTurns"></span>
     </div>
-    <div class="cbody">
+    <div class="cbody hidden">
       <div class="chatcol">
         <div class="persona" id="personaCard"><div class="pa">?</div><div><b>Pick a decoy</b><div class="pm">Synthetic persona seeded on a simulated list</div></div></div>
         <div class="chat" id="chat"><div class="empty" style="margin:auto">Run a scripted scam against a decoy,<br>or switch to <b>You be the scammer</b> and try to fool it.</div></div>
@@ -641,7 +641,7 @@ svg .lbl{font:700 12px var(--mono)}
       </div>
       <div class="intel" id="intel"></div>
     </div>
-    <div class="echo-view hidden" id="echoView">
+    <div class="echo-view" id="echoView">
       <div class="jake" id="jakePanel">
         <div class="jl"><b>Jake's phone</b><span>·</span><span class="tag sim">SIMULATED</span><span>Echo delivery</span></div>
         <div class="mini"><div class="scr">
@@ -651,7 +651,7 @@ svg .lbl{font:700 12px var(--mono)}
         </div></div>
       </div>
       <div class="ecol">
-        <div class="zstrip" id="zelleStrip"><span class="tag sim">SIMULATED</span><span class="zt">Linda's pending Zelle<span>No payment yet. Try the PNC button below.</span></span><button class="btn sm" id="payBailTmo">Linda sends $3,000 Zelle</button></div>
+        <div class="zstrip"><span class="tag sim">SIMULATED</span><span class="zt" id="zelleStrip">Linda's pending Zelle<span>No payment yet</span></span><button class="btn sm" id="payBail" title="Linda sends $3,000 Zelle for Jake's bail (simulated PNC rails)">Linda sends $3,000 Zelle</button></div>
         <div class="dthread">
           <div class="dh"><b>Diverted thread</b><span class="tag sim">SIMULATED</span><span class="gr"></span><span class="burn" id="timeBurned"></span><span id="decoyMode"></span></div>
           <div class="chat" id="echoChat"><div class="empty" style="margin:auto">After the real Jake taps <b>Not me</b>,<br>the scammer's thread goes to a decoy Linda.</div></div>
@@ -721,7 +721,7 @@ svg .lbl{font:700 12px var(--mono)}
     <div class="inds" id="inds"></div>
     <div class="panel pays" id="paysPanel">
       <div class="ph"><h2>Pending payments</h2><span class="tag sim">SIMULATED rails</span><span class="sub">2-signal gauntlet</span><span class="grow"></span>
-        <button class="btn pri sm" id="payBail">Linda sends $3,000 Zelle for Jake's bail</button></div>
+        <button class="btn pri sm" id="payBailPnc">Linda sends $3,000 Zelle for Jake's bail</button></div>
       <div class="pb">
         <div class="paylist" id="payList"><div class="empty">No payments yet. Deliver the bail text on the T-Mobile lens, then send the Zelle.</div></div>
         <div class="reality">
@@ -932,7 +932,7 @@ async function deliver(text, sender, known) {
   } else { S.pm.dev++; renderPrivacy(); }
   const cardEl = showCard(res.card, text, res.card.consent ? "local" : null);
   phoneBusy = false;
-  echoFlow(text, sender, cardEl).catch(e => console.warn("echo flow", e));
+  echoFlow(text, sender, cardEl, (res.local && res.local.asks) || []).catch(e => console.warn("echo flow", e));
 }
 function rulesVersion() { return S.rules ? S.rules.stories.map(s => s.skill.version).reduce((a, b) => a + b, 0) : 0; }
 
@@ -1064,7 +1064,7 @@ function setCMode(m) {
   $("#ctlScripted").classList.toggle("hidden", m !== "scripted");
   $("#ctlLive").classList.toggle("hidden", m !== "live");
   $(".cbody").classList.toggle("hidden", m === "echo"); $("#echoView").classList.toggle("hidden", m !== "echo");
-  $(".smap").classList.toggle("hidden", m === "echo"); S.cmode = m;
+  S.cmode = m;
   if (m === "echo") return;
   $("#liveForm").classList.toggle("hidden", !(m === "live" && S.live));
   personaCard(S.personas[m === "live" ? $("#selDecoyLive").value : $("#selDecoy").value]);
@@ -1583,6 +1583,333 @@ async function ask(q) {
   cv.scrollTop = lastQ ? lastQ.offsetTop - cv.offsetTop - 8 : cv.scrollHeight; asking = false;
 }
 
+/* ================================================================ IDENTITY ECHO (T-Mobile) + PNC rails
+ * "Every scam pretends to be someone. We ask that someone."
+ * Phone side: the claim is resolved against Linda's contacts HERE (DetourResolver); only a number hash,
+ * a message hash and claim fields go to /api/echo/start. Contacts and message text never go there.
+ * Simulated parties (Echo delivery, Jake's phone, carrier signals, PNC rails, canary cards, business endpoints)
+ * are tagged SIMULATED in the UI. */
+const ECHO_SAMPLES = [
+  {id: "sScamJake", label: "Jake? (new number)", sender: "(682) 555-0177", text: "grandma it's jake, i got arrested, need $3000 for bail, dont tell mom"},
+  {id: "sScamJake2", label: "Jake? (new number) #2", sender: "(682) 555-0178", text: "grandma its jake again, new phone, i still need $3000 for bail tonight pls"},
+  {id: "sScamJake3", label: "Jake? (new number) #3", sender: "(682) 555-0179", text: "grandma it's jake, phone died, can you send $3000 for my bail? please hurry"},
+  {id: "sRealJake", label: "Jake (his saved number)", sender: "(214) 555-0130", known: true, text: "hey grandma its jake, can you send $40 for my textbook? ill pay u back sunday"},
+  {id: "sFakeLakeview", label: "\"Lakeview fraud dept\"", sender: "(469) 555-0187", text: "Lakeview fraud dept: your card is locked. Verify now at lakeview-secure.example or call (469) 555-0187"},
+  {id: "sRealLakeview", label: "Real Lakeview alert", sender: "(800) 555-0142", text: "Lakeview Credit Union: a $980 charge was flagged. Open the Lakeview app to review it. We will never ask for your PIN."},
+];
+const SIM = `<span class="tag sim">SIMULATED</span>`;
+const modeTag = m => m ? `<span class="tag ${esc(m)}">${esc(String(m).toUpperCase())}</span>` : "";
+const E = {gen: 0, recs: {}, lastSender: null, decoyId: null, decoySender: null, canary: null, burnBase: null,
+  inboxKey: "", jakeNote: "", payKey: "", tripKey: "", pays: [], chain: Promise.resolve()};
+
+function echoReset() {
+  E.gen++; E.recs = {}; E.lastSender = null; E.decoyId = null; E.decoySender = null; E.canary = null; E.burnBase = null;
+  E.inboxKey = "~"; E.jakeNote = ""; E.payKey = "~"; E.tripKey = "~"; E.pays = [];
+  $("#echoChat").innerHTML = `<div class="empty" style="margin:auto">After the real Jake taps <b>Not me</b>,<br>the scammer's thread goes to a decoy Linda.</div>`;
+  $("#timeBurned").textContent = ""; $("#decoyMode").innerHTML = "";
+  composerOn(false);
+  $("#cashOutCanary").disabled = true;
+  $("#canaryOut").textContent = "The decoy hands the scammer a canary card when he asks for payment details.";
+  pollInbox(); refreshPayments(); syncSignals();
+}
+
+/* ---------- Linda's phone: claim → resolve on phone → Echo */
+async function echoFlow(text, sender, cardEl, asks) {
+  if (!cardEl || !window.DetourResolver) return;
+  const gen = E.gen;
+  E.lastSender = sender || null;
+  const cb = $(".cb", cardEl) || cardEl;
+  // what goes to the claim extractor: the phone's own redaction when skills are loaded (the server redacts again)
+  let claimText = text;
+  try { if (S.rules) claimText = DetourMatcher.redact(S.rules, text, OWNER_NAMES); } catch {}
+  let cr;
+  try { cr = await api("/api/echo/claim", {body: {text: claimText, sender: sender || ""}}, true); }
+  catch { return; }  // Echo unavailable: the on-device card above still stands
+  if (gen !== E.gen || !cr || !cr.claim) return;
+  const claim = cr.claim;
+  const m = DetourResolver.resolveClaim(claim, DetourResolver.CONTACTS, sender);
+  if (m.match === "none") return;
+  const isBiz = m.match === "business";
+  const short = isBiz ? String(m.name || "").split(" ")[0] : m.name;
+  const moneyAsk = !!claim.money_ask || (asks && asks.length > 0);
+  const el = document.createElement("div"); el.className = "echo";
+  el.innerHTML = `<div class="eh"><span>Identity Echo</span><span class="gr"></span><span title="Claim extractor mode">claim ${modeTag(cr.mode)}</span>${SIM}</div>
+    <div class="eclaim"></div><div class="echips"></div><div class="eout"></div>`;
+  const who = isBiz ? esc(m.name) : `${esc(m.name)}${m.relation ? ` (${esc(m.relation)})` : ""}`;
+  const chips = $(".echips", el);
+  if (m.from_real_number) chips.insertAdjacentHTML("beforeend", `<span class="chip ok" title="A hint only: text messages carry no caller attestation, so we still ask">✓ From ${esc(short)}'s saved number</span>`);
+  if (!isBiz && !moneyAsk) {
+    $(".eclaim", el).innerHTML = `Claimed: <b>${who}</b> · no money ask, so we don't bother the real ${esc(short)}.`;
+    cb.appendChild(el); scrollThread(); return;
+  }
+  const body = {customer: "linda", consented: true, target_kind: m.match, number_hash: m.number_hash, business_id: m.business_id,
+    msg_hash: await DetourResolver.msgHash(text), claim_kind: claim.kind, relation: m.relation || claim.relation || null,
+    money_ask: isBiz ? true : moneyAsk, sender: sender || ""};
+  for (const k of Object.keys(body)) if (body[k] == null) delete body[k];  // the server's fields are strings, not null
+  let rec;
+  try { rec = await api("/api/echo/start", {body}, true); } catch { rec = {status: "error"}; }
+  if (gen !== E.gen) return;
+  $(".eclaim", el).innerHTML = isBiz
+    ? `Claimed: <b>${who}</b> → asking ${esc(short)} if they sent this<span class="dots"></span>`
+    : `Claimed: <b>${who}</b> → checking with the real ${esc(short)}<span class="dots"></span>`;
+  $$("#echoChip").forEach(x => x.removeAttribute("id"));
+  el.id = "echoChip";
+  cb.appendChild(el); scrollThread();
+  const entry = {el, m, short, isBiz, sender, text, done: false};
+  if (S.cmode !== "echo" && !S.running && !S.live) setCMode("echo");
+  if (!rec || rec.status === "error") return echoOut(entry, "amb", `Couldn't reach the Echo service. Ask your family safe word before you send anything.`);
+  if (rec.status === "skipped" || rec.status === "rate_limited") {
+    $(".eclaim .dots", el)?.remove();
+    return echoOut(entry, "amb", isBiz ? `Couldn't check with ${esc(short)}.` : `Couldn't reach ${esc(short)}. Ask your safe word.`, `<small>${esc(rec.reason || "")}</small>`);
+  }
+  entry.id = rec.echo_id; E.recs[rec.echo_id] = entry;
+  if (rec.status !== "pending") { echoResult(entry, rec); return; }
+  pollInbox();
+  pollEcho(entry, gen);
+}
+function scrollThread() { requestAnimationFrame(() => { $("#thread").scrollTop = $("#thread").scrollHeight; }); }
+function echoOut(entry, cls, head, extra = "") {
+  $(".eout", entry.el).innerHTML = `<div class="eres ${cls}">${head}${extra}</div>`;
+  scrollThread();
+}
+async function pollEcho(entry, gen) {
+  const t0 = Date.now();
+  while (!entry.done && gen === E.gen && Date.now() - t0 < 20 * 60e3) {
+    await sleep(800);
+    if (entry.done || gen !== E.gen) return;
+    try {
+      const r = await api(`/api/echo/status?echo_id=${encodeURIComponent(entry.id)}`, {}, true);
+      if (gen === E.gen && r && r.status && r.status !== "pending") echoResult(entry, r);
+    } catch {}
+  }
+}
+function echoResult(entry, rec) {
+  if (entry.done || !rec) return;
+  entry.done = true;
+  $(".eclaim .dots", entry.el)?.remove();
+  const o = rec.outcome || {}, msg = o.message || "";
+  const reasons = (rec.trust_reasons || []).filter(Boolean);
+  const payload = rec.payload ? `<details><summary>What T-Mobile sent ${SIM}</summary><pre class="jpre">${esc(JSON.stringify(rec.payload, null, 2))}</pre></details>` : "";
+  let html;
+  if (rec.status === "no_answer") {
+    html = `<div class="eres amb">No answer from ${esc(entry.short)}. No answer is never treated as safe.<ul>${(rec.fallback || []).map(f => `<li>${esc(f)}</li>`).join("")}</ul></div>`;
+  } else if (rec.status === "answered" && rec.trusted === false) {
+    const said = rec.answer === "not_me" ? `${esc(entry.short)} says this isn't him` : `${esc(entry.short)} says yes`;
+    html = `<div class="eres ${rec.answer === "not_me" ? "bad" : "amb"}">${said}, but it's an <u>untrusted answer</u>.<small>${esc(msg)}</small>
+      ${reasons.length ? `<ul>${reasons.map(r => `<li>${esc(r)}</li>`).join("")}</ul>` : ""}</div>`;
+  } else if (rec.status === "answered" && rec.answer === "not_me") {
+    const sk = o.skill || {};
+    html = `<div class="eres bad">${esc(msg || (entry.isBiz ? `${entry.short} says they didn't send this.` : `The real ${entry.short} says this isn't him.`))}</div>
+      <div class="echips">${o.diverted ? `<span class="chip tmo">Thread diverted to a decoy</span>` : ""}
+      ${(o.tripwires || []).length ? `<span class="chip bad" title="${esc(o.tripwires.join(", "))}">${o.tripwires.length} cash-out rail${o.tripwires.length === 1 ? "" : "s"} tripwired</span>` : ""}
+      ${sk.promoted ? `<span class="chip nv">skill v${esc(sk.version)} · ${esc(sk.bytes)} B → every phone</span>` : sk.reason ? `<span class="chip" title="${esc(sk.reason)}">no skill update</span>` : ""}</div>`;
+    if (o.diverted) startDecoy(rec, entry);
+  } else if (rec.status === "answered") {
+    const ok = /^✓|confirms/.test(msg) || !msg;
+    html = `<div class="eres ${ok ? "ok" : "amb"}">${esc(msg || `✓ Confirmed by ${entry.short}`)}</div>`;
+  } else {
+    html = `<div class="eres amb">${esc(rec.reason || "Echo ended without an answer. Ask your safe word.")}</div>`;
+  }
+  $(".eout", entry.el).innerHTML = html + payload;
+  scrollThread();
+  refreshPayments();
+}
+
+/* ---------- Jake's mini phone (SIMULATED Echo delivery) */
+let inboxBusy = false;
+async function pollInbox() {
+  if (inboxBusy) return; inboxBusy = true;
+  try {
+    const r = await api("/api/echo/inbox?who=jake", {}, true);
+    renderInbox((r && r.items) || []);
+  } catch {} finally { inboxBusy = false; }
+}
+function renderInbox(items) {
+  const key = items.map(i => i.echo_id).join(",") + "|" + E.jakeNote;
+  if (key === E.inboxKey) return; E.inboxKey = key;
+  const box = $("#jakeBody");
+  if (!items.length) {
+    box.innerHTML = E.jakeNote ? `<div class="jdone">${E.jakeNote}</div>` : `<div class="jidle">No Echo prompts.<br>When someone claims to be Jake,<br>T-Mobile asks him here.</div>`;
+    return;
+  }
+  const it = items[items.length - 1];
+  box.innerHTML = `<div class="jprompt"><div class="jt">T-Mobile · Identity Echo</div><p>${esc(it.prompt)}</p></div>
+    <div style="font-size:11px;color:#8E8E93;text-align:center">The message itself isn't shared with you.</div>
+    <button class="jbtn no" id="jakeNotMe" data-id="${esc(it.echo_id)}">Not me</button>
+    <button class="jbtn yes" id="jakeYes" data-id="${esc(it.echo_id)}">Yes, it's me</button>
+    <button class="jlink" id="jakeTimeout" data-id="${esc(it.echo_id)}">No answer (time out)</button>
+    ${items.length > 1 ? `<div class="jdone">+${items.length - 1} more waiting</div>` : ""}`;
+}
+$("#jakeBody").addEventListener("click", async e => {
+  const b = e.target.closest("button[data-id]"); if (!b) return;
+  const id = b.dataset.id, gen = E.gen;
+  $$("#jakeBody button").forEach(x => { x.disabled = true; });
+  let rec;
+  try {
+    rec = b.id === "jakeTimeout" ? await api("/api/echo/timeout", {body: {echo_id: id}})
+      : await api("/api/echo/answer", {body: {echo_id: id, answer: b.id === "jakeNotMe" ? "not_me" : "yes", who: "jake"}});
+  } catch { $$("#jakeBody button").forEach(x => { x.disabled = false; }); return; }
+  if (gen !== E.gen) return;
+  E.jakeNote = b.id === "jakeNotMe" ? `You answered <b style="color:var(--danger)">Not me</b>.<br>Grandma's thread is protected.`
+    : b.id === "jakeYes" ? `You answered <b style="color:var(--ok)">Yes, it's me</b>.` : `Prompt timed out. No answer is never treated as safe.`;
+  E.inboxKey = "~";
+  const entry = E.recs[id];
+  if (entry && rec) echoResult(entry, rec);
+  pollInbox();
+});
+
+/* ---------- diverted thread: the decoy plays Linda */
+function composerOn(on) { ["#scamText", "#scamSend", "#scamQ1", "#scamQ2"].forEach(s => { $(s).disabled = !on; }); }
+function echoMsg(who, text, tags = "") {
+  const c = $("#echoChat"); c.querySelector(".empty")?.remove();
+  c.insertAdjacentHTML("beforeend", `<div class="msg ${who === "scammer" ? "scam" : "decoy"}"><div class="who">${who === "scammer" ? "Scammer" : "Decoy Linda"} ${tags}</div><div class="tx">${esc(text)}</div></div>`);
+  c.scrollTop = c.scrollHeight;
+}
+function startDecoy(rec, entry) {
+  composerOn(true);
+  E.decoyId = rec.echo_id; E.decoySender = entry.sender;
+  E.burnBase = {s: (rec.decoy && rec.decoy.time_burned_s) || 0, at: Date.now()};
+  const c = $("#echoChat"); c.innerHTML = `<div class="when" style="align-self:center;font-size:12px;color:var(--dim)">${esc(entry.sender || "Scammer")} → decoy Linda · the scammer never learns he was caught</div>`;
+  echoMsg("scammer", entry.text);
+  $("#thread") && threadAdd(`<div class="divert">Thread diverted to a decoy · replies now come from decoy Linda (SIMULATED)</div>`);
+}
+function sendScam(t) {
+  t = String(t || "").trim(); if (!t) return;
+  if (!E.decoyId) { toast("No diverted thread yet. The real person has to tap Not me first.", "warn"); return; }
+  const id = E.decoyId, gen = E.gen;
+  echoMsg("scammer", t);
+  E.chain = E.chain.then(async () => {
+    if (gen !== E.gen) return;
+    let r;
+    try { r = await api("/api/echo/decoy_say", {body: {echo_id: id, text: t}}); } catch { return; }
+    if (gen !== E.gen || !r || r.error) return;
+    const tags = `${modeTag(r.mode)}${r.tactic ? `<span class="tag fallback">${esc(r.tactic)}</span>` : ""}`;
+    echoMsg("decoy", r.reply || "", tags);
+    $("#decoyMode").innerHTML = modeTag(r.mode);
+    if (r.canary) {
+      E.canary = r.canary;
+      $("#echoChat").insertAdjacentHTML("beforeend", `<div class="when" style="align-self:center"><span class="chip amb" id="canaryChip">Canary card handed over · •••• ${esc(r.canary.last4)} ${SIM}</span></div>`);
+      $("#echoChat").scrollTop = 1e9;
+      $("#cashOutCanary").disabled = false;
+      $("#canaryOut").innerHTML = `Canary •••• <b>${esc(r.canary.last4)}</b> is with the scammer. Any use of it fires with attribution.`;
+    }
+    if ((r.tripwires || []).length) toast(`Tripwired: ${r.tripwires.join(", ")}`, "ok");
+    if (r.time_burned_s != null) E.burnBase = {s: r.time_burned_s, at: Date.now()};
+    tickBurn();
+  }).catch(() => {});
+}
+function tickBurn() { if (E.burnBase) $("#timeBurned").textContent = `Scammer time burned: ${E.burnBase.s + Math.floor((Date.now() - E.burnBase.at) / 1000)}s`; }
+$("#scamComposer").addEventListener("submit", e => { e.preventDefault(); const t = $("#scamText").value; $("#scamText").value = ""; sendScam(t); });
+["#scamQ1", "#scamQ2"].forEach(s => $(s).addEventListener("click", e => sendScam(e.currentTarget.dataset.t)));
+
+/* ---------- carrier signals (SIMULATED, CAMARA-style) */
+const TOGS = {togSimSwap: ["jake", "sim_swap"], togForward: ["jake", "call_forwarding"], togUnknownCall: ["linda", "unknown_call"]};
+async function syncSignals(sig) {
+  try {
+    sig = sig || await api("/api/carrier/signals", {}, true);
+    for (const [id, [who, k]] of Object.entries(TOGS)) $("#" + id).checked = !!(sig[who] && sig[who][k]);
+    const tok = await api("/api/carrier/token?who=linda", {}, true);
+    $("#riskToken").textContent = JSON.stringify(tok, null, 2);
+  } catch {}
+}
+for (const [id, [who, k]] of Object.entries(TOGS)) {
+  $("#" + id).addEventListener("change", async e => {
+    const el = e.currentTarget;
+    try { await syncSignals(await api("/api/carrier/signals", {body: {who, [k]: el.checked}})); }
+    catch { el.checked = !el.checked; }
+    refreshPayments();
+  });
+}
+
+/* ---------- PNC: pending payments (SIMULATED rails) */
+function left(until) { const s = Math.max(0, Math.round(until - Date.now() / 1000)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; }
+let payBusy = false;
+async function refreshPayments() {
+  if (payBusy) return; payBusy = true;
+  try {
+    const [p, t] = await Promise.all([api("/api/pnc/payments", {}, true), api("/api/pnc/tripwires", {}, true)]);
+    renderPays((p && p.items) || []); renderTrips((t && t.items) || []);
+  } catch {} finally { payBusy = false; }
+}
+function renderPays(items) {
+  E.pays = items;
+  const k = JSON.stringify(items);
+  if (k === E.payKey) return; E.payKey = k;
+  // T-Mobile strip mirrors the newest payment
+  const z = items[0];
+  $("#zelleStrip").innerHTML = z ? `Linda's pending Zelle: <b>${fmt$(z.amount)}</b> <span class="spill ${esc(z.status)}">${esc(String(z.status).toUpperCase())}</span>
+      ${z.status === "held" && z.hold_until ? `<span class="cdown" data-until="${esc(z.hold_until)}">${left(z.hold_until)}</span>` : ""}<span>${esc(z.to_handle)} · ${esc((z.decision_reasons || []).slice(-1)[0] || "")}</span>`
+    : `Linda's pending Zelle<span>No payment yet</span>`;
+  if (!items.length) { $("#payList").innerHTML = `<div class="empty">No payments yet. Deliver the bail text on the T-Mobile lens, then send the Zelle.</div>`; return; }
+  $("#payList").innerHTML = items.map(p => {
+    const sigs = (p.signals || []).map(s => `<div class="sig ${s.weight < 0 ? "neg" : ""}"><b>${s.weight > 0 ? "+" : ""}${esc(s.weight)}</b><span class="fam">${esc(s.family)}</span><span>${esc(s.detail || s.name)}</span></div>`).join("");
+    const facts = (p.whatif && p.whatif.facts) || [];
+    return `<div class="pay ${esc(p.status)}" id="pay_${esc(p.id)}">
+      <div class="p1"><span class="amt">${fmt$(p.amount)}</span><span class="to">→ ${esc(p.to_handle)}</span><span class="spill ${esc(p.status)}">${esc(String(p.status).toUpperCase())}</span>
+        ${p.status === "held" && p.hold_until ? `<span class="cdown" data-until="${esc(p.hold_until)}">${left(p.hold_until)}</span>` : ""}</div>
+      <div class="sub2">${esc(p.rail || "Zelle (simulated)")} · ${esc(p.memo)}${p.linked_sender ? ` · linked to texts from ${esc(p.linked_sender)}` : ""}</div>
+      <h4>Which signals fired</h4>${sigs || `<div class="sig"><span>No risk signals.</span></div>`}
+      ${(p.decision_reasons || []).length ? `<h4>Decision</h4><ul>${p.decision_reasons.map(r => `<li>${esc(r)}</li>`).join("")}</ul>` : ""}
+      ${facts.length ? `<h4>Low Cash Mode what-if</h4><ul>${facts.map(f => `<li>${esc(f)}</li>`).join("")}</ul>` : ""}
+      ${p.status === "held" ? `<div class="pacts"><button class="btn sm" id="release_${esc(p.id)}" data-pid="${esc(p.id)}" data-by="customer">Release (I'm sure)</button>
+        <button class="btn sm" id="trusted_${esc(p.id)}" data-pid="${esc(p.id)}" data-by="trusted_contact">Ask my Trusted Contact</button></div>` : ""}</div>`;
+  }).join("");
+}
+function renderTrips(items) {
+  const k = JSON.stringify(items); if (k === E.tripKey) return; E.tripKey = k;
+  $("#tripList").innerHTML = items.length ? items.map(t => `<div class="trip"><b>${esc(t.account)}</b><span>${esc(t.source)}</span></div>`).join("")
+    : `<span style="color:var(--dim);font-size:13px">None yet</span>`;
+}
+$("#payList").addEventListener("click", async e => {
+  const b = e.target.closest("button[data-pid]"); if (!b) return;
+  b.disabled = true;
+  try {
+    const p = await api("/api/pnc/release", {body: {payment_id: b.dataset.pid, by: b.dataset.by}});
+    const last = (p.decision_reasons || []).slice(-1)[0];
+    if (last) toast(last, p.status === "released" ? "ok" : "warn", 6000);
+  } catch {}
+  E.payKey = "~"; refreshPayments();
+});
+async function payBail() {
+  try {
+    await api("/api/pnc/pay", {body: {to_handle: "bailhelp.jake@zelle.example", amount: 3000, memo: "Jake bail - family emergency",
+      linked_sender: E.lastSender || "(682) 555-0177"}});
+  } catch {}
+  E.payKey = "~"; await refreshPayments();
+}
+$("#payBail").addEventListener("click", payBail);
+$("#payBailPnc").addEventListener("click", payBail);
+
+/* ---------- canary fires → payout tripwired → k-anonymity lookup */
+const PAYOUT = "payout.x91@cashapp.example";
+$("#cashOutCanary").addEventListener("click", async () => {
+  if (!E.canary) { toast("No canary card handed over yet.", "warn"); return; }
+  const out = $("#canaryOut");
+  let r;
+  try { r = await api("/api/pnc/card_auth", {body: {token: E.canary.token, merchant: "QuickCash ATM (simulated)", payout_account: PAYOUT}}); }
+  catch { return; }
+  let head;
+  if (r.fired) head = `Canary •••• <b>${esc(E.canary.last4)}</b> fired at QuickCash ATM (simulated). Declined. Attributed to decoy thread from <b>${esc(r.attribution && r.attribution.scammer_number || "?")}</b>. Payout <b>${esc(PAYOUT)}</b> ${r.tripwired ? "tripwired" : "not tripwired"}.`;
+  else if (r.already_fired) head = `This canary already fired; the payout account is tripwired.`;
+  else head = esc(r.reason || "Not a canary card.");
+  out.innerHTML = head;
+  try {
+    const h = DetourMatcher.sha256Sync(new TextEncoder().encode(PAYOUT.trim().toLowerCase()));
+    const prefix = h.slice(0, 5);
+    const k = await api(`/api/pnc/kanon?prefix=${prefix}`, {}, true);
+    const range = (k && k.range) || [];
+    out.insertAdjacentHTML("beforeend", `<div style="margin-top:6px">k-anonymity check: PNC sent 5 chars: <b>${esc(prefix)}</b> · ${range.length} in range · hit ${range.includes(h) ? "✓" : "✗"} <span class="tag sim">SIMULATED</span></div>`);
+  } catch {}
+  refreshPayments();
+});
+
+function echoBoot() {
+  pollInbox(); refreshPayments(); syncSignals();
+  setInterval(pollInbox, 1000);
+  setInterval(refreshPayments, 1500);
+  setInterval(() => { $$(".cdown[data-until]").forEach(el => { el.textContent = left(+el.dataset.until); }); tickBurn(); }, 1000);
+}
+
 /* ================================================================ boot */
 async function boot() {
   buildGraph(); resetGraph(); renderRescue(); intelIdle();
@@ -1599,7 +1926,7 @@ async function boot() {
   setInterval(() => { if (Date.now() - S.rulesAt > 2900) refreshRules(); }, 3000);
   api("/api/benchmark/last", {}, true).then(b => renderBench(b && b.rows ? b : null)).catch(() => renderBench(null));
   setInterval(poll, 700);
-  echoBoot();
+  echoBoot(); setCMode("echo");
 }
 boot();
 </script>
